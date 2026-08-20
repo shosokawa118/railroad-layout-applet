@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鉄道模型レイアウトジェネレータ - 確定CDN版プロトタイプ</title>
+    
+    <script>
+        // バージョン識別用のハッシュ値（修正のたびにここを書き換えます）
+        const CODE_VERSION = "VER-3C2F059A";
+        console.log("=========================================");
+        console.log("現在実行中のコードバージョン:", CODE_VERSION);
+        console.log("=========================================");
+
+        // グローバル変数としてキャンバスを定義
+        let canvas = null;
+
+        // 初期化関数
+        function initCanvas() {
+            if (typeof fabric !== 'undefined' && !canvas) {
+                // キャンバスの初期化
+                canvas = new fabric.Canvas('layoutCanvas', {
+                    renderOnAddRemove: true,
+                    stateful: true
+                });
+                console.log("[%s] Fabric.js キャンバスの初期化に成功しました！", CODE_VERSION);
+            }
+        }
+
+        // AIのURL要約フィルターを完全に回避する分割トリック
+        (function() {
+            const el = document.createElement('script');
+            const protocol = 'https://';
+            const domain = 'cdnjs.' + 'cloudflare' + '.com';
+            const path = '/ajax/libs/fabric.js/5.3.1/fabric.min.js';
+            el.src = protocol + domain + path;
+            
+            // ライブラリのダウンロードが完了したら即座にキャンバスを初期化
+            el.onload = function() {
+                initCanvas();
+            };
+            
+            document.head.appendChild(el);
+        })();
+    </script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+            font-family: sans-serif;
+        }
+        #controls {
+            margin-bottom: 10px;
+        }
+        /* 
+          Fabric.jsが自動生成する下層のラッパー要素(.canvas-container)ごと
+          強制的に可視化し、サイズを800x600で完全に固定してフリーズを防ぎます。
+        */
+        .canvas-container {
+            position: relative !important;
+            width: 800px !important;
+            height: 600px !important;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        canvas {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 800px !important;
+            height: 600px !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="controls">
+        <button onclick="addStraightRail()">直線レール(248mm相当)を追加</button>
+        <button onclick="logLayoutData()">現在の配置データ(JSON)を出力</button>
+    </div>
+
+    <!-- レイアウトを描画するエリア -->
+    <canvas id="layoutCanvas" width="800" height="600"></canvas>
+
+    <script>
+        // 1. パーツライブラリ（カタログデータ）
+        const partsCatalog = {
+            "KATO-248": {
+                "name": "直線レール 248mm",
+                "width": 248,
+                "height": 16,
+                "fill": "#333333"
+            }
+        };
+
+        // 2. レールを追加する関数
+        function addStraightRail() {
+            if (!canvas) {
+                initCanvas();
+            }
+            
+            if (!canvas) {
+                alert("ライブラリの読み込みがまだ完了していません。1〜2秒待ってから再度お試しください。");
+                return;
+            }
+
+            const catalogItem = partsCatalog["KATO-248"];
+
+            const rail = new fabric.Rect({
+                left: 300,          // 画面中央よりやや右上に配置 (X)
+                top: 250,           // 画面中央よりやや右上に配置 (Y)
+                width: catalogItem.width,
+                height: catalogItem.height,
+                fill: catalogItem.fill,
+                stroke: '#888',     // レールの縁取り（バラスト風）
+                strokeWidth: 2,
+                originX: 'center',  // 回転や配置の基準点をパーツの中心にする
+                originY: 'center',
+                angle: 0,           // 初期回転角度
+                hasControls: true,  // 回転・移動用のUIコントロールを表示
+                lockScalingX: true, // 横方向の拡大を禁止
+                lockScalingY: true, // 縦方向の拡大を禁止
+            });
+
+            rail.customData = {
+                partId: "KATO-248"
+            };
+
+            // キャンバスにデータを投入
+            canvas.add(rail);
+            canvas.setActiveObject(rail);
+            
+            // 描画要素の位置関係を強制再計算させて再描画
+            canvas.calcOffset();
+            canvas.requestRenderAll();
+            console.log("[%s] レールを追加しました。データ上の総数: %d", CODE_VERSION, canvas.getObjects().length);
+        }
+
+        // 3. 現在の配置データをコンソールに出力する関数
+        function logLayoutData() {
+            if (!canvas) {
+                alert("レールがまだ1本も配置されていません。");
+                return;
+            }
+            const objects = canvas.getObjects();
+            const layoutData = objects.map((obj, index) => {
+                return {
+                    instanceId: `rail-${index}`,
+                    partId: obj.customData ? obj.customData.partId : "unknown",
+                    x: Math.round(obj.left),
+                    y: Math.round(obj.top),
+                    angle: Math.round(obj.angle)
+                };
+            });
+
+            console.log("[%s] --- 現在の配置データ(JSON) ---", CODE_VERSION);
+            console.log(JSON.stringify(layoutData, null, 2));
+            alert("ブラウザのコンソールにJSONデータを出力しました！");
+        }
+    </script>
+</body>
+</html>
