@@ -3,36 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鉄道模型レイアウトジェネレータ - 左右対称カーブ修正版</title>
+    <title>鉄道模型レイアウトジェネレータ - 分離版</title>
     
     <script>
-        // バージョン識別用のハッシュ値（確実に更新されたかコンソールで確認用）
-        const CODE_VERSION = "VER-E3F4G5H6";
+        const CODE_VERSION = "VER-SPLIT-A1";
         console.log("=========================================");
-        console.log("現在実行中のコードバージョン:", CODE_VERSION);
+        console.log("ビュー（HTML）バージョン:", CODE_VERSION);
         console.log("=========================================");
 
         let canvas = null;
 
-        // 初期化関数
         function initCanvas() {
             if (typeof fabric !== 'undefined' && !canvas) {
                 canvas = new fabric.Canvas('layoutCanvas', {
                     renderOnAddRemove: true,
                     stateful: true
                 });
-                
-                // ドラッグして手を離した瞬間にスナップ処理を実行
+                // ロジック側のイベントと接続
                 canvas.on('object:modified', function(options) {
-                    const movedRail = options.target;
-                    applySnapLogic(movedRail);
+                    if (typeof applySnapAndJointLogic === 'function') {
+                        applySnapAndJointLogic(options.target);
+                    }
                 });
-
-                console.log("[%s] Fabric.js キャンバスの初期化に成功しました！", CODE_VERSION);
+                console.log("[%s] Canvas初期化成功", CODE_VERSION);
             }
         }
 
-        // AIのURL要約フィルターを完全に回避する分割トリック
+        // AIのURL要約フィルター回避トリック
         (function() {
             const el = document.createElement('script');
             const protocol = 'https://';
@@ -44,6 +41,9 @@
         })();
     </script>
 
+    <!-- ★分離した配置ロジックファイルをここで読み込む -->
+    <script src="layout-engine.js"></script>
+
     <style>
         body { margin: 0; padding: 10px; background-color: #f0f0f0; font-family: sans-serif; }
         #controls { margin-bottom: 10px; }
@@ -54,157 +54,12 @@
 <body>
 
     <div id="controls">
-        <button onclick="addRail('KATO-248')">直線 S248 を追加</button>
-        <button onclick="addRail('KATO-R315-45')">カーブ R315-45度 を追加</button>
-        <button onclick="logLayoutData()">現在の配置データ(JSON)を出力</button>
+        <button onclick="addRailToCanvas('KATO-248')">直線 S248 を追加</button>
+        <button onclick="addRailToCanvas('KATO-R315-45')">カーブ R315-45度 を追加</button>
+        <button onclick="exportLayoutJSON()">現在の結合データ(JSON)を出力</button>
     </div>
 
     <canvas id="layoutCanvas" width="800" height="600"></canvas>
 
-    <script>
-        // 1. パーツライブラリ（カタログデータ）
-        // ユーザー様のご指摘通り、ノード1(右端)の向きを右斜め下(22.5度)に修正
-        const partsCatalog = {
-            "KATO-248": {
-                "type": "straight",
-                "name": "直線レール 248mm",
-                "width": 248, "height": 16, "fill": "#333333",
-                "nodes": [
-                    { "id": 0, "relX": -124, "relY": 0, "facingAngle": 180 }, // 左端
-                    { "id": 1, "relX": 124,  "relY": 0, "facingAngle": 0 }    // 右端
-                ]
-            },
-            "KATO-R315-45": {
-                "type": "curve",
-                "name": "曲線レール R315-45度（左右対称山型）",
-                "width": 241.1, "height": 23.9,
-                "nodes": [
-                    { "id": 0, "relX": -120.55, "relY": 11.95, "facingAngle": 157.5 }, // 左端（左斜め下向き）
-                    { "id": 1, "relX": 120.55,  "relY": 11.95, "facingAngle": 22.5 }    // 右端（右斜め下向き）★修正完了
-                ]
-            }
-        };
-
-        // 2. レールを動的に追加する共通関数
-        let railCount = 0;
-        function addRail(partId) {
-            if (!canvas) initCanvas();
-            if (!canvas) return;
-
-            const catalogItem = partsCatalog[partId];
-            const initialLeft = 250 + (railCount % 5) * 20;
-            const initialTop = 250 + (railCount % 5) * 20;
-            railCount++;
-
-            let railObject;
-
-            if (catalogItem.type === "straight") {
-                railObject = new fabric.Rect({
-                    width: catalogItem.width, height: catalogItem.height,
-                    fill: catalogItem.fill, stroke: '#888', strokeWidth: 2
-                });
-            } else if (catalogItem.type === "curve") {
-                // 左右対称に広がる山型の円弧パス命令
-                const ballastedPath = "M -120.55 11.95 A 315 315 0 0 1 120.55 11.95";
-                
-                railObject = new fabric.Path(ballastedPath, {
-                    fill: 'transparent',
-                    stroke: '#888888',
-                    strokeWidth: 16,
-                    strokeLineCap: 'butt'
-                });
-            }
-
-            railObject.set({
-                left: initialLeft, top: initialTop,
-                originX: 'center', originY: 'center', angle: 0,
-                hasControls: true, lockScalingX: true, lockScalingY: true
-            });
-
-            railObject.customData = { partId: partId };
-
-            canvas.add(railObject);
-            canvas.setActiveObject(railObject);
-            canvas.calcOffset();
-            canvas.requestRenderAll();
-            console.log("[%s] レール(%s)を追加。データ総数: %d", CODE_VERSION, partId, canvas.getObjects().length);
-        }
-
-        // 3. 幾何学計算：ノードの「画面上の絶対座標」をリアルタイム計算する
-        function getAbsoluteNodePos(rail) {
-            const catalog = partsCatalog[rail.customData.partId];
-            const angleRad = (rail.angle * Math.PI) / 180;
-
-            return catalog.nodes.map(node => {
-                const absX = rail.left + (node.relX * Math.cos(angleRad) - node.relY * Math.sin(angleRad));
-                const absY = rail.top  + (node.relX * Math.sin(angleRad) + node.relY * Math.cos(angleRad));
-                const absAngle = (rail.angle + node.facingAngle) % 360;
-
-                return { nodeId: node.id, x: absX, y: absY, angle: absAngle };
-            });
-        }
-
-        // 4. スナップ（自動吸着）のメインロジック
-        function applySnapLogic(movedRail) {
-            const allObjects = canvas.getObjects();
-            const SNAP_THRESHOLD = 30;
-
-            const movedNodes = getAbsoluteNodePos(movedRail);
-            let bestSnap = null;
-            let minDistance = SNAP_THRESHOLD;
-
-            allObjects.forEach(otherRail => {
-                if (otherRail === movedRail) return;
-
-                const otherNodes = getAbsoluteNodePos(otherRail);
-
-                movedNodes.forEach(mNode => {
-                    otherNodes.forEach(oNode => {
-                        const dist = Math.sqrt(Math.pow(mNode.x - oNode.x, 2) + Math.pow(mNode.y - oNode.y, 2));
-                        if (dist < minDistance) {
-                            minDistance = dist;
-                            bestSnap = { movedNode: mNode, targetNode: oNode };
-                        }
-                    });
-                });
-            });
-
-            if (bestSnap) {
-                const mCatalogNode = partsCatalog[movedRail.customData.partId].nodes[bestSnap.movedNode.nodeId];
-                
-                // 角度の同期
-                let newAngle = (bestSnap.targetNode.angle - mCatalogNode.facingAngle + 180) % 360;
-                if (newAngle < 0) newAngle += 360;
-                movedRail.set('angle', newAngle);
-
-                // 座標の同期
-                const newAngleRad = (newAngle * Math.PI) / 180;
-                const newLeft = bestSnap.targetNode.x - (mCatalogNode.relX * Math.cos(newAngleRad) - mCatalogNode.relY * Math.sin(newAngleRad));
-                const newTop  = bestSnap.targetNode.y - (mCatalogNode.relX * Math.sin(newAngleRad) + mCatalogNode.relY * Math.cos(newAngleRad));
-
-                movedRail.set({ left: newLeft, top: newTop });
-                
-                movedRail.setCoords();
-                canvas.requestRenderAll();
-                console.log("[%s] スナップ完了！正しい左右対称円弧の接続に成功しました。", CODE_VERSION);
-            }
-        }
-
-        // 5. 現在の配置データをコンソールに出力
-        function logLayoutData() {
-            if (!canvas) return;
-            const objects = canvas.getObjects();
-            const layoutData = objects.map((obj, index) => {
-                return {
-                    instanceId: `rail-${index}`,
-                    partId: obj.customData ? obj.customData.partId : "unknown",
-                    x: Math.round(obj.left), y: Math.round(obj.top), angle: Math.round(obj.angle)
-                };
-            });
-            console.log("[%s] --- 現在の配置データ(JSON) ---", CODE_VERSION);
-            console.log(JSON.stringify(layoutData, null, 2));
-            alert("ブラウザのコンソールにJSONデータを出力しました！");
-        }
-    </script>
 </body>
 </html>
