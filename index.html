@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鉄道模型レイアウトジェネレータ - 向き完全修正版</title>
+    <title>鉄道模型レイアウトジェネレータ - カーブ角度補正版</title>
     
     <script>
         // バージョン識別用のハッシュ値（確実に更新されたかコンソールで確認用）
-        const CODE_VERSION = "VER-4A5B6C7D";
+        const CODE_VERSION = "VER-8B9C0D1E";
         console.log("=========================================");
         console.log("現在実行中のコードバージョン:", CODE_VERSION);
         console.log("=========================================");
@@ -63,26 +63,25 @@
 
     <script>
         // 1. パーツライブラリ（カタログデータ）
-        // KATO R315-45度 の正確な幾何学データに更新
+        // 上に凸型の円弧形状（左下から右上）に完全に合致するよう角度定義を修正
         const partsCatalog = {
             "KATO-248": {
                 "type": "straight",
                 "name": "直線レール 248mm",
                 "width": 248, "height": 16, "fill": "#333333",
                 "nodes": [
-                    { "id": 0, "relX": -124, "relY": 0, "facingAngle": 180 }, // 左端
-                    { "id": 1, "relX": 124,  "relY": 0, "facingAngle": 0 }    // 右端
+                    { "id": 0, "relX": -124, "relY": 0, "facingAngle": 180 }, // 左端（左向き）
+                    { "id": 1, "relX": 124,  "relY": 0, "facingAngle": 0 }    // 右端（右向き）
                 ]
             },
             "KATO-R315-45": {
                 "type": "curve",
                 "name": "曲線レール R315-45度",
-                // 半径315mm、45度カーブの正確なバウンディングボックスの幅と高さ
                 "width": 222.7, "height": 92.2,
-                // ★パーツの中心(0,0)から、水平に進入して45度上に抜ける両端への正しい相対座標
+                // ★左下ノード(0)は「右斜め上(22.5度)」を向き、右上ノード(1)は「右斜め下(-22.5度 ➔ 337.5度)」を向くように幾何学修正
                 "nodes": [
-                    { "id": 0, "relX": -111.35, "relY": 46.1,  "facingAngle": 180 }, // 入口（水平・左向き）
-                    { "id": 1, "relX": 111.35,  "relY": -46.1, "facingAngle": 45 }   // 出口（斜め45度上向き）
+                    { "id": 0, "relX": -111.35, "relY": 46.1,  "facingAngle": 22.5 },  // 左下端（進入・接線方向）
+                    { "id": 1, "relX": 111.35,  "relY": -46.1, "facingAngle": 337.5 } // 右上端（脱出・接線方向）
                 ]
             }
         };
@@ -106,18 +105,17 @@
                     fill: catalogItem.fill, stroke: '#888', strokeWidth: 2
                 });
             } else if (catalogItem.type === "curve") {
-                // ★Fabricの向きを修正：中心から、水平(左端)から斜め45度(右端)へ綺麗に抜ける円弧のパス命令
+                // 左下から右上へ向かう、上に凸の円弧パス
                 const ballastedPath = "M -111.35 46.1 A 315 315 0 0 1 111.35 -46.1";
                 
                 railObject = new fabric.Path(ballastedPath, {
                     fill: 'transparent',
-                    stroke: '#888888',  // バラスト色
-                    strokeWidth: 16,    // 道床の幅
+                    stroke: '#888888',
+                    strokeWidth: 16,
                     strokeLineCap: 'butt'
                 });
             }
 
-            // 共通設定
             railObject.set({
                 left: initialLeft, top: initialTop,
                 originX: 'center', originY: 'center', angle: 0,
@@ -150,7 +148,7 @@
         // 4. スナップ（自動吸着）のメインロジック
         function applySnapLogic(movedRail) {
             const allObjects = canvas.getObjects();
-            const SNAP_THRESHOLD = 30; // 吸着の遊び（30ピクセル）
+            const SNAP_THRESHOLD = 30;
 
             const movedNodes = getAbsoluteNodePos(movedRail);
             let bestSnap = null;
