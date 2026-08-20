@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鉄道模型レイアウトジェネレータ - 分離版</title>
+    <title>鉄道模型レイアウトジェネレータ - 拡縮・移動対応版</title>
     
     <script>
-        const CODE_VERSION = "VER-SPLIT-A1";
+        const CODE_VERSION = "VER-ZOOM-B2";
         console.log("=========================================");
         console.log("ビュー（HTML）バージョン:", CODE_VERSION);
         console.log("=========================================");
@@ -19,14 +19,83 @@
                     renderOnAddRemove: true,
                     stateful: true
                 });
-                // ロジック側のイベントと接続
+
+                // 1. ロジック側のイベント（スナップ）と接続
                 canvas.on('object:modified', function(options) {
                     if (typeof applySnapAndJointLogic === 'function') {
                         applySnapAndJointLogic(options.target);
                     }
                 });
-                console.log("[%s] Canvas初期化成功", CODE_VERSION);
+
+                // 2. ★カメラコントロール（ズーム＆パン）の実装
+                initCameraControls();
+
+                console.log("[%s] Canvas初期化成功、ズーム・パン機能有効化", CODE_VERSION);
             }
+        }
+
+        // ズームとドラッグ移動のイベントロジック
+        function initCameraControls() {
+            // マウスホイールによるズーム（カーソル位置中心）
+            canvas.on('mouse:wheel', function(opt) {
+                let delta = opt.e.deltaY;
+                let zoom = canvas.getZoom();
+                zoom *= 0.999 ** delta; // スクロール量に応じて拡縮率を計算
+                
+                // 拡大・縮小の限界を設定 (0.1倍〜20倍まで)
+                if (zoom > 20) zoom = 20;
+                if (zoom < 0.1) zoom = 0.1;
+                
+                canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+                opt.e.preventDefault();
+                opt.e.stopPropagation();
+            });
+
+            // Spaceキー＋ドラッグによるカメラ平行移動（パン）
+            let isSpacePressed = false;
+            let isDraggingCamera = false;
+            let lastX, lastY;
+
+            // キーボード入力の監視
+            window.addEventListener('keydown', function(e) {
+                if (e.code === 'Space') {
+                    isSpacePressed = true;
+                    canvas.defaultCursor = 'grab'; // 掴むアイコンに変える
+                }
+            });
+            window.addEventListener('keyup', function(e) {
+                if (e.code === 'Space') {
+                    isSpacePressed = false;
+                    canvas.defaultCursor = 'default';
+                }
+            });
+
+            // マウス操作によるカメラの引きずり移動
+            canvas.on('mouse:down', function(opt) {
+                if (isSpacePressed) {
+                    isDraggingCamera = true;
+                    canvas.defaultCursor = 'grabbing';
+                    lastX = opt.e.clientX;
+                    lastY = opt.e.clientY;
+                }
+            });
+            canvas.on('mouse:move', function(opt) {
+                if (isDraggingCamera) {
+                    let vpt = canvas.viewportTransform.slice();
+                    vpt[4] += opt.e.clientX - lastX; // X軸のカメラ移動
+                    vpt[5] += opt.e.clientY - lastY; // Y軸のカメラ移動
+                    canvas.setViewportTransform(vpt);
+                    canvas.requestRenderAll();
+                    lastX = opt.e.clientX;
+                    lastY = opt.e.clientY;
+                }
+            });
+            canvas.on('mouse:up', function() {
+                if (isDraggingCamera) {
+                    isDraggingCamera = false;
+                    canvas.defaultCursor = isSpacePressed ? 'grab' : 'default';
+                }
+            });
         }
 
         // AIのURL要約フィルター回避トリック
@@ -41,7 +110,6 @@
         })();
     </script>
 
-    <!-- ★分離した配置ロジックファイルをここで読み込む -->
     <script src="layout-engine.js"></script>
 
     <style>
@@ -57,6 +125,7 @@
         <button onclick="addRailToCanvas('KATO-248')">直線 S248 を追加</button>
         <button onclick="addRailToCanvas('KATO-R315-45')">カーブ R315-45度 を追加</button>
         <button onclick="exportLayoutJSON()">現在の結合データ(JSON)を出力</button>
+        <span style="margin-left: 15px; font-size: 13px; color: #555;">【操作】ホイールで拡大縮小 / <b>Spaceキーを押しながらドラッグ</b>で画面移動</span>
     </div>
 
     <canvas id="layoutCanvas" width="800" height="600"></canvas>
