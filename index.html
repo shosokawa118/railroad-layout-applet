@@ -2,11 +2,12 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鉄道模型レイアウトジェネレータ - 拡縮・移動対応版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>鉄道模型レイアウトジェネレータ - タッチ対応版</title>
     
+    <!-- Fabric.jsの動的読み込み -->
     <script>
-        const CODE_VERSION = "VER-ZOOM-B2";
+        const CODE_VERSION = "VER-TOUCH-C3";
         console.log("=========================================");
         console.log("ビュー（HTML）バージョン:", CODE_VERSION);
         console.log("=========================================");
@@ -17,95 +18,35 @@
             if (typeof fabric !== 'undefined' && !canvas) {
                 canvas = new fabric.Canvas('layoutCanvas', {
                     renderOnAddRemove: true,
-                    stateful: true
+                    stateful: true,
+                    allowTouchScrolling: false // Fabric標準のスクロールをオフにしてHammer.jsに任せる
                 });
 
-                // 1. ロジック側のイベント（スナップ）と接続
                 canvas.on('object:modified', function(options) {
                     if (typeof applySnapAndJointLogic === 'function') {
                         applySnapAndJointLogic(options.target);
                     }
                 });
 
-                // 2. ★カメラコントロール（ズーム＆パン）の実装
                 initCameraControls();
+                initTouchControls(); // ★スマホ用マルチタッチコントロールの起動
 
-                console.log("[%s] Canvas初期化成功、ズーム・パン機能有効化", CODE_VERSION);
+                console.log("[%s] Canvas初期化成功、マルチタッチ機能有効化", CODE_VERSION);
             }
         }
 
-        // ズームとドラッグ移動のイベントロジック
-        function initCameraControls() {
-            // マウスホイールによるズーム（カーソル位置中心）
-            canvas.on('mouse:wheel', function(opt) {
-                let delta = opt.e.deltaY;
-                let zoom = canvas.getZoom();
-                zoom *= 0.999 ** delta; // スクロール量に応じて拡縮率を計算
-                
-                // 拡大・縮小の限界を設定 (0.1倍〜20倍まで)
-                if (zoom > 20) zoom = 20;
-                if (zoom < 0.1) zoom = 0.1;
-                
-                canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
-                opt.e.preventDefault();
-                opt.e.stopPropagation();
-            });
-
-            // Spaceキー＋ドラッグによるカメラ平行移動（パン）
-            let isSpacePressed = false;
-            let isDraggingCamera = false;
-            let lastX, lastY;
-
-            // キーボード入力の監視
-            window.addEventListener('keydown', function(e) {
-                if (e.code === 'Space') {
-                    isSpacePressed = true;
-                    canvas.defaultCursor = 'grab'; // 掴むアイコンに変える
-                }
-            });
-            window.addEventListener('keyup', function(e) {
-                if (e.code === 'Space') {
-                    isSpacePressed = false;
-                    canvas.defaultCursor = 'default';
-                }
-            });
-
-            // マウス操作によるカメラの引きずり移動
-            canvas.on('mouse:down', function(opt) {
-                if (isSpacePressed) {
-                    isDraggingCamera = true;
-                    canvas.defaultCursor = 'grabbing';
-                    lastX = opt.e.clientX;
-                    lastY = opt.e.clientY;
-                }
-            });
-            canvas.on('mouse:move', function(opt) {
-                if (isDraggingCamera) {
-                    let vpt = canvas.viewportTransform.slice();
-                    vpt[4] += opt.e.clientX - lastX; // X軸のカメラ移動
-                    vpt[5] += opt.e.clientY - lastY; // Y軸のカメラ移動
-                    canvas.setViewportTransform(vpt);
-                    canvas.requestRenderAll();
-                    lastX = opt.e.clientX;
-                    lastY = opt.e.clientY;
-                }
-            });
-            canvas.on('mouse:up', function() {
-                if (isDraggingCamera) {
-                    isDraggingCamera = false;
-                    canvas.defaultCursor = isSpacePressed ? 'grab' : 'default';
-                }
-            });
-        }
-
-        // AIのURL要約フィルター回避トリック
+        // 動的ライブラリ読み込み (Fabric.js & Hammer.js)
         (function() {
+            // Fabric.js
             const el = document.createElement('script');
-            const protocol = 'https://';
-            const domain = 'cdnjs.' + 'cloudflare' + '.com';
-            const path = '/ajax/libs/fabric.js/5.3.1/fabric.min.js';
-            el.src = protocol + domain + path;
-            el.onload = function() { initCanvas(); };
+            el.src = 'https://' + 'cdnjs.' + 'cloudflare' + '.com/ajax/libs/fabric.js/5.3.1/fabric.min.js';
+            el.onload = function() { 
+                // Hammer.js (タッチジェスチャー用) も一緒に読み込む
+                const hm = document.createElement('script');
+                hm.src = 'https://' + 'cdnjs.' + 'cloudflare' + '.com/ajax/libs/hammer.js/2.0.8/hammer.min.js';
+                hm.onload = function() { initCanvas(); };
+                document.head.appendChild(hm);
+            };
             document.head.appendChild(el);
         })();
     </script>
@@ -113,7 +54,7 @@
     <script src="layout-engine.js"></script>
 
     <style>
-        body { margin: 0; padding: 10px; background-color: #f0f0f0; font-family: sans-serif; }
+        body { margin: 0; padding: 10px; background-color: #f0f0f0; font-family: sans-serif; touch-action: none; }
         #controls { margin-bottom: 10px; }
         .canvas-container { position: relative !important; width: 800px !important; height: 600px !important; border: 1px solid #ccc; background-color: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         canvas { position: absolute !important; left: 0 !important; top: 0 !important; width: 800px !important; height: 600px !important; }
@@ -122,13 +63,78 @@
 <body>
 
     <div id="controls">
-        <button onclick="addRailToCanvas('KATO-248')">直線 S248 を追加</button>
-        <button onclick="addRailToCanvas('KATO-R315-45')">カーブ R315-45度 を追加</button>
-        <button onclick="exportLayoutJSON()">現在の結合データ(JSON)を出力</button>
-        <span style="margin-left: 15px; font-size: 13px; color: #555;">【操作】ホイールで拡大縮小 / <b>Spaceキーを押しながらドラッグ</b>で画面移動</span>
+        <button onclick="addRailToCanvas('KATO-248')">直線 S248</button>
+        <button onclick="addRailToCanvas('KATO-R315-45')">カーブ R315</button>
+        <button onclick="exportLayoutJSON()">JSON出力</button>
+        <span style="margin-left: 15px; font-size: 11px; color: #555;">【PC】Space+ドラッグで移動 / 【スマホ】2本指で拡縮・移動</span>
     </div>
 
     <canvas id="layoutCanvas" width="800" height="600"></canvas>
 
+    <script>
+        // PC用のホイールズーム ＆ Spaceキーパン
+        function initCameraControls() {
+            canvas.on('mouse:wheel', function(opt) {
+                let delta = opt.e.deltaY; let zoom = canvas.getZoom(); zoom *= 0.999 ** delta;
+                if (zoom > 20) zoom = 20; if (zoom < 0.1) zoom = 0.1;
+                canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+                opt.e.preventDefault(); opt.e.stopPropagation();
+            });
+
+            let isSpacePressed = false; let isDraggingCamera = false; let lastX, lastY;
+            window.addEventListener('keydown', e => { if (e.code === 'Space') { isSpacePressed = true; canvas.defaultCursor = 'grab'; } });
+            window.addEventListener('keyup', e => { if (e.code === 'Space') { isSpacePressed = false; canvas.defaultCursor = 'default'; } });
+            canvas.on('mouse:down', opt => { if (isSpacePressed) { isDraggingCamera = true; canvas.defaultCursor = 'grabbing'; lastX = opt.e.clientX; lastY = opt.e.clientY; } });
+            canvas.on('mouse:move', opt => {
+                if (isDraggingCamera) {
+                    let vpt = canvas.viewportTransform.slice();
+                    vpt[4] += opt.e.clientX - lastX; vpt[5] += opt.e.clientY - lastY;
+                    canvas.setViewportTransform(vpt); canvas.requestRenderAll(); lastX = opt.e.clientX; lastY = opt.e.clientY;
+                }
+            });
+            canvas.on('mouse:up', () => { if (isDraggingCamera) { isDraggingCamera = false; canvas.defaultCursor = isSpacePressed ? 'grab' : 'default'; } });
+        }
+
+        // ★スマホ・タブレット用の2本指ジェスチャーコントロール
+        function initTouchControls() {
+            const touchArea = document.getElementById('layoutCanvas').parentElement;
+            const mc = new Hammer.Manager(touchArea);
+            
+            // パン（移動）とピンチ（拡縮）のジェスチャーを有効化
+            const pinch = new Hammer.Pinch();
+            const pan = new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, pointers: 2 }); // ★2本指のときだけ画面移動
+            pinch.recognizeWith(pan);
+            mc.add([pinch, pan]);
+
+            let adjustZoom = 1;
+            let adjustPosX = 0;
+            let adjustPosY = 0;
+
+            // ピンチイン・ピンチアウト（拡縮）
+            mc.on("pinchstart pinchmove", function(e) {
+                if (e.type === 'pinchstart') {
+                    adjustZoom = canvas.getZoom();
+                }
+                let zoom = adjustZoom * e.scale;
+                if (zoom > 20) zoom = 20; if (zoom < 0.1) zoom = 0.1;
+                
+                // 2本指の中心点を基準にズーム
+                canvas.zoomToPoint({ x: e.center.x, y: e.center.y }, zoom);
+            });
+
+            // 2本指でのスワイプ（カメラ移動）
+            mc.on("panstart panmove", function(e) {
+                let vpt = canvas.viewportTransform.slice();
+                if (e.type === 'panstart') {
+                    adjustPosX = vpt[4];
+                    adjustPosY = vpt[5];
+                }
+                vpt[4] = adjustPosX + e.deltaX;
+                vpt[5] = adjustPosY + e.deltaY;
+                canvas.setViewportTransform(vpt);
+                canvas.requestRenderAll();
+            });
+        }
+    </script>
 </body>
 </html>
