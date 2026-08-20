@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鉄道模型レイアウトジェネレータ - 幾何学完全修正版</title>
+    <title>鉄道模型レイアウトジェネレータ - 左右対称カーブ修正版</title>
     
     <script>
         // バージョン識別用のハッシュ値（確実に更新されたかコンソールで確認用）
-        const CODE_VERSION = "VER-6C7D8E9F";
+        const CODE_VERSION = "VER-E3F4G5H6";
         console.log("=========================================");
         console.log("現在実行中のコードバージョン:", CODE_VERSION);
         console.log("=========================================");
@@ -63,25 +63,24 @@
 
     <script>
         // 1. パーツライブラリ（カタログデータ）
-        // あなたの分析を元に、右=0, 下=90, 左=180, 上=270(時計回りプラス)に完全適合させました
+        // ユーザー様のご指摘通り、ノード1(右端)の向きを右斜め下(22.5度)に修正
         const partsCatalog = {
             "KATO-248": {
                 "type": "straight",
                 "name": "直線レール 248mm",
                 "width": 248, "height": 16, "fill": "#333333",
                 "nodes": [
-                    { "id": 0, "relX": -124, "relY": 0, "facingAngle": 180 }, // 左端（左向き）
-                    { "id": 1, "relX": 124,  "relY": 0, "facingAngle": 0 }    // 右端（右向き）
+                    { "id": 0, "relX": -124, "relY": 0, "facingAngle": 180 }, // 左端
+                    { "id": 1, "relX": 124,  "relY": 0, "facingAngle": 0 }    // 右端
                 ]
             },
             "KATO-R315-45": {
                 "type": "curve",
-                "name": "曲線レール R315-45度",
-                "width": 222.7, "height": 92.2,
-                // ★ノード0(左下)は「左斜め下135度」、ノード1(右上)は「真右0度」に修正
+                "name": "曲線レール R315-45度（左右対称山型）",
+                "width": 241.1, "height": 23.9,
                 "nodes": [
-                    { "id": 0, "relX": -111.35, "relY": 46.1,  "facingAngle": 135.0 }, // 左下端（接線外向き）
-                    { "id": 1, "relX": 111.35,  "relY": -46.1, "facingAngle": 0.0 }    // 右上端（接線外向き）
+                    { "id": 0, "relX": -120.55, "relY": 11.95, "facingAngle": 157.5 }, // 左端（左斜め下向き）
+                    { "id": 1, "relX": 120.55,  "relY": 11.95, "facingAngle": 22.5 }    // 右端（右斜め下向き）★修正完了
                 ]
             }
         };
@@ -105,8 +104,8 @@
                     fill: catalogItem.fill, stroke: '#888', strokeWidth: 2
                 });
             } else if (catalogItem.type === "curve") {
-                // 左下から右上へ向かう、上に凸の円弧パス
-                const ballastedPath = "M -111.35 46.1 A 315 315 0 0 1 111.35 -46.1";
+                // 左右対称に広がる山型の円弧パス命令
+                const ballastedPath = "M -120.55 11.95 A 315 315 0 0 1 120.55 11.95";
                 
                 railObject = new fabric.Path(ballastedPath, {
                     fill: 'transparent',
@@ -187,7 +186,7 @@
                 
                 movedRail.setCoords();
                 canvas.requestRenderAll();
-                console.log("[%s] スナップ完了！直線と曲線の接続角度を完璧に同期しました。", CODE_VERSION);
+                console.log("[%s] スナップ完了！正しい左右対称円弧の接続に成功しました。", CODE_VERSION);
             }
         }
 
