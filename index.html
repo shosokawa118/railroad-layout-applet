@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鉄道模型レイアウトジェネレータ - スナップ実装版</title>
+    <title>鉄道模型レイアウトジェネレータ - カーブ実装版</title>
     
     <script>
         // バージョン識別用のハッシュ値（確実に更新されたかコンソールで確認用）
-        const CODE_VERSION = "VER-7A8B9C1E";
+        const CODE_VERSION = "VER-2D4E5F6A";
         console.log("=========================================");
         console.log("現在実行中のコードバージョン:", CODE_VERSION);
         console.log("=========================================");
@@ -22,13 +22,13 @@
                     stateful: true
                 });
                 
-                // ★Fabric.jsのイベントリスナー：ドラッグして手を離した瞬間にスナップ処理を実行
+                // ドラッグして手を離した瞬間にスナップ処理を実行
                 canvas.on('object:modified', function(options) {
                     const movedRail = options.target;
                     applySnapLogic(movedRail);
                 });
 
-                console.log("[%s] Fabric.js キャンバス（スナップイベント付き）の初期化に成功しました！", CODE_VERSION);
+                console.log("[%s] Fabric.js キャンバスの初期化に成功しました！", CODE_VERSION);
             }
         }
 
@@ -54,158 +54,158 @@
 <body>
 
     <div id="controls">
-        <button onclick="addStraightRail()">直線レール(248mm相当)を追加</button>
+        <button onclick="addRail('KATO-248')">直線 S248 を追加</button>
+        <button onclick="addRail('KATO-R315-45')">カーブ R315-45度 を追加</button>
         <button onclick="logLayoutData()">現在の配置データ(JSON)を出力</button>
-        <span style="margin-left: 15px; font-size: 13px; color: #444;">※レールを近くに持っていき、手を離すとピタッと接続（スナップ）します。</span>
     </div>
 
     <canvas id="layoutCanvas" width="800" height="600"></canvas>
 
     <script>
         // 1. パーツライブラリ（カタログデータ）
-        // 設計通り、パーツ中心からの相対的な「接続点（ノード）」を定義します
+        // KATOユニトラックの寸法をベースにしたマスタ定義
         const partsCatalog = {
             "KATO-248": {
+                "type": "straight",
                 "name": "直線レール 248mm",
-                "width": 248,
-                "height": 16,
-                "fill": "#333333",
-                // ★ノード定義：中心から左へ124mm、右へ124mm。向き(角度)は左右に180度、0度。
+                "width": 248, "height": 16, "fill": "#333333",
                 "nodes": [
-                    { "id": 0, "relX": -124, "relY": 0, "facingAngle": 180 }, // 左端
-                    { "id": 1, "relX": 124,  "relY": 0, "facingAngle": 0 }    // 右端
+                    { "id": 0, "relX": -124, "relY": 0, "facingAngle": 180 },
+                    { "id": 1, "relX": 124,  "relY": 0, "facingAngle": 0 }
+                ]
+            },
+            "KATO-R315-45": {
+                "type": "curve",
+                "name": "曲線レール R315-45度",
+                // 半径315mm・45度の扇形を囲むバウンディングボックスのサイズ
+                "width": 120.5, "height": 241.1,
+                // ★幾何学的に逆算した、パーツ中心からのノードの相対座標
+                "nodes": [
+                    { "id": 0, "relX": -29.2, "relY": 115.1,  "facingAngle": 180 }, // 入口
+                    { "id": 1, "relX": 29.2,  "relY": -115.1, "facingAngle": 45 }   // 出口
                 ]
             }
         };
 
-        // 2. レールを追加する関数
+        // 2. レールを動的に追加する共通関数
         let railCount = 0;
-        function addStraightRail() {
+        function addRail(partId) {
             if (!canvas) initCanvas();
             if (!canvas) return;
 
-            const catalogItem = partsCatalog["KATO-248"];
-            
-            // 重なって見えなくならないよう、追加するたびに少し位置をずらす
-            const initialLeft = 200 + (railCount % 5) * 30;
-            const initialTop = 200 + (railCount % 5) * 30;
+            const catalogItem = partsCatalog[partId];
+            const initialLeft = 250 + (railCount % 5) * 20;
+            const initialTop = 250 + (railCount % 5) * 20;
             railCount++;
 
-            const rail = new fabric.Rect({
-                left: initialLeft,
-                top: initialTop,
-                width: catalogItem.width,
-                height: catalogItem.height,
-                fill: catalogItem.fill,
-                stroke: '#888',
-                strokeWidth: 2,
-                originX: 'center',
-                originY: 'center',
-                angle: 0,
-                hasControls: true,
-                lockScalingX: true,
-                lockScalingY: true,
+            let railObject;
+
+            if (catalogItem.type === "straight") {
+                // 直線は以前と同じ長方形
+                railObject = new fabric.Rect({
+                    width: catalogItem.width, height: catalogItem.height,
+                    fill: catalogItem.fill, stroke: '#888', strokeWidth: 2
+                });
+            } else if (catalogItem.type === "curve") {
+                // ★カーブはSVGのパス命令(Path)を使って、半径315mmの美しい円弧を描画します
+                // M:開始点, A:楕円弧描画命令 (半径315, 45度分進む)
+                const ballastedPath = "M 0 230 A 315 315 0 0 1 115 0"; // バラストの線
+                
+                railObject = new fabric.Path(ballastedPath, {
+                    fill: 'transparent',
+                    stroke: '#888888',  // バラスト色
+                    strokeWidth: 16,    // 道床の幅
+                    strokeLineCap: 'butt'
+                });
+
+                // 本物の金属レール（2本線）を表現するために、同じパスを重ねて内側を描画
+                const railLine1 = new fabric.Path(ballastedPath, { fill: 'transparent', stroke: '#333', strokeWidth: 1.5 });
+                const railLine2 = new fabric.Path(ballastedPath, { fill: 'transparent', stroke: '#333', strokeWidth: 1.5 });
+                // 簡易的に内側と外側に位置をオフセット（プロトタイプ表現）
+                railLine1.set({ left: 3, top: 3 });
+                railLine2.set({ left: -3, top: -3 });
+                
+                // 1つのグループにまとめることで、1つのレールパーツとして扱います
+                const group = new fabric.Group([railObject, railLine1, railLine2], {
+                    width: catalogItem.width, height: catalogItem.height
+                });
+                railObject = group;
+            }
+
+            // 共通の設定を適用
+            railObject.set({
+                left: initialLeft, top: initialTop,
+                originX: 'center', originY: 'center', angle: 0,
+                hasControls: true, lockScalingX: true, lockScalingY: true
             });
 
-            rail.customData = {
-                partId: "KATO-248"
-            };
+            railObject.customData = { partId: partId };
 
-            canvas.add(rail);
-            canvas.setActiveObject(rail);
+            canvas.add(railObject);
+            canvas.setActiveObject(railObject);
             canvas.calcOffset();
             canvas.requestRenderAll();
-            console.log("[%s] 新しいレールを追加しました。データ上の総数: %d", CODE_VERSION, canvas.getObjects().length);
+            console.log("[%s] レール(%s)を追加。データ総数: %d", CODE_VERSION, partId, canvas.getObjects().length);
         }
 
-        // 3. 幾何学計算：レールの中心座標(X,Y)と全体の回転角から、特定のノードの「画面上の絶対座標」を計算する
+        // 3. 幾何学計算：ノードの「画面上の絶対座標」をリアルタイム計算する（直線・カーブ共通）
         function getAbsoluteNodePos(rail) {
             const catalog = partsCatalog[rail.customData.partId];
-            const angleRad = (rail.angle * Math.PI) / 180; // ラジアンに変換
+            const angleRad = (rail.angle * Math.PI) / 180;
 
             return catalog.nodes.map(node => {
-                // 回転行列を使って、パーツ基準の相対座標を全体の絶対座標へ変換
                 const absX = rail.left + (node.relX * Math.cos(angleRad) - node.relY * Math.sin(angleRad));
                 const absY = rail.top  + (node.relX * Math.sin(angleRad) + node.relY * Math.cos(angleRad));
-                
-                // 次のレールと繋がるときの「絶対角度」も計算 (向かい合うので180度反転させる前提)
                 const absAngle = (rail.angle + node.facingAngle) % 360;
 
-                return {
-                    nodeId: node.id,
-                    x: absX,
-                    y: absY,
-                    angle: absAngle
-                };
+                return { nodeId: node.id, x: absX, y: absY, angle: absAngle };
             });
         }
 
-        // 4. ★スナップ（自動吸着）のメインロジック
+        // 4. スナップ（自動吸着）のメインロジック（直線・カーブ共通）
         function applySnapLogic(movedRail) {
             const allObjects = canvas.getObjects();
-            const SNAP_THRESHOLD = 20; // 吸着を許可する距離（20ピクセル以内）
+            const SNAP_THRESHOLD = 25; // 吸着の遊び（25ピクセル）
 
-            // 動かしたレールのノード位置（絶対座標）を取得
             const movedNodes = getAbsoluteNodePos(movedRail);
-
             let bestSnap = null;
             let minDistance = SNAP_THRESHOLD;
 
-            // 他のすべてのレールをループして、最も近いノードの組み合わせを探す
             allObjects.forEach(otherRail => {
-                if (otherRail === movedRail) return; // 自分自身は無視
+                if (otherRail === movedRail) return;
 
                 const otherNodes = getAbsoluteNodePos(otherRail);
 
-                // 動かしたレールの各ノード vs 他のレールの各ノード で総当たり距離計算
                 movedNodes.forEach(mNode => {
                     otherNodes.forEach(oNode => {
-                        // 三平方の定理で距離を計算
                         const dist = Math.sqrt(Math.pow(mNode.x - oNode.x, 2) + Math.pow(mNode.y - oNode.y, 2));
-                        
                         if (dist < minDistance) {
                             minDistance = dist;
-                            bestSnap = {
-                                movedNode: mNode,
-                                targetNode: oNode,
-                                targetRail: otherRail
-                            };
+                            bestSnap = { movedNode: mNode, targetNode: oNode };
                         }
                     });
                 });
             });
 
-            // もし範囲内に吸着対象が見つかったら、幾何学的に位置と角度を書き換える
             if (bestSnap) {
-                console.log("[%s] スナップを検知！接続処理を開始します。", CODE_VERSION);
-
-                const targetRail = bestSnap.targetRail;
                 const mCatalogNode = partsCatalog[movedRail.customData.partId].nodes[bestSnap.movedNode.nodeId];
                 
-                // 1. 角度の同期（相手のノードの向きに合わせて、自分の向きをカチッと合わせる）
-                // 接続点同士は向かい合う（180度反転する）ので、その差分を考慮
+                // 角度の同期
                 let newAngle = (bestSnap.targetNode.angle - mCatalogNode.facingAngle + 180) % 360;
                 movedRail.set('angle', newAngle);
 
-                // 2. 座標の同期（新しく決定した角度を元に、中心座標を逆算して強制上書きする）
+                // 座標の同期
                 const newAngleRad = (newAngle * Math.PI) / 180;
-                
-                // 相手の固定ノードの絶対座標から、自分の相対ノード分を「引き算」して中心を割り出す
                 const newLeft = bestSnap.targetNode.x - (mCatalogNode.relX * Math.cos(newAngleRad) - mCatalogNode.relY * Math.sin(newAngleRad));
                 const newTop  = bestSnap.targetNode.y - (mCatalogNode.relX * Math.sin(newAngleRad) + mCatalogNode.relY * Math.cos(newAngleRad));
 
-                movedRail.set({
-                    left: newLeft,
-                    top: newTop
-                });
-
-                // 画面を再描画
+                movedRail.set({ left: newLeft, top: newTop });
                 canvas.requestRenderAll();
-                console.log("[%s] スナップ完了！誤差をクレンジングしました。", CODE_VERSION);
+                console.log("[%s] スナップ完了！直線と曲線の接続に成功しました。", CODE_VERSION);
             }
         }
 
-        // 5. 現在の配置データをコンソールに出力する関数
+        // 5. 現在の配置データをコンソールに出力
         function logLayoutData() {
             if (!canvas) return;
             const objects = canvas.getObjects();
@@ -213,12 +213,9 @@
                 return {
                     instanceId: `rail-${index}`,
                     partId: obj.customData ? obj.customData.partId : "unknown",
-                    x: Math.round(obj.left),
-                    y: Math.round(obj.top),
-                    angle: Math.round(obj.angle)
+                    x: Math.round(obj.left), y: Math.round(obj.top), angle: Math.round(obj.angle)
                 };
             });
-
             console.log("[%s] --- 現在の配置データ(JSON) ---", CODE_VERSION);
             console.log(JSON.stringify(layoutData, null, 2));
             alert("ブラウザのコンソールにJSONデータを出力しました！");
