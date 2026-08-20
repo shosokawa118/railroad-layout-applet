@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鉄道模型レイアウトジェネレータ - カーブバグ修正版</title>
+    <title>鉄道模型レイアウトジェネレータ - 向き完全修正版</title>
     
     <script>
         // バージョン識別用のハッシュ値（確実に更新されたかコンソールで確認用）
-        const CODE_VERSION = "VER-9E8D7C6B";
+        const CODE_VERSION = "VER-4A5B6C7D";
         console.log("=========================================");
         console.log("現在実行中のコードバージョン:", CODE_VERSION);
         console.log("=========================================");
@@ -63,26 +63,26 @@
 
     <script>
         // 1. パーツライブラリ（カタログデータ）
-        // KATO R315-45 のエンベロープの中心から、レールの両端（ノード）への正確な幾何学相対座標
+        // KATO R315-45度 の正確な幾何学データに更新
         const partsCatalog = {
             "KATO-248": {
                 "type": "straight",
                 "name": "直線レール 248mm",
                 "width": 248, "height": 16, "fill": "#333333",
                 "nodes": [
-                    { "id": 0, "relX": -124, "relY": 0, "facingAngle": 180 },
-                    { "id": 1, "relX": 124,  "relY": 0, "facingAngle": 0 }
+                    { "id": 0, "relX": -124, "relY": 0, "facingAngle": 180 }, // 左端
+                    { "id": 1, "relX": 124,  "relY": 0, "facingAngle": 0 }    // 右端
                 ]
             },
             "KATO-R315-45": {
                 "type": "curve",
                 "name": "曲線レール R315-45度",
-                // バウンディングボックスの正確な寸法
-                "width": 120.5, "height": 241.1,
-                // ★中心原点(0,0)から、レールの円弧の両端への【正しい】相対座標と角度
+                // 半径315mm、45度カーブの正確なバウンディングボックスの幅と高さ
+                "width": 222.7, "height": 92.2,
+                // ★パーツの中心(0,0)から、水平に進入して45度上に抜ける両端への正しい相対座標
                 "nodes": [
-                    { "id": 0, "relX": -60.25, "relY": 120.55,  "facingAngle": 180 }, // 入口（真左を向く）
-                    { "id": 1, "relX": 60.25,  "relY": -120.55, "facingAngle": 45 }   // 出口（斜め45度上を向く）
+                    { "id": 0, "relX": -111.35, "relY": 46.1,  "facingAngle": 180 }, // 入口（水平・左向き）
+                    { "id": 1, "relX": 111.35,  "relY": -46.1, "facingAngle": 45 }   // 出口（斜め45度上向き）
                 ]
             }
         };
@@ -106,9 +106,8 @@
                     fill: catalogItem.fill, stroke: '#888', strokeWidth: 2
                 });
             } else if (catalogItem.type === "curve") {
-                // ★ズレを解消するため、パーツの中心(0,0)を中心に円弧を描くSVGパス命令に修正
-                // 半径315mmの円弧を、ボックスの左下から右上へ正確に引きます
-                const ballastedPath = "M -60.25 120.55 A 315 315 0 0 1 60.25 -120.55";
+                // ★Fabricの向きを修正：中心から、水平(左端)から斜め45度(右端)へ綺麗に抜ける円弧のパス命令
+                const ballastedPath = "M -111.35 46.1 A 315 315 0 0 1 111.35 -46.1";
                 
                 railObject = new fabric.Path(ballastedPath, {
                     fill: 'transparent',
@@ -116,13 +115,9 @@
                     strokeWidth: 16,    // 道床の幅
                     strokeLineCap: 'butt'
                 });
-
-                // グループ化による座標軸のバグを防ぐため、1本のPathの中にレール線を表現する
-                // 代替として、描画スタイルをバラストのみにし、実用性を最優先にします
-                // （後ほど装飾用の重ね描きは安全に行えます）
             }
 
-            // 共通の設定を適用（パーツの真ん中を原点にする）
+            // 共通設定
             railObject.set({
                 left: initialLeft, top: initialTop,
                 originX: 'center', originY: 'center', angle: 0,
@@ -144,7 +139,6 @@
             const angleRad = (rail.angle * Math.PI) / 180;
 
             return catalog.nodes.map(node => {
-                // 回転行列の計算
                 const absX = rail.left + (node.relX * Math.cos(angleRad) - node.relY * Math.sin(angleRad));
                 const absY = rail.top  + (node.relX * Math.sin(angleRad) + node.relY * Math.cos(angleRad));
                 const absAngle = (rail.angle + node.facingAngle) % 360;
@@ -183,7 +177,6 @@
                 
                 // 角度の同期
                 let newAngle = (bestSnap.targetNode.angle - mCatalogNode.facingAngle + 180) % 360;
-                // 負の角度を丸める補正
                 if (newAngle < 0) newAngle += 360;
                 movedRail.set('angle', newAngle);
 
@@ -194,10 +187,9 @@
 
                 movedRail.set({ left: newLeft, top: newTop });
                 
-                // 各種数値を確定させて再描画
                 movedRail.setCoords();
                 canvas.requestRenderAll();
-                console.log("[%s] スナップ完了！ズレを100%%修正しました。", CODE_VERSION);
+                console.log("[%s] スナップ完了！角度と位置を完璧に同期しました。", CODE_VERSION);
             }
         }
 
