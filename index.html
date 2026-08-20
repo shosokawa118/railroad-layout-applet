@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鉄道模型レイアウトジェネレータ - カーブ角度補正版</title>
+    <title>鉄道模型レイアウトジェネレータ - 幾何学完全修正版</title>
     
     <script>
         // バージョン識別用のハッシュ値（確実に更新されたかコンソールで確認用）
-        const CODE_VERSION = "VER-8B9C0D1E";
+        const CODE_VERSION = "VER-6C7D8E9F";
         console.log("=========================================");
         console.log("現在実行中のコードバージョン:", CODE_VERSION);
         console.log("=========================================");
@@ -63,7 +63,7 @@
 
     <script>
         // 1. パーツライブラリ（カタログデータ）
-        // 上に凸型の円弧形状（左下から右上）に完全に合致するよう角度定義を修正
+        // あなたの分析を元に、右=0, 下=90, 左=180, 上=270(時計回りプラス)に完全適合させました
         const partsCatalog = {
             "KATO-248": {
                 "type": "straight",
@@ -78,10 +78,10 @@
                 "type": "curve",
                 "name": "曲線レール R315-45度",
                 "width": 222.7, "height": 92.2,
-                // ★左下ノード(0)は「右斜め上(22.5度)」を向き、右上ノード(1)は「右斜め下(-22.5度 ➔ 337.5度)」を向くように幾何学修正
+                // ★ノード0(左下)は「左斜め下135度」、ノード1(右上)は「真右0度」に修正
                 "nodes": [
-                    { "id": 0, "relX": -111.35, "relY": 46.1,  "facingAngle": 22.5 },  // 左下端（進入・接線方向）
-                    { "id": 1, "relX": 111.35,  "relY": -46.1, "facingAngle": 337.5 } // 右上端（脱出・接線方向）
+                    { "id": 0, "relX": -111.35, "relY": 46.1,  "facingAngle": 135.0 }, // 左下端（接線外向き）
+                    { "id": 1, "relX": 111.35,  "relY": -46.1, "facingAngle": 0.0 }    // 右上端（接線外向き）
                 ]
             }
         };
@@ -187,7 +187,7 @@
                 
                 movedRail.setCoords();
                 canvas.requestRenderAll();
-                console.log("[%s] スナップ完了！角度と位置を完璧に同期しました。", CODE_VERSION);
+                console.log("[%s] スナップ完了！直線と曲線の接続角度を完璧に同期しました。", CODE_VERSION);
             }
         }
 
