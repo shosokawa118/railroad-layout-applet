@@ -1,8 +1,8 @@
 // =============================================================
-// 鉄道模型レイアウトジェネレータ - 配置・幾何学ロジック (可視化版)
-// バージョン: VER-VISUAL-D4
+// 鉄道模型レイアウトジェネレータ - 配置・幾何学ロジック (両端同時結合版)
+// バージョン: VER-DOUBLE-SNAP-E5
 // =============================================================
-console.log("ロジックエンジン（JS）が読み込まれました: VER-VISUAL-D4");
+console.log("ロジックエンジン（JS）が読み込まれました: VER-DOUBLE-SNAP-E5");
 
 // 1. パーツライブラリ
 const partsCatalog = {
@@ -58,18 +58,12 @@ function addRailToCanvas(partId) {
         hasControls: true, lockScalingX: true, lockScalingY: true
     });
 
-    railObject.customData = { 
-        instanceId: currentId,
-        partId: partId,
-        isRail: true // ★インジケータと区別するためのフラグ
-    };
+    railObject.customData = { instanceId: currentId, partId: partId, isRail: true };
 
     canvas.add(railObject);
     canvas.setActiveObject(railObject);
     
-    // インジケータを再描画
     updateJointIndicators();
-    
     canvas.calcOffset();
     canvas.requestRenderAll();
 }
@@ -95,15 +89,16 @@ function isNodeOccupied(railId, nodeId) {
     );
 }
 
-// 4. ジョイント管理機能付きスナップメインロジック
+// 4. ★両端の同時結合に対応した、進化したスナップ＆ジョイントメインロジック
 function applySnapAndJointLogic(movedRail) {
     const allObjects = canvas.getObjects().filter(obj => obj.customData && obj.customData.isRail);
-    const SNAP_THRESHOLD = 30;
+    const SNAP_THRESHOLD = 30; // 通常の吸着範囲（30ピクセル）
     const movedId = movedRail.customData.instanceId;
 
-    // 古いジョイントを解除
+    // 動かしたレールの古いジョイントをすべて解除
     globalJoints = globalJoints.filter(j => j.railA !== movedId && j.railB !== movedId);
 
+    // --- 【ステップ1】最も近い1箇所を見つけて位置と角度を合わせる ---
     const movedNodes = getAbsoluteNodePos(movedRail);
     let bestSnap = null;
     let minDistance = SNAP_THRESHOLD;
@@ -128,6 +123,7 @@ function applySnapAndJointLogic(movedRail) {
         });
     });
 
+    // 1箇所目のスナップ位置をカチッと合わせる
     if (bestSnap) {
         const targetRail = bestSnap.targetRail;
         const targetId = targetRail.customData.instanceId;
@@ -144,59 +140,75 @@ function applySnapAndJointLogic(movedRail) {
         movedRail.set({ left: newLeft, top: newTop });
         movedRail.setCoords();
 
-        const newJoint = {
+        // 1箇所目のジョイントをリストに登録
+        globalJoints.push({
             jointId: `j-${Date.now()}-${Math.floor(Math.random()*1000)}`,
             railA: movedId, nodeA: bestSnap.movedNode.nodeId,
             railB: targetId, nodeB: bestSnap.targetNode.nodeId
-        };
-        
-        globalJoints.push(newJoint);
-        console.log("[VER-VISUAL-D4] 🤝 ジョイント成立！");
+        });
+        console.log("[VER-DOUBLE-SNAP-E5] 1箇所目のジョイント結合成功");
+
+        // --- 【ステップ2】位置確定後、もう片方の端っこ（他のノード）もピッタリ重なっているか再スキャン ---
+        // 無限ループを防ぐため、ここでは【レールの位置移動（ワープ）は一切行わず、登録だけ】行います。
+        const postMovedNodes = getAbsoluteNodePos(movedRail); // 位置調整後の最新の絶対座標を取得
+
+        allObjects.forEach(otherRail => {
+            if (otherRail === movedRail) return;
+            const otherId = otherRail.customData.instanceId;
+            const otherNodes = getAbsoluteNodePos(otherRail);
+
+            postMovedNodes.forEach(mNode => {
+                // すでにステップ1で埋まったノードはスキップ
+                if (isNodeOccupied(movedId, mNode.nodeId)) return;
+
+                otherNodes.forEach(oNode => {
+                    if (isNodeOccupied(otherId, oNode.nodeId)) return;
+
+                    // すでに位置は合っているはずなので、距離が極めて近い(5px以内)かだけをチェック
+                    const dist = Math.sqrt(Math.pow(mNode.x - oNode.x, 2) + Math.pow(mNode.y - oNode.y, 2));
+                    const CLOSE_THRESHOLD = 5; // すでに重なっているとみなす微小距離
+
+                    if (dist < CLOSE_THRESHOLD) {
+                        // 2箇所目のジョイントも成立！（移動計算はせず、データへの登録だけ）
+                        globalJoints.push({
+                            jointId: `j-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+                            railA: movedId, nodeA: mNode.nodeId,
+                            railB: otherId, nodeB: oNode.nodeId
+                        });
+                        console.log("[VER-DOUBLE-SNAP-E5] 🎉 同時結合成功！反対側のジョイントも自動ロックされました。");
+                    }
+                });
+            });
+        });
     }
 
-    // ★移動が完了した後に、インジケータ（丸ぽち）を最新状態に更新する
     updateJointIndicators();
     canvas.requestRenderAll();
 }
 
-// ★新設：画面上のすべての接続点の状態をスキャンし、インジケータ（丸）を再描画する関数
+// 画面上のすべての接続点の状態をスキャンし、インジケータ（丸）を再描画する関数
 function updateJointIndicators() {
-    // 既存の古いインジケータ（丸）をキャンバスからすべて削除
     const oldIndicators = canvas.getObjects().filter(obj => obj.customData && obj.customData.isIndicator);
     oldIndicators.forEach(obj => canvas.remove(obj));
 
     const rails = canvas.getObjects().filter(obj => obj.customData && obj.customData.isRail);
 
-    // すべてのレールのすべてのノードを総当たりでチェック
     rails.forEach(rail => {
         const railId = rail.customData.instanceId;
         const absoluteNodes = getAbsoluteNodePos(rail);
 
         absoluteNodes.forEach(node => {
             const isOccupied = isNodeOccupied(railId, node.nodeId);
-            
-            // 結合済みなら「黄緑」、空きなら「鮮やかな赤」
             const color = isOccupied ? '#7cd21d' : '#ff3b30';
-            // 結合済みは小さく(半径3)、空きは目立たせる(半径5)
             const radius = isOccupied ? 3 : 5;
 
-            // Fabric.jsの円オブジェクトを作成して配置
             const dot = new fabric.Circle({
-                left: node.x,
-                top: node.y,
-                radius: radius,
-                fill: color,
-                stroke: '#ffffff',
-                strokeWidth: 1,
-                originX: 'center',
-                originY: 'center',
-                selectable: false, // ユーザーがインジケータ自体を掴めないようにロック
-                evented: false,
-                customData: { isIndicator: true } // インジケータ判定用のフラグ
+                left: node.x, top: node.y, radius: radius, fill: color,
+                stroke: '#ffffff', strokeWidth: 1, originX: 'center', originY: 'center',
+                selectable: false, evented: false, customData: { isIndicator: true }
             });
 
             canvas.add(dot);
-            // インジケータがレールの下に隠れないよう、最前面に持ってくる
             canvas.bringToFront(dot);
         });
     });
@@ -216,12 +228,12 @@ function exportLayoutJSON() {
     });
 
     const completeSaveData = {
-        version: "VER-VISUAL-D4",
+        version: "VER-DOUBLE-SNAP-E5",
         rails: railsData,
         joints: globalJoints
     };
 
-    console.log("[VER-VISUAL-D4] ======= 総合セーブデータ(JSON) =======");
+    console.log("[VER-DOUBLE-SNAP-E5] ======= 総合セーブデータ(JSON) =======");
     console.log(JSON.stringify(completeSaveData, null, 2));
     alert("ブラウザのコンソール(F12)に統合JSONを出力しました！");
 }
