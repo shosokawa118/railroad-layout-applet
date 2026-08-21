@@ -1,8 +1,8 @@
 // =============================================================
-// 鉄道模型レイアウトジェネレータ - 配置・幾何学ロジック (リアルタイム追従版)
-// バージョン: VER-FOLLOW-F6
+// 鉄道模型レイアウトジェネレータ - 配置・幾何学ロジック (複数選択ガード版)
+// バージョン: VER-MULTI-SELECT-G7
 // =============================================================
-console.log("ロジックエンジン（JS）が読み込まれました: VER-FOLLOW-F6");
+console.log("ロジックエンジン（JS）が読み込まれました: VER-MULTI-SELECT-G7");
 
 // 1. パーツライブラリ
 const partsCatalog = {
@@ -63,7 +63,6 @@ function addRailToCanvas(partId) {
     canvas.add(railObject);
     canvas.setActiveObject(railObject);
     
-    // ★ドラッグ移動中のリアルタイムイベントを登録
     railObject.on('moving', function() {
         onRailMoving(this);
     });
@@ -94,29 +93,41 @@ function isNodeOccupied(railId, nodeId) {
     );
 }
 
-// ★新設：レールを掴んでドラッグ移動している真っ最中のリアルタイム処理
+// レールを掴んでドラッグ移動している真っ最中のリアルタイム処理
 function onRailMoving(movedRail) {
+    // ★追加ガード：複数選択中の一時グループオブジェクトの場合は、エラーを防ぐためリアルタイム更新をパス
+    if (!movedRail.customData || !movedRail.customData.isRail) return;
+
     const movedId = movedRail.customData.instanceId;
 
     // 動かし始めた瞬間に、このレールに関わる古いジョイント（結合）をリアルタイムに即座に破棄
-    const previousJointCount = globalJoints.length;
     globalJoints = globalJoints.filter(j => j.railA !== movedId && j.railB !== movedId);
-    
-    if (globalJoints.length < previousJointCount) {
-        console.log("[VER-FOLLOW-F6] ドラッグ開始によりジョイントをリアルタイム切断しました。");
-    }
-
-    // 移動中のレールの最新のノード座標と、他のレールの固定されているノードを全て再描画して追従させる
     updateJointIndicators();
 }
 
 // 4. ジョイント管理機能付きスナップメインロジック（マウスを離した瞬間に実行）
 function applySnapAndJointLogic(movedRail) {
+    // ★追加ガード：もし離されたのが「複数選択の一時グループ」だった場合
+    if (movedRail.type === 'activeSelection') {
+        console.log("[VER-MULTI-SELECT-G7] 複数レールの同時移動を検知しました。個別再判定を行います。");
+        // グループの中に入っている本物のレールたちを1本ずつ取り出す
+        const selectedObjects = movedRail.getObjects();
+        selectedObjects.forEach(rail => {
+            if (rail.customData && rail.customData.isRail) {
+                // グループ座標系からグローバル絶対座標系にFabricが内部変換した後の最新位置で個別にロジックを実行
+                applySnapAndJointLogic(rail);
+            }
+        });
+        return; // グループとしての処理はここで終了
+    }
+
+    // ここから先は本物のレール1本に対する従来の正常なロジック
+    if (!movedRail.customData || !movedRail.customData.isRail) return;
+
     const allObjects = canvas.getObjects().filter(obj => obj.customData && obj.customData.isRail);
     const SNAP_THRESHOLD = 30;
     const movedId = movedRail.customData.instanceId;
 
-    // 念のため古いジョイントを重ねてクリア（移動開始時にも消していますが安全のため）
     globalJoints = globalJoints.filter(j => j.railA !== movedId && j.railB !== movedId);
 
     const movedNodes = getAbsoluteNodePos(movedRail);
@@ -143,7 +154,6 @@ function applySnapAndJointLogic(movedRail) {
         });
     });
 
-    // 1箇所目のスナップ
     if (bestSnap) {
         const targetRail = bestSnap.targetRail;
         const targetId = targetRail.customData.instanceId;
@@ -165,9 +175,8 @@ function applySnapAndJointLogic(movedRail) {
             railA: movedId, nodeA: bestSnap.movedNode.nodeId,
             railB: targetId, nodeB: bestSnap.targetNode.nodeId
         });
-        console.log("[VER-FOLLOW-F6] 1箇所目のジョイント結合成功");
+        console.log("[VER-MULTI-SELECT-G7] 1箇所目のジョイント結合成功");
 
-        // 2箇所目の同時結合スキャン
         const postMovedNodes = getAbsoluteNodePos(movedRail);
         allObjects.forEach(otherRail => {
             if (otherRail === movedRail) return;
@@ -186,7 +195,7 @@ function applySnapAndJointLogic(movedRail) {
                             railA: movedId, nodeA: mNode.nodeId,
                             railB: otherId, nodeB: oNode.nodeId
                         });
-                        console.log("[VER-FOLLOW-F6] 🎉 同時結合成功！");
+                        console.log("[VER-MULTI-SELECT-G7] 🎉 同時結合成功！");
                     }
                 });
             });
@@ -239,12 +248,12 @@ function exportLayoutJSON() {
     });
 
     const completeSaveData = {
-        version: "VER-FOLLOW-F6",
+        version: "VER-MULTI-SELECT-G7",
         rails: railsData,
         joints: globalJoints
     };
 
-    console.log("[VER-FOLLOW-F6] ======= 総合セーブデータ(JSON) =======");
+    console.log("[VER-MULTI-SELECT-G7] ======= 総合セーブデータ(JSON) =======");
     console.log(JSON.stringify(completeSaveData, null, 2));
     alert("ブラウザのコンソール(F12)に統合JSONを出力しました！");
 }
