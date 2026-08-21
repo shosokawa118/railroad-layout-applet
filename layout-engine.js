@@ -1,8 +1,8 @@
 // =============================================================
-// 鉄道模型レイアウトジェネレータ - 配置・幾何学ロジック (両端同時結合版)
-// バージョン: VER-DOUBLE-SNAP-E5
+// 鉄道模型レイアウトジェネレータ - 配置・幾何学ロジック (リアルタイム追従版)
+// バージョン: VER-FOLLOW-F6
 // =============================================================
-console.log("ロジックエンジン（JS）が読み込まれました: VER-DOUBLE-SNAP-E5");
+console.log("ロジックエンジン（JS）が読み込まれました: VER-FOLLOW-F6");
 
 // 1. パーツライブラリ
 const partsCatalog = {
@@ -63,6 +63,11 @@ function addRailToCanvas(partId) {
     canvas.add(railObject);
     canvas.setActiveObject(railObject);
     
+    // ★ドラッグ移動中のリアルタイムイベントを登録
+    railObject.on('moving', function() {
+        onRailMoving(this);
+    });
+
     updateJointIndicators();
     canvas.calcOffset();
     canvas.requestRenderAll();
@@ -89,16 +94,31 @@ function isNodeOccupied(railId, nodeId) {
     );
 }
 
-// 4. ★両端の同時結合に対応した、進化したスナップ＆ジョイントメインロジック
-function applySnapAndJointLogic(movedRail) {
-    const allObjects = canvas.getObjects().filter(obj => obj.customData && obj.customData.isRail);
-    const SNAP_THRESHOLD = 30; // 通常の吸着範囲（30ピクセル）
+// ★新設：レールを掴んでドラッグ移動している真っ最中のリアルタイム処理
+function onRailMoving(movedRail) {
     const movedId = movedRail.customData.instanceId;
 
-    // 動かしたレールの古いジョイントをすべて解除
+    // 動かし始めた瞬間に、このレールに関わる古いジョイント（結合）をリアルタイムに即座に破棄
+    const previousJointCount = globalJoints.length;
+    globalJoints = globalJoints.filter(j => j.railA !== movedId && j.railB !== movedId);
+    
+    if (globalJoints.length < previousJointCount) {
+        console.log("[VER-FOLLOW-F6] ドラッグ開始によりジョイントをリアルタイム切断しました。");
+    }
+
+    // 移動中のレールの最新のノード座標と、他のレールの固定されているノードを全て再描画して追従させる
+    updateJointIndicators();
+}
+
+// 4. ジョイント管理機能付きスナップメインロジック（マウスを離した瞬間に実行）
+function applySnapAndJointLogic(movedRail) {
+    const allObjects = canvas.getObjects().filter(obj => obj.customData && obj.customData.isRail);
+    const SNAP_THRESHOLD = 30;
+    const movedId = movedRail.customData.instanceId;
+
+    // 念のため古いジョイントを重ねてクリア（移動開始時にも消していますが安全のため）
     globalJoints = globalJoints.filter(j => j.railA !== movedId && j.railB !== movedId);
 
-    // --- 【ステップ1】最も近い1箇所を見つけて位置と角度を合わせる ---
     const movedNodes = getAbsoluteNodePos(movedRail);
     let bestSnap = null;
     let minDistance = SNAP_THRESHOLD;
@@ -123,7 +143,7 @@ function applySnapAndJointLogic(movedRail) {
         });
     });
 
-    // 1箇所目のスナップ位置をカチッと合わせる
+    // 1箇所目のスナップ
     if (bestSnap) {
         const targetRail = bestSnap.targetRail;
         const targetId = targetRail.customData.instanceId;
@@ -140,42 +160,33 @@ function applySnapAndJointLogic(movedRail) {
         movedRail.set({ left: newLeft, top: newTop });
         movedRail.setCoords();
 
-        // 1箇所目のジョイントをリストに登録
         globalJoints.push({
             jointId: `j-${Date.now()}-${Math.floor(Math.random()*1000)}`,
             railA: movedId, nodeA: bestSnap.movedNode.nodeId,
             railB: targetId, nodeB: bestSnap.targetNode.nodeId
         });
-        console.log("[VER-DOUBLE-SNAP-E5] 1箇所目のジョイント結合成功");
+        console.log("[VER-FOLLOW-F6] 1箇所目のジョイント結合成功");
 
-        // --- 【ステップ2】位置確定後、もう片方の端っこ（他のノード）もピッタリ重なっているか再スキャン ---
-        // 無限ループを防ぐため、ここでは【レールの位置移動（ワープ）は一切行わず、登録だけ】行います。
-        const postMovedNodes = getAbsoluteNodePos(movedRail); // 位置調整後の最新の絶対座標を取得
-
+        // 2箇所目の同時結合スキャン
+        const postMovedNodes = getAbsoluteNodePos(movedRail);
         allObjects.forEach(otherRail => {
             if (otherRail === movedRail) return;
             const otherId = otherRail.customData.instanceId;
             const otherNodes = getAbsoluteNodePos(otherRail);
 
             postMovedNodes.forEach(mNode => {
-                // すでにステップ1で埋まったノードはスキップ
                 if (isNodeOccupied(movedId, mNode.nodeId)) return;
-
                 otherNodes.forEach(oNode => {
                     if (isNodeOccupied(otherId, oNode.nodeId)) return;
 
-                    // すでに位置は合っているはずなので、距離が極めて近い(5px以内)かだけをチェック
                     const dist = Math.sqrt(Math.pow(mNode.x - oNode.x, 2) + Math.pow(mNode.y - oNode.y, 2));
-                    const CLOSE_THRESHOLD = 5; // すでに重なっているとみなす微小距離
-
-                    if (dist < CLOSE_THRESHOLD) {
-                        // 2箇所目のジョイントも成立！（移動計算はせず、データへの登録だけ）
+                    if (dist < 5) {
                         globalJoints.push({
                             jointId: `j-${Date.now()}-${Math.floor(Math.random()*1000)}`,
                             railA: movedId, nodeA: mNode.nodeId,
                             railB: otherId, nodeB: oNode.nodeId
                         });
-                        console.log("[VER-DOUBLE-SNAP-E5] 🎉 同時結合成功！反対側のジョイントも自動ロックされました。");
+                        console.log("[VER-FOLLOW-F6] 🎉 同時結合成功！");
                     }
                 });
             });
@@ -228,12 +239,12 @@ function exportLayoutJSON() {
     });
 
     const completeSaveData = {
-        version: "VER-DOUBLE-SNAP-E5",
+        version: "VER-FOLLOW-F6",
         rails: railsData,
         joints: globalJoints
     };
 
-    console.log("[VER-DOUBLE-SNAP-E5] ======= 総合セーブデータ(JSON) =======");
+    console.log("[VER-FOLLOW-F6] ======= 総合セーブデータ(JSON) =======");
     console.log(JSON.stringify(completeSaveData, null, 2));
     alert("ブラウザのコンソール(F12)に統合JSONを出力しました！");
 }
