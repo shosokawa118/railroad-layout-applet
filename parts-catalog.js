@@ -55,15 +55,14 @@ const partsCatalog = {
     },
     "KATO-EP4-R": {
         "name": "電動ポイント4番(右)",
-        // ★Fabricの自動バウンディングボックス中心(4.2pxの偏り)から逆算した、ズレを100%相殺する完全な正解データ
         "nodes": [
-            { "id": 0, "name": "進入端", "relX": -63.0, "relY": -8.3, "facingAngle": 180 }, // ★-4.1 から -8.3 に修正
-            { "id": 1, "name": "直進端", "relX": 63.0,  "relY": -8.3, "facingAngle": 0 },   // ★-4.1 から -8.3 に修正
-            { "id": 2, "name": "分岐端", "relX": 61.9,  "relY": 8.1,  "facingAngle": 15.0 }  // ★12.4 から 8.1 に修正
+            { "id": 0, "name": "進入端", "relX": -63.0, "relY": 0, "facingAngle": 180 },  // 直線上なので Y: 0
+            { "id": 1, "name": "直進端", "relX": 63.0,  "relY": 0, "facingAngle": 0 },    // 直線上なので Y: 0
+            { "id": 2, "name": "分岐端", "relX": 61.9,  "relY": 16.5, "facingAngle": 15.0 } // 幾何学仕様通り 16.5mm 下
         ],
         "shapes": [
-            { "type": "line", "length": 126, "offsetX": 0, "offsetY": -4.1 },
-            { "type": "arc", "radius": 481, "arcAngle": 15, "centerX": -63.0, "centerY": 476.9, "startAngle": 270 }
+            { "type": "line", "length": 126, "offsetX": 0, "offsetY": 0 },
+            { "type": "arc", "radius": 481, "arcAngle": 15, "centerX": -63.0, "centerY": 481, "startAngle": 270 }
         ]
     }
 };
