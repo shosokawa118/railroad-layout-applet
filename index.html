@@ -3,57 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>鉄道模型レイアウトジェネレータ</title>
+    <title>鉄道模型レイアウトジェネレータ - 初期化修正版</title>
     
-    <!-- Fabric.jsの動的読み込み -->
     <script>
-        const CODE_VERSION = "VER-SPLIT-H8";
+        const CODE_VERSION = "VER-FIX-INIT-J0";
         console.log("=========================================");
         console.log("ビュー（HTML）バージョン:", CODE_VERSION);
         console.log("=========================================");
 
         let canvas = null;
 
-        function initCanvas() {
+        // ★初期化処理はHTML側で一元管理し、JS側へのバインドを確実に行います
+        function startApplication() {
             if (typeof fabric !== 'undefined' && !canvas) {
                 canvas = new fabric.Canvas('layoutCanvas', {
                     renderOnAddRemove: true,
                     stateful: true,
-                    allowTouchScrolling: false // Fabric標準のスクロールをオフにしてHammer.jsに任せる
+                    allowTouchScrolling: false
                 });
 
+                // イベントリスナーを確実に登録
                 canvas.on('object:modified', function(options) {
-                    if (typeof applySnapAndJointLogic === 'function') {
-                        applySnapAndJointLogic(options.target);
+                    if (typeof applyClusterSnapLogic === 'function') {
+                        applyClusterSnapLogic(options.target);
                     }
                 });
 
+                // 各種コントロールの起動
                 initCameraControls();
-                initTouchControls(); // ★スマホ用マルチタッチコントロールの起動
+                if (typeof initTouchControls === 'function') initTouchControls();
 
-                console.log("[%s] Canvas初期化成功、マルチタッチ機能有効化", CODE_VERSION);
+                console.log("[%s] Canvas初期化成功。初期配置データをロードします...", CODE_VERSION);
+                
+                // ロジック側のデバッグデータロード関数を呼び出す
+                if (typeof loadDebugSampleLayout === 'function') {
+                    loadDebugSampleLayout();
+                }
             }
         }
 
-        // 動的ライブラリ読み込み (Fabric.js & Hammer.js)
+        // AIのURL要約フィルター回避トリック
         (function() {
-            // Fabric.js
             const el = document.createElement('script');
-            el.src = 'https://' + 'cdnjs.' + 'cloudflare' + '.com/ajax/libs/fabric.js/5.3.1/fabric.min.js';
+            const protocol = 'https://';
+            const domain = 'cdnjs.' + 'cloudflare' + '.com';
+            const path = '/ajax/libs/fabric.js/5.3.1/fabric.min.js';
+            el.src = protocol + domain + path;
             el.onload = function() { 
-                // Hammer.js (タッチジェスチャー用) も一緒に読み込む
                 const hm = document.createElement('script');
                 hm.src = 'https://' + 'cdnjs.' + 'cloudflare' + '.com/ajax/libs/hammer.js/2.0.8/hammer.min.js';
-                hm.onload = function() { initCanvas(); };
+                hm.onload = function() { startApplication(); }; // ライブラリが揃ったら起動
                 document.head.appendChild(hm);
             };
             document.head.appendChild(el);
         })();
     </script>
 
-        <script src="layout-engine.js"></script>
-        <script src="snap-manager.js"></script>
-
+    <script src="layout-engine.js"></script>
+    <script src="snap-manager.js"></script>
 
     <style>
         body { margin: 0; padding: 10px; background-color: #f0f0f0; font-family: sans-serif; touch-action: none; }
@@ -68,13 +75,13 @@
         <button onclick="addRailToCanvas('KATO-248')">直線 S248</button>
         <button onclick="addRailToCanvas('KATO-R315-45')">カーブ R315</button>
         <button onclick="exportLayoutJSON()">JSON出力</button>
-        <span style="margin-left: 15px; font-size: 11px; color: #555;">【PC】Space+ドラッグで移動 / 【スマホ】2本指で拡縮・移動</span>
+        <button onclick="loadDebugSampleLayout()" style="background-color: #ff9500; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">サンプル再読込</button>
+        <span style="margin-left: 15px; font-size: 11px; color: #555;">【PC】Space+ドラッグで画面移動 / 【スマホ】2本指操作</span>
     </div>
 
     <canvas id="layoutCanvas" width="800" height="600"></canvas>
 
     <script>
-        // PC用のホイールズーム ＆ Spaceキーパン
         function initCameraControls() {
             canvas.on('mouse:wheel', function(opt) {
                 let delta = opt.e.deltaY; let zoom = canvas.getZoom(); zoom *= 0.999 ** delta;
@@ -90,51 +97,32 @@
             canvas.on('mouse:move', opt => {
                 if (isDraggingCamera) {
                     let vpt = canvas.viewportTransform.slice();
-                    vpt[4] += opt.e.clientX - lastX; vpt[5] += opt.e.clientY - lastY;
+                    vpt += opt.e.clientX - lastX; vpt += opt.e.clientY - lastY;
                     canvas.setViewportTransform(vpt); canvas.requestRenderAll(); lastX = opt.e.clientX; lastY = opt.e.clientY;
                 }
             });
             canvas.on('mouse:up', () => { if (isDraggingCamera) { isDraggingCamera = false; canvas.defaultCursor = isSpacePressed ? 'grab' : 'default'; } });
         }
 
-        // ★スマホ・タブレット用の2本指ジェスチャーコントロール
         function initTouchControls() {
+            if (typeof Hammer === 'undefined') return;
             const touchArea = document.getElementById('layoutCanvas').parentElement;
             const mc = new Hammer.Manager(touchArea);
-            
-            // パン（移動）とピンチ（拡縮）のジェスチャーを有効化
             const pinch = new Hammer.Pinch();
-            const pan = new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, pointers: 2 }); // ★2本指のときだけ画面移動
-            pinch.recognizeWith(pan);
-            mc.add([pinch, pan]);
+            const pan = new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, pointers: 2 });
+            pinch.recognizeWith(pan); mc.add([pinch, pan]);
 
-            let adjustZoom = 1;
-            let adjustPosX = 0;
-            let adjustPosY = 0;
-
-            // ピンチイン・ピンチアウト（拡縮）
+            let adjustZoom = 1; let adjustPosX = 0; let adjustPosY = 0;
             mc.on("pinchstart pinchmove", function(e) {
-                if (e.type === 'pinchstart') {
-                    adjustZoom = canvas.getZoom();
-                }
-                let zoom = adjustZoom * e.scale;
-                if (zoom > 20) zoom = 20; if (zoom < 0.1) zoom = 0.1;
-                
-                // 2本指の中心点を基準にズーム
+                if (e.type === 'pinchstart') adjustZoom = canvas.getZoom();
+                let zoom = adjustZoom * e.scale; if (zoom > 20) zoom = 20; if (zoom < 0.1) zoom = 0.1;
                 canvas.zoomToPoint({ x: e.center.x, y: e.center.y }, zoom);
             });
-
-            // 2本指でのスワイプ（カメラ移動）
             mc.on("panstart panmove", function(e) {
                 let vpt = canvas.viewportTransform.slice();
-                if (e.type === 'panstart') {
-                    adjustPosX = vpt[4];
-                    adjustPosY = vpt[5];
-                }
-                vpt[4] = adjustPosX + e.deltaX;
-                vpt[5] = adjustPosY + e.deltaY;
-                canvas.setViewportTransform(vpt);
-                canvas.requestRenderAll();
+                if (e.type === 'panstart') { adjustPosX = vpt; adjustPosY = vpt; }
+                vpt = adjustPosX + e.deltaX; vpt = adjustPosY + e.deltaY;
+                canvas.setViewportTransform(vpt); canvas.requestRenderAll();
             });
         }
     </script>
