@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>鉄道模型レイアウトジェネレータ - カタログ実装版</title>
+    <title>鉄道模型レイアウトジェネレータ</title>
     
     <script>
-        const CODE_VERSION = "VER-FIX-PATH-L2";
+        const CODE_VERSION = "VER-PERFECT-M3";
         console.log("=========================================");
         console.log("ビュー（HTML）バージョン:", CODE_VERSION);
         console.log("=========================================");
@@ -22,7 +22,7 @@
                 });
 
                 canvas.on('object:modified', function(options) {
-                    if (typeof applyClusterSnapLogic === 'function') {
+                    if (options && options.target && typeof applyClusterSnapLogic === 'function') {
                         applyClusterSnapLogic(options.target);
                     }
                 });
@@ -32,9 +32,11 @@
 
                 console.log("[%s] Canvas初期化成功。初期配置データをロードします...", CODE_VERSION);
                 
-                if (typeof loadDebugSampleLayout === 'function') {
-                    loadDebugSampleLayout();
-                }
+                setTimeout(() => {
+                    if (typeof loadDebugSampleLayout === 'function') {
+                        loadDebugSampleLayout();
+                    }
+                }, 300);
             }
         }
 
@@ -58,7 +60,6 @@
     <script src="layout-engine.js"></script>
     <script src="sample-data.js"></script>
     <script src="snap-manager.js"></script>
-
 
     <style>
         body { margin: 0; padding: 10px; background-color: #f0f0f0; font-family: sans-serif; touch-action: none; }
@@ -85,22 +86,27 @@
     <canvas id="layoutCanvas" width="800" height="600"></canvas>
 
     <script>
+        // ブラウザ拡張機能やHammer.jsの干渉によるnull参照を徹底的にガード
         function initCameraControls() {
             canvas.on('mouse:wheel', function(opt) {
+                if (!opt || !opt.e) return;
                 let delta = opt.e.deltaY; let zoom = canvas.getZoom(); zoom *= 0.999 ** delta;
                 if (zoom > 20) zoom = 20; if (zoom < 0.1) zoom = 0.1;
-                canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+                canvas.zoomToPoint({ x: opt.e.offsetX || 400, y: opt.e.offsetY || 300 }, zoom);
                 opt.e.preventDefault(); opt.e.stopPropagation();
             });
 
             let isSpacePressed = false; let isDraggingCamera = false; let lastX, lastY;
-            window.addEventListener('keydown', e => { if (e.code === 'Space') { isSpacePressed = true; canvas.defaultCursor = 'grab'; } });
-            window.addEventListener('keyup', e => { if (e.code === 'Space') { isSpacePressed = false; canvas.defaultCursor = 'default'; } });
-            canvas.on('mouse:down', opt => { if (isSpacePressed) { isDraggingCamera = true; canvas.defaultCursor = 'grabbing'; lastX = opt.e.clientX; lastY = opt.e.clientY; } });
+            window.addEventListener('keydown', e => { if (e && e.code === 'Space') { isSpacePressed = true; canvas.defaultCursor = 'grab'; } });
+            window.addEventListener('keyup', e => { if (e && e.code === 'Space') { isSpacePressed = false; canvas.defaultCursor = 'default'; } });
+            
+            canvas.on('mouse:down', opt => { 
+                if (isSpacePressed && opt && opt.e) { isDraggingCamera = true; canvas.defaultCursor = 'grabbing'; lastX = opt.e.clientX; lastY = opt.e.clientY; } 
+            });
             canvas.on('mouse:move', opt => {
-                if (isDraggingCamera) {
+                if (isDraggingCamera && opt && opt.e) {
                     let vpt = canvas.viewportTransform.slice();
-                    vpt += opt.e.clientX - lastX; vpt += opt.e.clientY - lastY;
+                    vpt[4] += opt.e.clientX - lastX; vpt[5] += opt.e.clientY - lastY;
                     canvas.setViewportTransform(vpt); canvas.requestRenderAll(); lastX = opt.e.clientX; lastY = opt.e.clientY;
                 }
             });
@@ -110,6 +116,7 @@
         function initTouchControls() {
             if (typeof Hammer === 'undefined') return;
             const touchArea = document.getElementById('layoutCanvas').parentElement;
+            if (!touchArea) return;
             const mc = new Hammer.Manager(touchArea);
             const pinch = new Hammer.Pinch();
             const pan = new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, pointers: 2 });
@@ -117,14 +124,16 @@
 
             let adjustZoom = 1; let adjustPosX = 0; let adjustPosY = 0;
             mc.on("pinchstart pinchmove", function(e) {
+                if (!e) return;
                 if (e.type === 'pinchstart') adjustZoom = canvas.getZoom();
                 let zoom = adjustZoom * e.scale; if (zoom > 20) zoom = 20; if (zoom < 0.1) zoom = 0.1;
                 canvas.zoomToPoint({ x: e.center.x, y: e.center.y }, zoom);
             });
             mc.on("panstart panmove", function(e) {
+                if (!e) return;
                 let vpt = canvas.viewportTransform.slice();
-                if (e.type === 'panstart') { adjustPosX = vpt; adjustPosY = vpt; }
-                vpt = adjustPosX + e.deltaX; vpt = adjustPosY + e.deltaY;
+                if (e.type === 'panstart') { adjustPosX = vpt[4]; adjustPosY = vpt[5]; }
+                vpt[4] = adjustPosX + e.deltaX; vpt[5] = adjustPosY + e.deltaY;
                 canvas.setViewportTransform(vpt); canvas.requestRenderAll();
             });
         }
