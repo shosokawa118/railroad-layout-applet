@@ -1,10 +1,10 @@
 // =============================================================
-// 鉄道模型レイアウトジェネレータ - 配置・幾何学ロジック (複数選択ガード版)
-// バージョン: VER-MULTI-SELECT-G7
+// 鉄道模型レイアウトジェネレータ - 基本エンジン
+// バージョン: VER-SPLIT-H8
 // =============================================================
-console.log("ロジックエンジン（JS）が読み込まれました: VER-MULTI-SELECT-G7");
+console.log("基本エンジン（JS）が読み込まれました: VER-SPLIT-H8");
 
-// 1. パーツライブラリ
+// 1. パーツライブラリ（カタログ）
 const partsCatalog = {
     "KATO-248": {
         "type": "straight", "name": "直線 S248", "width": 248, "height": 16, "fill": "#333333",
@@ -24,6 +24,7 @@ const partsCatalog = {
 
 let globalJoints = [];
 let railCount = 0;
+let isFirstMoveFrame = true; // ドラッグ開始検知フラグ
 
 // 2. レールをCanvasに追加する関数
 function addRailToCanvas(partId) {
@@ -63,9 +64,23 @@ function addRailToCanvas(partId) {
     canvas.add(railObject);
     canvas.setActiveObject(railObject);
     
+    // 単体ドラッグ移動イベント
     railObject.on('moving', function() {
-        onRailMoving(this);
+        onGeneralMoving(this);
     });
+
+    // 複数選択グループ（ActiveSelection）の移動監視を1回だけ登録
+    if (railCount === 1) {
+        canvas.on('object:moving', function(options) {
+            onGeneralMoving(options.target);
+        });
+        // マウスを離した瞬間のスナップイベントを新規のマネージャー側にバイパス
+        canvas.on('object:modified', function(options) {
+            if (typeof applyClusterSnapLogic === 'function') {
+                applyClusterSnapLogic(options.target);
+            }
+        });
+    }
 
     updateJointIndicators();
     canvas.calcOffset();
@@ -93,120 +108,37 @@ function isNodeOccupied(railId, nodeId) {
     );
 }
 
-// レールを掴んでドラッグ移動している真っ最中のリアルタイム処理
-function onRailMoving(movedRail) {
-    // ★追加ガード：複数選択中の一時グループオブジェクトの場合は、エラーを防ぐためリアルタイム更新をパス
-    if (!movedRail.customData || !movedRail.customData.isRail) return;
-
-    const movedId = movedRail.customData.instanceId;
-
-    // 動かし始めた瞬間に、このレールに関わる古いジョイント（結合）をリアルタイムに即座に破棄
-    globalJoints = globalJoints.filter(j => j.railA !== movedId && j.railB !== movedId);
-    updateJointIndicators();
-}
-
-// 4. ジョイント管理機能付きスナップメインロジック（マウスを離した瞬間に実行）
-function applySnapAndJointLogic(movedRail) {
-    // ★追加ガード：もし離されたのが「複数選択の一時グループ」だった場合
-    if (movedRail.type === 'activeSelection') {
-        console.log("[VER-MULTI-SELECT-G7] 複数レールの同時移動を検知しました。個別再判定を行います。");
-        // グループの中に入っている本物のレールたちを1本ずつ取り出す
-        const selectedObjects = movedRail.getObjects();
-        selectedObjects.forEach(rail => {
-            if (rail.customData && rail.customData.isRail) {
-                // グループ座標系からグローバル絶対座標系にFabricが内部変換した後の最新位置で個別にロジックを実行
-                applySnapAndJointLogic(rail);
-            }
-        });
-        return; // グループとしての処理はここで終了
-    }
-
-    // ここから先は本物のレール1本に対する従来の正常なロジック
-    if (!movedRail.customData || !movedRail.customData.isRail) return;
-
-    const allObjects = canvas.getObjects().filter(obj => obj.customData && obj.customData.isRail);
-    const SNAP_THRESHOLD = 30;
-    const movedId = movedRail.customData.instanceId;
-
-    globalJoints = globalJoints.filter(j => j.railA !== movedId && j.railB !== movedId);
-
-    const movedNodes = getAbsoluteNodePos(movedRail);
-    let bestSnap = null;
-    let minDistance = SNAP_THRESHOLD;
-
-    allObjects.forEach(otherRail => {
-        if (otherRail === movedRail) return;
-        const otherId = otherRail.customData.instanceId;
-        const otherNodes = getAbsoluteNodePos(otherRail);
-
-        movedNodes.forEach(mNode => {
-            if (isNodeOccupied(movedId, mNode.nodeId)) return;
-
-            otherNodes.forEach(oNode => {
-                if (isNodeOccupied(otherId, oNode.nodeId)) return;
-
-                const dist = Math.sqrt(Math.pow(mNode.x - oNode.x, 2) + Math.pow(mNode.y - oNode.y, 2));
-                if (dist < minDistance) {
-                    minDistance = dist;
-                    bestSnap = { movedNode: mNode, targetNode: oNode, targetRail: otherRail };
-                }
-            });
-        });
-    });
-
-    if (bestSnap) {
-        const targetRail = bestSnap.targetRail;
-        const targetId = targetRail.customData.instanceId;
-        const mCatalogNode = partsCatalog[movedRail.customData.partId].nodes[bestSnap.movedNode.nodeId];
+// 4. 移動中のリアルタイムハンドラ（引き裂きルール①〜④の実行）
+function onGeneralMoving(target) {
+    if (isFirstMoveFrame) {
+        const movedIds = getMovedRailIds(target);
         
-        let newAngle = (bestSnap.targetNode.angle - mCatalogNode.facingAngle + 180) % 360;
-        if (newAngle < 0) newAngle += 360;
-        movedRail.set('angle', newAngle);
-
-        const newAngleRad = (newAngle * Math.PI) / 180;
-        const newLeft = bestSnap.targetNode.x - (mCatalogNode.relX * Math.cos(newAngleRad) - mCatalogNode.relY * Math.sin(newAngleRad));
-        const newTop  = bestSnap.targetNode.y - (mCatalogNode.relX * Math.sin(newAngleRad) + mCatalogNode.relY * Math.cos(newAngleRad));
-
-        movedRail.set({ left: newLeft, top: newTop });
-        movedRail.setCoords();
-
-        globalJoints.push({
-            jointId: `j-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-            railA: movedId, nodeA: bestSnap.movedNode.nodeId,
-            railB: targetId, nodeB: bestSnap.targetNode.nodeId
+        // 境界ジョイントのみを引き裂く（仕様①〜④）
+        globalJoints = globalJoints.filter(j => {
+            const hasA = movedIds.includes(j.railA);
+            const hasB = movedIds.includes(j.railB);
+            return (hasA && hasB) || (!hasA && !hasB);
         });
-        console.log("[VER-MULTI-SELECT-G7] 1箇所目のジョイント結合成功");
-
-        const postMovedNodes = getAbsoluteNodePos(movedRail);
-        allObjects.forEach(otherRail => {
-            if (otherRail === movedRail) return;
-            const otherId = otherRail.customData.instanceId;
-            const otherNodes = getAbsoluteNodePos(otherRail);
-
-            postMovedNodes.forEach(mNode => {
-                if (isNodeOccupied(movedId, mNode.nodeId)) return;
-                otherNodes.forEach(oNode => {
-                    if (isNodeOccupied(otherId, oNode.nodeId)) return;
-
-                    const dist = Math.sqrt(Math.pow(mNode.x - oNode.x, 2) + Math.pow(mNode.y - oNode.y, 2));
-                    if (dist < 5) {
-                        globalJoints.push({
-                            jointId: `j-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-                            railA: movedId, nodeA: mNode.nodeId,
-                            railB: otherId, nodeB: oNode.nodeId
-                        });
-                        console.log("[VER-MULTI-SELECT-G7] 🎉 同時結合成功！");
-                    }
-                });
-            });
-        });
+        
+        isFirstMoveFrame = false;
     }
-
+    // 画像バッファ処理中につき、丸ぽちの最新追従のみを最軽量で実行
     updateJointIndicators();
-    canvas.requestRenderAll();
 }
 
-// 画面上のすべての接続点の状態をスキャンし、インジケータ（丸）を再描画する関数
+// 現在移動しているレールのIDを取得するヘルパー
+function getMovedRailIds(target) {
+    if (!target) return [];
+    if (target.customData && target.customData.isRail) {
+        return [target.customData.instanceId];
+    }
+    if (target.type === 'activeSelection') {
+        return target.getObjects().filter(o => o.customData && o.customData.isRail).map(o => o.customData.instanceId);
+    }
+    return [];
+}
+
+// 5. 画面上のすべての接続点インジケータ（丸）を再描画する関数
 function updateJointIndicators() {
     const oldIndicators = canvas.getObjects().filter(obj => obj.customData && obj.customData.isIndicator);
     oldIndicators.forEach(obj => canvas.remove(obj));
@@ -232,28 +164,4 @@ function updateJointIndicators() {
             canvas.bringToFront(dot);
         });
     });
-}
-
-// 5. 総合データエクスポート
-function exportLayoutJSON() {
-    if (!canvas) return;
-    const objects = canvas.getObjects().filter(obj => obj.customData && obj.customData.isRail);
-    
-    const railsData = objects.map(obj => {
-        return {
-            instanceId: obj.customData.instanceId,
-            partId: obj.customData.partId,
-            x: Math.round(obj.left), y: Math.round(obj.top), angle: Math.round(obj.angle)
-        };
-    });
-
-    const completeSaveData = {
-        version: "VER-MULTI-SELECT-G7",
-        rails: railsData,
-        joints: globalJoints
-    };
-
-    console.log("[VER-MULTI-SELECT-G7] ======= 総合セーブデータ(JSON) =======");
-    console.log(JSON.stringify(completeSaveData, null, 2));
-    alert("ブラウザのコンソール(F12)に統合JSONを出力しました！");
 }
