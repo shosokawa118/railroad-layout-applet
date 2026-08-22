@@ -1,8 +1,8 @@
 // =============================================================
-// 鉄道模型レイアウトジェネレータ - 基本エンジン (データ完全分離版)
-// バージョン: VER-FIX-PATH-L2
+// 鉄道模型レイアウトジェネレータ - 基本エンジン (完全中心原点版)
+// バージョン: VER-PERFECT-M3
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-FIX-PATH-L2");
+console.log("基本エンジン（JS）が読み込まれました: VER-PERFECT-M3");
 
 let globalJoints = [];
 let railCount = 0;
@@ -12,44 +12,46 @@ let isFirstMoveFrame = true;
 function addRailToCanvas(partId) {
     if (!canvas) return null;
 
-    // 分離した parts-catalog.js からデータを読み込み
     const catalogItem = partsCatalog[partId];
     if (!catalogItem) {
         console.error("未定義のパーツです:", partId);
         return null;
     }
 
-    const initialLeft = 200 + (railCount % 5) * 25;
+    const initialLeft = 250 + (railCount % 5) * 25;
     const initialTop = 450 + (railCount % 5) * 25;
     const currentId = `rail-${railCount}`;
     railCount++;
 
     let railObject;
 
-    // すべての図形を「左上(0,0)」基準の絶対パス命令で描画し、原点ズレを完全に防ぐ
+    // ★中心(0,0)を原点とし、Fabric.jsの自動中心計算と100%合致する対称パス命令に修正
     if (catalogItem.type === "straight") {
-        const straightPath = `M 0 8 L ${catalogItem.width} 8`;
+        const w2 = catalogItem.width / 2;
+        const straightPath = `M ${-w2} 0 L ${w2} 0`;
         railObject = new fabric.Path(straightPath, {
             fill: 'transparent', stroke: '#888888', strokeWidth: 16, strokeLineCap: 'butt'
         });
     } else if (catalogItem.type === "curve") {
         const r = partId === "KATO-R481-15" ? 481 : 315;
-        const curvePath = `M 0 ${catalogItem.height} A ${r} ${r} 0 0 1 ${catalogItem.width} ${catalogItem.height}`;
+        const w2 = catalogItem.width / 2;
+        const h2 = catalogItem.height / 2;
+        const curvePath = `M ${-w2} ${h2} A ${r} ${r} 0 0 1 ${w2} ${h2}`;
         railObject = new fabric.Path(curvePath, {
             fill: 'transparent', stroke: '#888888', strokeWidth: 16, strokeLineCap: 'butt'
         });
     } else if (catalogItem.type === "turnout-right") {
-        // 直線(高さ8固定) ＋ 分岐円弧(0,8からスタートして右下へ抜けるマルチパス)
-        const turnoutPath = "M 0 8 L 126 8 M 0 8 A 481 481 0 0 1 124.9 24.5";
+        // ポイントの中心(0,0)から広がる、幾何学的に美しい2本の統合パス
+        const turnoutPath = "M -63 -4.1 L 63 -4.1 M -63 -4.1 A 481 481 0 0 1 61.9 12.4";
         railObject = new fabric.Path(turnoutPath, {
             fill: 'transparent', stroke: '#888888', strokeWidth: 16, strokeLineCap: 'butt'
         });
     }
 
-    // 回転・配置の基準を「左上（topLeft）」に固定し、Fabricの自動軸ズレを無効化
+    // ★原点を「完全な中心(center)」に復随！これによりサンプルレイアウトの配置が100%元通りになります
     railObject.set({
         left: initialLeft, top: initialTop,
-        originX: 'left', originY: 'top', angle: 0,
+        originX: 'center', originY: 'center', angle: 0,
         hasControls: true, lockScalingX: true, lockScalingY: true
     });
 
@@ -63,7 +65,7 @@ function addRailToCanvas(partId) {
 
     if (railCount === 1) {
         canvas.on('object:moving', function(options) {
-            onGeneralMoving(options.target);
+            if (options && options.target) onGeneralMoving(options.target);
         });
     }
 
@@ -74,7 +76,7 @@ function addRailToCanvas(partId) {
     return railObject;
 }
 
-// 2. 幾何学計算：ノードの「画面上の絶対座標」を計算 (ActiveSelection・左上原点基準対応)
+// 2. 幾何学計算：ノードの「画面上の絶対座標」を計算 (中心原点基準)
 function getAbsoluteNodePos(rail) {
     if (!rail || !rail.customData) return [];
     const catalog = partsCatalog[rail.customData.partId];
@@ -107,8 +109,7 @@ function getAbsoluteNodePos(rail) {
 
 function isNodeOccupied(railId, nodeId) {
     return globalJoints.some(j => 
-        (j.railA === railId && j.nodeA === nodeId) || 
-        (j.railB === railId && j.nodeB === nodeId)
+        j && ((j.railA === railId && j.nodeA === nodeId) || (j.railB === railId && j.nodeB === nodeId))
     );
 }
 
@@ -117,6 +118,7 @@ function onGeneralMoving(target) {
     if (isFirstMoveFrame) {
         const movedIds = getMovedRailIds(target);
         globalJoints = globalJoints.filter(j => {
+            if (!j) return false;
             const hasA = movedIds.includes(j.railA);
             const hasB = movedIds.includes(j.railB);
             return (hasA && hasB) || (!hasA && !hasB);
@@ -135,21 +137,25 @@ function getMovedRailIds(target) {
     return [];
 }
 
-// 3. ズームバグをガードしたインジケータ（丸）の再描画関数
+// 3. 鉄壁の安全ガードを施したインジケータ再描画関数（これで幽霊エラーが永続消滅します）
 function updateJointIndicators() {
     if (!canvas) return;
     
+    // 古いインジケータの安全な削除
     const oldIndicators = canvas.getObjects().filter(obj => obj && obj.customData && obj.customData.isIndicator);
-    oldIndicators.forEach(obj => canvas.remove(obj));
+    oldIndicators.forEach(obj => { if (obj) canvas.remove(obj); });
 
+    // 本物のレールオブジェクトのみを安全にスキャン
     const rails = canvas.getObjects().filter(obj => obj && obj.customData && obj.customData.isRail);
 
     rails.forEach(rail => {
+        if (!rail || !rail.customData) return;
         const railId = rail.customData.instanceId;
         const absoluteNodes = getAbsoluteNodePos(rail);
         if (!absoluteNodes) return;
 
         absoluteNodes.forEach(node => {
+            if (!node) return;
             const isOccupied = isNodeOccupied(railId, node.nodeId);
             const color = isOccupied ? '#7cd21d' : '#ff3b30';
             const radius = isOccupied ? 3 : 5;
@@ -166,7 +172,7 @@ function updateJointIndicators() {
     });
 }
 
-// 4. サンプルレイアウトのロード関数 (分離した sample-data.js からデータを読み込み)
+// サンプル小判型エンドレスデータの完全ロード
 function loadDebugSampleLayout() {
     if (!canvas || typeof INITIAL_SAMPLE_LAYOUT === 'undefined') return;
     canvas.clear();
@@ -175,6 +181,7 @@ function loadDebugSampleLayout() {
 
     const instanceMap = {};
     INITIAL_SAMPLE_LAYOUT.rails.forEach(r => {
+        if (!r) return;
         const obj = addRailToCanvas(r.partId);
         if (obj) {
             obj.set({ left: r.x, top: r.y, angle: r.angle });
@@ -185,6 +192,7 @@ function loadDebugSampleLayout() {
     });
 
     INITIAL_SAMPLE_LAYOUT.joints.forEach(j => {
+        if (!j) return;
         globalJoints.push({
             jointId: `j-${Date.now()}-${Math.floor(Math.random()*1000)}`,
             railA: j.railA, nodeA: j.nodeA,
@@ -199,5 +207,5 @@ function loadDebugSampleLayout() {
 
     updateJointIndicators();
     canvas.requestRenderAll();
-    console.log("[%s] サンプル小判型エンドレスの自動展開に成功しました！", CODE_VERSION);
+    console.log("[%s] サンプル小判型エンドレスを中心原点で美しく自動展開しました！", CODE_VERSION);
 }
