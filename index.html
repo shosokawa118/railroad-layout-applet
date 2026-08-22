@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>鉄道模型レイアウトジェネレータ - ポイント実装版</title>
+    <title>鉄道模型レイアウトジェネレータ - カタログ実装版</title>
     
     <script>
-        const CODE_VERSION = "VER-TURNOUT-K1";
+        const CODE_VERSION = "VER-FIX-PATH-L2";
         console.log("=========================================");
         console.log("ビュー（HTML）バージョン:", CODE_VERSION);
         console.log("=========================================");
@@ -54,8 +54,11 @@
         })();
     </script>
 
+    <script src="parts-catalog.js"></script>
     <script src="layout-engine.js"></script>
+    <script src="sample-data.js"></script>
     <script src="snap-manager.js"></script>
+
 
     <style>
         body { margin: 0; padding: 10px; background-color: #f0f0f0; font-family: sans-serif; touch-action: none; }
