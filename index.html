@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>鉄道模型レイアウトジェネレータ - タッチ対応版</title>
+    <title>鉄道模型レイアウトジェネレータ</title>
     
     <!-- Fabric.jsの動的読み込み -->
     <script>
-        const CODE_VERSION = "VER-TOUCH-C3";
+        const CODE_VERSION = "VER-SPLIT-H8";
         console.log("=========================================");
         console.log("ビュー（HTML）バージョン:", CODE_VERSION);
         console.log("=========================================");
@@ -51,7 +51,9 @@
         })();
     </script>
 
-    <script src="layout-engine.js"></script>
+        <script src="layout-engine.js"></script>
+        <script src="snap-manager.js"></script>
+
 
     <style>
         body { margin: 0; padding: 10px; background-color: #f0f0f0; font-family: sans-serif; touch-action: none; }
