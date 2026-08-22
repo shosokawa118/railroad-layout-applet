@@ -1,9 +1,10 @@
 // =============================================================
-// 鉄道模型レイアウトジェネレータ - 基本エンジン (初期化バグ修正版)
-// バージョン: VER-FIX-INIT-J0
+// 鉄道模型レイアウトジェネレータ - 基本エンジン (ポイント対応版)
+// バージョン: VER-TURNOUT-K1
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-FIX-INIT-J0");
+console.log("基本エンジン（JS）が読み込まれました: VER-TURNOUT-K1");
 
+// 1. 新設パーツを完全網羅したカタログデータ
 const partsCatalog = {
     "KATO-248": {
         "type": "straight", "name": "直線 S248", "width": 248, "height": 16, "fill": "#333333",
@@ -12,11 +13,41 @@ const partsCatalog = {
             { "id": 1, "relX": 124,  "relY": 0, "facingAngle": 0 }
         ]
     },
+    "KATO-S60": {
+        "type": "straight", "name": "直線 S60", "width": 60, "height": 16, "fill": "#333333",
+        "nodes": [
+            { "id": 0, "relX": -30, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "relX": 30,  "relY": 0, "facingAngle": 0 }
+        ]
+    },
+    "KATO-S64": {
+        "type": "straight", "name": "直線 S64", "width": 64, "height": 16, "fill": "#333333",
+        "nodes": [
+            { "id": 0, "relX": -32, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "relX": 32,  "relY": 0, "facingAngle": 0 }
+        ]
+    },
     "KATO-R315-45": {
         "type": "curve", "name": "曲線 R315-45(左右対称)", "width": 241.1, "height": 23.9,
         "nodes": [
             { "id": 0, "relX": -120.55, "relY": 11.95, "facingAngle": 157.5 },
             { "id": 1, "relX": 120.55,  "relY": 11.95, "facingAngle": 22.5 }
+        ]
+    },
+    "KATO-R481-15": {
+        "type": "curve", "name": "曲線 R481-15(補助用)", "width": 125.0, "height": 8.2,
+        "nodes": [
+            { "id": 0, "relX": -62.5, "relY": 4.1, "facingAngle": 172.5 },
+            { "id": 1, "relX": 62.5,  "relY": 4.1, "facingAngle": 7.5 }
+        ]
+    },
+    "KATO-EP4-R": {
+        "type": "turnout-right", "name": "電動ポイント4番(右)", "width": 126, "height": 33,
+        // ★進入、直進、右分岐の3つの接続点を幾何学マッピング
+        "nodes": [
+            { "id": 0, "relX": -63,  "relY": 0,    "facingAngle": 180 }, // 進入端(左)
+            { "id": 1, "relX": 63,   "relY": 0,    "facingAngle": 0 },   // 直進端(右)
+            { "id": 2, "relX": 61.9, "relY": 16.5, "facingAngle": 15.0 }  // 右分岐端(右下・15度)
         ]
     }
 };
@@ -25,13 +56,13 @@ let globalJoints = [];
 let railCount = 0;
 let isFirstMoveFrame = true;
 
+// 2. レールをCanvasに追加する共通関数
 function addRailToCanvas(partId) {
     if (!canvas) return null;
 
     const catalogItem = partsCatalog[partId];
-    // 初期配置位置はズームアウト(0.5倍)状態でも中央に見える位置に調整
-    const initialLeft = 100 + (railCount % 5) * 20;
-    const initialTop = 400 + (railCount % 5) * 20;
+    const initialLeft = 200 + (railCount % 5) * 25;
+    const initialTop = 450 + (railCount % 5) * 25;
     const currentId = `rail-${railCount}`;
     railCount++;
 
@@ -43,9 +74,26 @@ function addRailToCanvas(partId) {
             fill: catalogItem.fill, stroke: '#888', strokeWidth: 2
         });
     } else if (catalogItem.type === "curve") {
-        const ballastedPath = "M -120.55 11.95 A 315 315 0 0 1 120.55 11.95";
+        // R315またはR481の円弧パス
+        const r = partId === "KATO-R481-15" ? 481 : 315;
+        const w2 = catalogItem.width / 2;
+        const h2 = catalogItem.height / 2;
+        const ballastedPath = `M ${-w2} ${h2} A ${r} ${r} 0 0 1 ${w2} ${h2}`;
+        
         railObject = new fabric.Path(ballastedPath, {
             fill: 'transparent', stroke: '#888888', strokeWidth: 16, strokeLineCap: 'butt'
+        });
+    } else if (catalogItem.type === "turnout-right") {
+        // ★【大本命のバグ回避トリック】
+        // グループ化を使わず、1つのパス文字列の中に「直線」と「15度の右分岐円弧」をスペース区切りで同時に刻み込む！
+        // M:直線の開始(左端) L:直線の終了(右端) / M:分岐の開始(左端) A:半径481mmの右分岐円弧の終了(右下端)
+        const turnoutPath = "M -63 0 L 63 0 M -63 0 A 481 481 0 0 1 61.9 16.5";
+        
+        railObject = new fabric.Path(turnoutPath, {
+            fill: 'transparent',
+            stroke: '#888888', // バラストを模したグレー太線
+            strokeWidth: 16,
+            strokeLineCap: 'butt'
         });
     }
 
@@ -76,6 +124,7 @@ function addRailToCanvas(partId) {
     return railObject;
 }
 
+// 3. 幾何学計算：ノードの「画面上の絶対座標」を計算 (ActiveSelectionグループ対応)
 function getAbsoluteNodePos(rail) {
     const catalog = partsCatalog[rail.customData.partId];
     
@@ -159,6 +208,7 @@ function updateJointIndicators() {
     });
 }
 
+// 初期配置データの読み込み (12本のエンドレス)
 function loadDebugSampleLayout() {
     if (!canvas) return;
     canvas.clear();
