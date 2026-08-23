@@ -110,7 +110,8 @@ function addRailToCanvas(partId) {
         hasControls: true, lockScalingX: true, lockScalingY: true
     });
 
-    railObject.customData = { instanceId: currentId, partId: partId, isRail: true };
+    // 生成した幾何中心を保存してノード計算時に使う
+    railObject.customData = { instanceId: currentId, partId: partId, isRail: true, centerOffset: { cx: geoData.centerX, cy: geoData.centerY } };
 
     canvas.add(railObject);
     
@@ -136,43 +137,67 @@ function getAbsoluteNodePos(rail) {
     const catalog = partsCatalog[rail.customData.partId];
     if (!catalog) return [];
 
-    // pathOffset（Fabric.Path にセットした中心オフセット）を使って補正する
-    // Fabric の pathOffset は fabric.Point なので .x/.y を参照
-    const offsetX = (rail.pathOffset && typeof rail.pathOffset.x === 'number') ? rail.pathOffset.x : 0;
-    const offsetY = (rail.pathOffset && typeof rail.pathOffset.y === 'number') ? rail.pathOffset.y : 0;
+    // 優先して customData.centerOffset を使い、なければ pathOffset を参照
+    const cxOff = (rail.customData && rail.customData.centerOffset && typeof rail.customData.centerOffset.cx === 'number')
+        ? rail.customData.centerOffset.cx
+        : (rail.pathOffset && typeof rail.pathOffset.x === 'number' ? rail.pathOffset.x : 0);
+
+    const cyOff = (rail.customData && rail.customData.centerOffset && typeof rail.customData.centerOffset.cy === 'number')
+        ? rail.customData.centerOffset.cy
+        : (rail.pathOffset && typeof rail.pathOffset.y === 'number' ? rail.pathOffset.y : 0);
+
+    // 補助: オブジェクトの描画矩形中心（判定に使う）
+    let rectCenterX = rail.left;
+    let rectCenterY = rail.top;
+    try {
+        const r = rail.getBoundingRect(true);
+        rectCenterX = r.left + r.width / 2;
+        rectCenterY = r.top  + r.height / 2;
+    } catch (e) {
+        // getBoundingRect が例外でも処理継続（保険）
+    }
+
+    function chooseBestCandidate(node, computeCandidateFn) {
+        // computeCandidateFn(node, ySign) を呼んで 2 候補作る
+        const cand1 = computeCandidateFn(node, -1); // relY - cyOff
+        const cand2 = computeCandidateFn(node, +1); // relY + cyOff
+
+        const d1 = Math.hypot(cand1.x - rectCenterX, cand1.y - rectCenterY);
+        const d2 = Math.hypot(cand2.x - rectCenterX, cand2.y - rectCenterY);
+
+        return (d1 <= d2) ? cand1 : cand2;
+    }
 
     // グループ選択（activeSelection）時の処理
     if (rail.group && rail.group.type === 'activeSelection') {
-        // 全体の回転（自身の角度のみ。グループ変換は transformPoint で扱う）
         const angleRad = (rail.angle * Math.PI) / 180;
         return catalog.nodes.map(node => {
-            // node の相対座標から pathOffset を差し引いてローカル座標に合わせる
-            const localRelX = (node.relX || 0) - offsetX;
-            const localRelY = (node.relY || 0) - offsetY;
-
-            // 回転を適用してオブジェクト空間上の位置を求める（left/top はオブジェクト中心基準）
-            const localX = rail.left + (localRelX * Math.cos(angleRad) - localRelY * Math.sin(angleRad));
-            const localY = rail.top  + (localRelX * Math.sin(angleRad) + localRelY * Math.cos(angleRad));
-
-            // Group の変換行列でキャンバス座標へ変換
-            const point = new fabric.Point(localX, localY);
-            const absPoint = fabric.util.transformPoint(point, rail.group.calcTransformMatrix());
-
-            // 角度もグループ角度を含めて算出
-            const absAngle = (rail.group.angle + rail.angle + node.facingAngle) % 360;
-            return { nodeId: node.id, x: absPoint.x, y: absPoint.y, angle: absAngle };
+            const chosen = chooseBestCandidate(node, (n, ySign) => {
+                const localRelX = (n.relX || 0) - cxOff;
+                const localRelY = (n.relY || 0) + ySign * cyOff; // ySign によって +/- を切り替え
+                const localX = rail.left + (localRelX * Math.cos(angleRad) - localRelY * Math.sin(angleRad));
+                const localY = rail.top  + (localRelX * Math.sin(angleRad) + localRelY * Math.cos(angleRad));
+                const point = new fabric.Point(localX, localY);
+                const absPoint = fabric.util.transformPoint(point, rail.group.calcTransformMatrix());
+                const absAngle = (rail.group.angle + rail.angle + (n.facingAngle || 0)) % 360;
+                return { nodeId: n.id, x: absPoint.x, y: absPoint.y, angle: absAngle };
+            });
+            return chosen;
         });
     }
 
-    // 非グループ時（通常のオブジェクト）
+    // 非グループ時
     const angleRad = (rail.angle * Math.PI) / 180;
     return catalog.nodes.map(node => {
-        const relX = (node.relX || 0) - offsetX;
-        const relY = (node.relY || 0) - offsetY;
-        const absX = rail.left + (relX * Math.cos(angleRad) - relY * Math.sin(angleRad));
-        const absY = rail.top  + (relX * Math.sin(angleRad) + relY * Math.cos(angleRad));
-        const absAngle = (rail.angle + node.facingAngle) % 360;
-        return { nodeId: node.id, x: absX, y: absY, angle: absAngle };
+        const chosen = chooseBestCandidate(node, (n, ySign) => {
+            const relX = (n.relX || 0) - cxOff;
+            const relY = (n.relY || 0) + ySign * cyOff;
+            const absX = rail.left + (relX * Math.cos(angleRad) - relY * Math.sin(angleRad));
+            const absY = rail.top  + (relX * Math.sin(angleRad) + relY * Math.cos(angleRad));
+            const absAngle = (rail.angle + (n.facingAngle || 0)) % 360;
+            return { nodeId: n.id, x: absX, y: absY, angle: absAngle };
+        });
+        return chosen;
     });
 }
 
