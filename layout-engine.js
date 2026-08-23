@@ -1,8 +1,8 @@
 // =============================================================
-// 鉄道模型レイアウトジェネレータ - 基本エンジン (極値補正＆ノードオフセット版)
-// バージョン: VER-ARC-BOUNDS-U1
+// 鉄道模型レイアウトジェネレータ - 基本エンジン (極値補正＆統一変形制御版)
+// バージョン: VER-ROTATE-U2
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-ARC-BOUNDS-U1");
+console.log("基本エンジン（JS）が読み込まれました: VER-ROTATE-U2");
 
 let globalJoints = [];
 let railCount = 0;
@@ -63,7 +63,6 @@ function generateGenericRailData(catalogItem) {
             updateBounds(x1, y1); updateBounds(x2, y2);
             updateBounds(x3, y3); updateBounds(x4, y4);
 
-            // ★ 円弧が 0°, 90°, 180°, 270° の極値を跨ぐ場合のBoundingBox厳密補正
             [0, 90, 180, 270].forEach(cardinal => {
                 let normStart = ((startDeg % 360) + 360) % 360;
                 let normEnd = normStart + shape.arcAngle;
@@ -126,14 +125,13 @@ function addRailToCanvas(partId) {
 
     canvas.add(railObject);
     
-    railObject.on('moving', function() {
-        onGeneralMoving(this);
-    });
+    // ★ 移動・回転どちらの場合も同じ共通処理を呼び出す
+    railObject.on('moving', function() { onGeneralTransform(this); });
+    railObject.on('rotating', function() { onGeneralTransform(this); });
 
     if (railCount === 1) {
-        canvas.on('object:moving', function(options) {
-            if (options && options.target) onGeneralMoving(options.target);
-        });
+        canvas.on('object:moving', function(options) { if (options && options.target) onGeneralTransform(options.target); });
+        canvas.on('object:rotating', function(options) { if (options && options.target) onGeneralTransform(options.target); });
     }
 
     updateJointIndicators();
@@ -141,6 +139,36 @@ function addRailToCanvas(partId) {
     canvas.requestRenderAll();
     
     return railObject;
+}
+
+// ★ 選択中のパーツ（単体・複数問わず）と関連するジョイントをまとめて削除
+function deleteSelectedRails() {
+    if (!canvas) return;
+    const activeObject = canvas.getActiveObject();
+    if (!activeObject) return;
+
+    let targetRails = [];
+    if (activeObject.type === 'activeSelection') {
+        targetRails = activeObject.getObjects().filter(o => o.customData && o.customData.isRail);
+    } else if (activeObject.customData && activeObject.customData.isRail) {
+        targetRails = [activeObject];
+    }
+
+    if (targetRails.length === 0) return;
+
+    const targetIds = targetRails.map(r => r.customData.instanceId);
+
+    // 関連するジョイント情報を削除
+    globalJoints = globalJoints.filter(j => 
+        j && !targetIds.includes(j.railA) && !targetIds.includes(j.railB)
+    );
+
+    // Canvasから削除
+    targetRails.forEach(r => canvas.remove(r));
+    canvas.discardActiveObject();
+
+    updateJointIndicators();
+    canvas.requestRenderAll();
 }
 
 function getAbsoluteNodePos(rail) {
@@ -184,7 +212,8 @@ function isNodeOccupied(railId, nodeId) {
     );
 }
 
-function onGeneralMoving(target) {
+// ★ 移動・回転を問わず、変形が開始された瞬間に結合を解除してリアルタイムにインジケータを追従描画
+function onGeneralTransform(target) {
     if (!target) return;
     if (isFirstMoveFrame) {
         const movedIds = getMovedRailIds(target);
@@ -270,5 +299,5 @@ function loadDebugSampleLayout() {
     canvas.setViewportTransform([0.35, 0, 0, 0.35, 250, 100]);
     updateJointIndicators();
     canvas.requestRenderAll();
-    console.log("[%s] サンプル小判型エンドレスをピュア数式自動計算で100%%復元しました！", "VER-ARC-BOUNDS-U1");
+    console.log("[%s] サンプル小判型エンドレスをピュア数式自動計算で100%%復元しました！", "VER-ARC-BOUNDS-U2");
 }
