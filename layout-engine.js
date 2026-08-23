@@ -1,20 +1,18 @@
 // =============================================================
-// 鉄道模型レイアウトジェネレータ - 基本エンジン (ピュア幾何学自動相殺版)
-// バージョン: VER-NODE-OFFSET-T4
+// 鉄道模型レイアウトジェネレータ - 基本エンジン (極値補正＆ノードオフセット版)
+// バージョン: VER-ARC-BOUNDS-U1
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-NODE-OFFSET-T4");
+console.log("基本エンジン（JS）が読み込まれました: VER-ARC-BOUNDS-U1");
 
 let globalJoints = [];
 let railCount = 0;
 let isFirstMoveFrame = true;
 
-// ★【強化】バラストポリゴンのパス生成と同時に、純粋な幾何学上の境界ボックス（Bounds）を返すように拡張
 function generateGenericRailData(catalogItem) {
     let combinedSvgPath = "";
     const BALLAST_WIDTH = 16;
     const halfW = BALLAST_WIDTH / 2;
 
-    // 幾何学上の最大・最小座標を保持する変数
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
 
     function updateBounds(x, y) {
@@ -43,8 +41,10 @@ function generateGenericRailData(catalogItem) {
             const rOut = r + halfW;
             const rIn = r - halfW;
             
-            const startRad = (shape.startAngle * Math.PI) / 180;
-            const endRad = ((shape.startAngle + shape.arcAngle) * Math.PI) / 180;
+            const startDeg = shape.startAngle;
+            const endDeg = shape.startAngle + shape.arcAngle;
+            const startRad = (startDeg * Math.PI) / 180;
+            const endRad = (endDeg * Math.PI) / 180;
             
             const cX = shape.centerX || 0;
             const cY = shape.centerY || 0;
@@ -62,10 +62,23 @@ function generateGenericRailData(catalogItem) {
             
             updateBounds(x1, y1); updateBounds(x2, y2);
             updateBounds(x3, y3); updateBounds(x4, y4);
+
+            // ★ 円弧が 0°, 90°, 180°, 270° の極値を跨ぐ場合のBoundingBox厳密補正
+            [0, 90, 180, 270].forEach(cardinal => {
+                let normStart = ((startDeg % 360) + 360) % 360;
+                let normEnd = normStart + shape.arcAngle;
+                let target = cardinal;
+                if (target < normStart) target += 360;
+
+                if (target >= normStart && target <= normEnd) {
+                    const rad = (cardinal * Math.PI) / 180;
+                    updateBounds(cX + rOut * Math.cos(rad), cY + rOut * Math.sin(rad));
+                    updateBounds(cX + rIn * Math.cos(rad), cY + rIn * Math.sin(rad));
+                }
+            });
         }
     });
 
-    // 純粋な数式上のポリゴン中心を割り出す
     const geoCenterX = minX + (maxX - minX) / 2;
     const geoCenterY = minY + (maxY - minY) / 2;
 
@@ -76,7 +89,6 @@ function generateGenericRailData(catalogItem) {
     };
 }
 
-// レールをCanvasに追加する共通関数
 function addRailToCanvas(partId) {
     if (!canvas) return null;
 
@@ -91,23 +103,19 @@ function addRailToCanvas(partId) {
     const currentId = `rail-${railCount}`;
     railCount++;
 
-    // ★【鉄壁のバグ回避】Fabric.jsのプロパティ(pathBounds)を使わず、純粋なJSの幾何学中心を動的に抽出
     const geoData = generateGenericRailData(catalogItem);
     
     let railObject = new fabric.Path(geoData.pathStr, {
         fill: '#888888',
-        // 抽出したピュアな数式上の中心を pathOffset に完全一致させ、8pxの見た目ズレとクラッシュを永続シャットアウト！
         pathOffset: new fabric.Point(geoData.centerX, geoData.centerY)
     });
 
-    // 中心(center)基準で配置
     railObject.set({
         left: initialLeft, top: initialTop,
         originX: 'center', originY: 'center', angle: 0,
         hasControls: true, lockScalingX: true, lockScalingY: true
     });
 
-    // ★ 修正：geoCenterX と geoCenterY を customData に記憶させる
     railObject.customData = { 
         instanceId: currentId, 
         partId: partId, 
@@ -140,14 +148,12 @@ function getAbsoluteNodePos(rail) {
     const catalog = partsCatalog[rail.customData.partId];
     if (!catalog) return [];
     
-    // ★ 追加：バウンディングボックス中心のオフセットを取得
     const cx = rail.customData.geoCenterX || 0;
     const cy = rail.customData.geoCenterY || 0;
     
     if (rail.group && rail.group.type === 'activeSelection') {
         const angleRad = (rail.angle * Math.PI) / 180;
         return catalog.nodes.map(node => {
-            // ★ 修正：カタログ座標から中心ズレを補正 (lx, ly)
             const lx = node.relX - cx;
             const ly = node.relY - cy;
 
@@ -162,7 +168,6 @@ function getAbsoluteNodePos(rail) {
 
     const angleRad = (rail.angle * Math.PI) / 180;
     return catalog.nodes.map(node => {
-        // ★ 修正：単体移動時も同様に補正
         const lx = node.relX - cx;
         const ly = node.relY - cy;
 
@@ -235,7 +240,6 @@ function updateJointIndicators() {
     });
 }
 
-// サンプルデータロード
 function loadDebugSampleLayout() {
     if (!canvas || typeof INITIAL_SAMPLE_LAYOUT === 'undefined') return;
     canvas.clear();
@@ -266,5 +270,5 @@ function loadDebugSampleLayout() {
     canvas.setViewportTransform([0.35, 0, 0, 0.35, 250, 100]);
     updateJointIndicators();
     canvas.requestRenderAll();
-    console.log("[%s] サンプル小判型エンドレスをピュア数式自動計算で100%%復元しました！", "VER-NODE-OFFSET-T4");
+    console.log("[%s] サンプル小判型エンドレスをピュア数式自動計算で100%%復元しました！", "VER-ARC-BOUNDS-U1");
 }
