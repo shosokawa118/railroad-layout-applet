@@ -1,8 +1,8 @@
 // =============================================================
-// 鉄道模型レイアウトジェネレータ - 基本エンジン (極値補正＆統一変形制御版)
-// バージョン: VER-ROTATE-U2
+// 鉄道模型レイアウトジェネレータ - 基本エンジン (JSONインポート対応版)
+// バージョン: VER-JSON-IMPORT-U3
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-ROTATE-U2");
+console.log("基本エンジン（JS）が読み込まれました: VER-JSON-IMPORT-U3");
 
 let globalJoints = [];
 let railCount = 0;
@@ -125,7 +125,6 @@ function addRailToCanvas(partId) {
 
     canvas.add(railObject);
     
-    // ★ 移動・回転どちらの場合も同じ共通処理を呼び出す
     railObject.on('moving', function() { onGeneralTransform(this); });
     railObject.on('rotating', function() { onGeneralTransform(this); });
 
@@ -141,7 +140,6 @@ function addRailToCanvas(partId) {
     return railObject;
 }
 
-// ★ 選択中のパーツ（単体・複数問わず）と関連するジョイントをまとめて削除
 function deleteSelectedRails() {
     if (!canvas) return;
     const activeObject = canvas.getActiveObject();
@@ -158,14 +156,57 @@ function deleteSelectedRails() {
 
     const targetIds = targetRails.map(r => r.customData.instanceId);
 
-    // 関連するジョイント情報を削除
     globalJoints = globalJoints.filter(j => 
         j && !targetIds.includes(j.railA) && !targetIds.includes(j.railB)
     );
 
-    // Canvasから削除
     targetRails.forEach(r => canvas.remove(r));
     canvas.discardActiveObject();
+
+    updateJointIndicators();
+    canvas.requestRenderAll();
+}
+
+// ★ 任意JSONデータの読み込み（上書き / 追記に対応）
+function importLayoutData(layoutData, isOverwrite = true) {
+    if (!canvas || !layoutData || !Array.isArray(layoutData.rails)) {
+        alert("無効なJSONフォーマットです。");
+        return;
+    }
+
+    if (isOverwrite) {
+        canvas.clear();
+        globalJoints = [];
+        railCount = 0;
+    }
+
+    const idMap = {}; // ID衝突防止のための読み替えマップ（追記モード用）
+
+    layoutData.rails.forEach(r => {
+        if (!r || !r.partId) return;
+        const newObj = addRailToCanvas(r.partId);
+        if (newObj) {
+            const newId = newObj.customData.instanceId;
+            idMap[r.instanceId] = newId;
+
+            newObj.set({ left: r.x, top: r.y, angle: r.angle });
+            newObj.setCoords();
+        }
+    });
+
+    if (Array.isArray(layoutData.joints)) {
+        layoutData.joints.forEach(j => {
+            if (!j) return;
+            const mappedA = idMap[j.railA] || j.railA;
+            const mappedB = idMap[j.railB] || j.railB;
+
+            globalJoints.push({
+                jointId: `j-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+                railA: mappedA, nodeA: j.nodeA,
+                railB: mappedB, nodeB: j.nodeB
+            });
+        });
+    }
 
     updateJointIndicators();
     canvas.requestRenderAll();
@@ -212,7 +253,6 @@ function isNodeOccupied(railId, nodeId) {
     );
 }
 
-// ★ 移動・回転を問わず、変形が開始された瞬間に結合を解除してリアルタイムにインジケータを追従描画
 function onGeneralTransform(target) {
     if (!target) return;
     if (isFirstMoveFrame) {
@@ -271,33 +311,8 @@ function updateJointIndicators() {
 
 function loadDebugSampleLayout() {
     if (!canvas || typeof INITIAL_SAMPLE_LAYOUT === 'undefined') return;
-    canvas.clear();
-    globalJoints = [];
-    railCount = 0;
-
-    INITIAL_SAMPLE_LAYOUT.rails.forEach(r => {
-        if (!r) return;
-        const obj = addRailToCanvas(r.partId);
-        if (obj) {
-            obj.set({ left: r.x, top: r.y, angle: r.angle });
-            obj.customData.instanceId = r.instanceId;
-            obj.setCoords();
-        }
-    });
-
-    INITIAL_SAMPLE_LAYOUT.joints.forEach(j => {
-        if (!j) return;
-        globalJoints.push({
-            jointId: `j-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-            railA: j.railA, nodeA: j.nodeA,
-            railB: j.railB, nodeB: j.nodeB
-        });
-    });
-
-    railCount = INITIAL_SAMPLE_LAYOUT.rails.length;
+    importLayoutData(INITIAL_SAMPLE_LAYOUT, true);
     canvas.setZoom(0.35);
     canvas.setViewportTransform([0.35, 0, 0, 0.35, 250, 100]);
-    updateJointIndicators();
-    canvas.requestRenderAll();
-    console.log("[%s] サンプル小判型エンドレスをピュア数式自動計算で100%%復元しました！", "VER-ARC-BOUNDS-U2");
+    console.log("[%s] サンプル小判型エンドレスをピュア数式自動計算で100%%復元しました！", "VER-JSON-IMPORT-U3");
 }
