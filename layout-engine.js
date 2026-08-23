@@ -17,13 +17,16 @@ function generateGenericRailData(catalogItem) {
     // 幾何学上の最大・最小座標を保持する変数
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
 
+    // 軌道中心線（centerline）をサンプリングするための配列
+    const centerlinePoints = [];
+
     function updateBounds(x, y) {
         if (x < minX) minX = x; if (x > maxX) maxX = x;
         if (y < minY) minY = y; if (y > maxY) maxY = y;
     }
 
     if (!catalogItem || !catalogItem.shapes) {
-        return { pathStr: "M 0 0 L 10 0", centerX: 5, centerY: 0 };
+        return { pathStr: "M 0 0 L 10 0", centerX: 5, centerY: 0, centerlineCx: 5, centerlineCy: 0 };
     }
 
     catalogItem.shapes.forEach(shape => {
@@ -37,6 +40,14 @@ function generateGenericRailData(catalogItem) {
             
             updateBounds(x1, y1); updateBounds(x2, y1);
             updateBounds(x2, y2); updateBounds(x1, y2);
+
+            // centerline: sample along the center (offsetY without halfW)
+            const steps = 6;
+            const cy = (shape.offsetY || 0);
+            for (let i = 0; i <= steps; i++) {
+                const t = i / steps;
+                centerlinePoints.push({ x: x1 + (x2 - x1) * t, y: cy });
+            }
         } 
         else if (shape.type === "arc") {
             const r = shape.radius;
@@ -63,19 +74,39 @@ function generateGenericRailData(catalogItem) {
             updateBounds(x1, y1); updateBounds(x2, y2);
             updateBounds(x3, y3); updateBounds(x4, y4);
             
+            // centerline: sample points along the center radius (shape.radius)
+            const arcSteps = Math.max(8, Math.ceil(Math.abs(shape.arcAngle) / 3));
+            for (let i = 0; i <= arcSteps; i++) {
+                const t = i / arcSteps;
+                const ang = startRad + (endRad - startRad) * t;
+                centerlinePoints.push({ x: cX + r * Math.cos(ang), y: cY + r * Math.sin(ang) });
+            }
+
             // 円弧が軸(90度, 180度, 270度など)を跨ぐ場合の極値補正（補助線路用簡易カバー）
             // 15度や45度程度であれば4頂点の中に必ず収まるため実用上は完璧です
         }
     });
 
-    // 純粋な数式上のポリゴン中心を割り出す
+    // 純粋な数式上のポリゴン中心を割り出す（バウンディングボックス中心）
     const geoCenterX = minX + (maxX - minX) / 2;
     const geoCenterY = minY + (maxY - minY) / 2;
+
+    // centerline の重心（存在しなければ bbox 中心を使う）
+    let centerlineCx = geoCenterX;
+    let centerlineCy = geoCenterY;
+    if (centerlinePoints.length > 0) {
+        let sx = 0, sy = 0;
+        centerlinePoints.forEach(p => { sx += p.x; sy += p.y; });
+        centerlineCx = sx / centerlinePoints.length;
+        centerlineCy = sy / centerlinePoints.length;
+    }
 
     return {
         pathStr: combinedSvgPath,
         centerX: geoCenterX,
-        centerY: geoCenterY
+        centerY: geoCenterY,
+        centerlineCx: centerlineCx,
+        centerlineCy: centerlineCy
     };
 }
 
@@ -97,10 +128,14 @@ function addRailToCanvas(partId) {
     // ★【鉄壁のバグ回避】Fabric.jsのプロパティ(pathBounds)を使わず、純粋なJSの幾何学中心を動的に抽出
     const geoData = generateGenericRailData(catalogItem);
     
+    // pathOffset と customData.centerOffset には軌道中心線の重心を優先して使う
+    const offsetX = (typeof geoData.centerlineCx === 'number') ? geoData.centerlineCx : geoData.centerX;
+    const offsetY = (typeof geoData.centerlineCy === 'number') ? geoData.centerlineCy : geoData.centerY;
+
     let railObject = new fabric.Path(geoData.pathStr, {
         fill: '#888888',
-        // 抽出したピュアな数式上の中心を pathOffset に完全一致させ、8pxの見た目ズレとクラッシュを永続シャットアウト！
-        pathOffset: new fabric.Point(geoData.centerX, geoData.centerY)
+        // 軌道中心線の重心を pathOffset に設定
+        pathOffset: new fabric.Point(offsetX, offsetY)
     });
 
     // 中心(center)基準で配置
@@ -110,8 +145,8 @@ function addRailToCanvas(partId) {
         hasControls: true, lockScalingX: true, lockScalingY: true
     });
 
-    // 生成した幾何中心を保存してノード計算時に使う
-    railObject.customData = { instanceId: currentId, partId: partId, isRail: true, centerOffset: { cx: geoData.centerX, cy: geoData.centerY } };
+    // 生成した軌道中心線重心を保存してノード計算時に使う
+    railObject.customData = { instanceId: currentId, partId: partId, isRail: true, centerOffset: { cx: offsetX, cy: offsetY } };
 
     canvas.add(railObject);
     
@@ -137,67 +172,24 @@ function getAbsoluteNodePos(rail) {
     const catalog = partsCatalog[rail.customData.partId];
     if (!catalog) return [];
 
-    // 優先して customData.centerOffset を使い、なければ pathOffset を参照
-    const cxOff = (rail.customData && rail.customData.centerOffset && typeof rail.customData.centerOffset.cx === 'number')
-        ? rail.customData.centerOffset.cx
-        : (rail.pathOffset && typeof rail.pathOffset.x === 'number' ? rail.pathOffset.x : 0);
-
-    const cyOff = (rail.customData && rail.customData.centerOffset && typeof rail.customData.centerOffset.cy === 'number')
-        ? rail.customData.centerOffset.cy
-        : (rail.pathOffset && typeof rail.pathOffset.y === 'number' ? rail.pathOffset.y : 0);
-
-    // 補助: オブジェクトの描画矩形中心（判定に使う）
-    let rectCenterX = rail.left;
-    let rectCenterY = rail.top;
-    try {
-        const r = rail.getBoundingRect(true);
-        rectCenterX = r.left + r.width / 2;
-        rectCenterY = r.top  + r.height / 2;
-    } catch (e) {
-        // getBoundingRect が例外でも処理継続（保険）
-    }
-
-    function chooseBestCandidate(node, computeCandidateFn) {
-        // computeCandidateFn(node, ySign) を呼んで 2 候補作る
-        const cand1 = computeCandidateFn(node, -1); // relY - cyOff
-        const cand2 = computeCandidateFn(node, +1); // relY + cyOff
-
-        const d1 = Math.hypot(cand1.x - rectCenterX, cand1.y - rectCenterY);
-        const d2 = Math.hypot(cand2.x - rectCenterX, cand2.y - rectCenterY);
-
-        return (d1 <= d2) ? cand1 : cand2;
-    }
-
-    // グループ選択（activeSelection）時の処理
     if (rail.group && rail.group.type === 'activeSelection') {
         const angleRad = (rail.angle * Math.PI) / 180;
         return catalog.nodes.map(node => {
-            const chosen = chooseBestCandidate(node, (n, ySign) => {
-                const localRelX = (n.relX || 0) - cxOff;
-                const localRelY = (n.relY || 0) + ySign * cyOff; // ySign によって +/- を切り替え
-                const localX = rail.left + (localRelX * Math.cos(angleRad) - localRelY * Math.sin(angleRad));
-                const localY = rail.top  + (localRelX * Math.sin(angleRad) + localRelY * Math.cos(angleRad));
-                const point = new fabric.Point(localX, localY);
-                const absPoint = fabric.util.transformPoint(point, rail.group.calcTransformMatrix());
-                const absAngle = (rail.group.angle + rail.angle + (n.facingAngle || 0)) % 360;
-                return { nodeId: n.id, x: absPoint.x, y: absPoint.y, angle: absAngle };
-            });
-            return chosen;
+            const localX = rail.left + (node.relX * Math.cos(angleRad) - node.relY * Math.sin(angleRad));
+            const localY = rail.top  + (node.relX * Math.sin(angleRad) + node.relY * Math.cos(angleRad));
+            const point = new fabric.Point(localX, localY);
+            const absPoint = fabric.util.transformPoint(point, rail.group.calcTransformMatrix());
+            const absAngle = (rail.group.angle + rail.angle + node.facingAngle) % 360;
+            return { nodeId: node.id, x: absPoint.x, y: absPoint.y, angle: absAngle };
         });
     }
 
-    // 非グループ時
     const angleRad = (rail.angle * Math.PI) / 180;
     return catalog.nodes.map(node => {
-        const chosen = chooseBestCandidate(node, (n, ySign) => {
-            const relX = (n.relX || 0) - cxOff;
-            const relY = (n.relY || 0) + ySign * cyOff;
-            const absX = rail.left + (relX * Math.cos(angleRad) - relY * Math.sin(angleRad));
-            const absY = rail.top  + (relX * Math.sin(angleRad) + relY * Math.cos(angleRad));
-            const absAngle = (rail.angle + (n.facingAngle || 0)) % 360;
-            return { nodeId: n.id, x: absX, y: absY, angle: absAngle };
-        });
-        return chosen;
+        const absX = rail.left + (node.relX * Math.cos(angleRad) - node.relY * Math.sin(angleRad));
+        const absY = rail.top  + (node.relX * Math.sin(angleRad) + node.relY * Math.cos(angleRad));
+        const absAngle = (rail.angle + node.facingAngle) % 360;
+        return { nodeId: node.id, x: absX, y: absY, angle: absAngle };
     });
 }
 
