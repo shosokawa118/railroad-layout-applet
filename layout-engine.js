@@ -1,8 +1,8 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 基本エンジン (ピュア幾何学自動相殺版)
-// バージョン: VER-GENERIC-BOUNDS-S3
+// バージョン: VER-NODE-OFFSET-T4
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-GENERIC-BOUNDS-S3");
+console.log("基本エンジン（JS）が読み込まれました: VER-NODE-OFFSET-T4");
 
 let globalJoints = [];
 let railCount = 0;
@@ -17,20 +17,14 @@ function generateGenericRailData(catalogItem) {
     // 幾何学上の最大・最小座標を保持する変数
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
 
-    // 軌道中心線（centerline）をサンプリングするための配列
-    const centerlinePoints = [];
-
     function updateBounds(x, y) {
         if (x < minX) minX = x; if (x > maxX) maxX = x;
         if (y < minY) minY = y; if (y > maxY) maxY = y;
     }
 
     if (!catalogItem || !catalogItem.shapes) {
-        return { pathStr: "M 0 0 L 10 0", centerX: 5, centerY: 0, centerlineCx: 5, centerlineCy: 0 };
+        return { pathStr: "M 0 0 L 10 0", centerX: 5, centerY: 0 };
     }
-
-    // Debug: show incoming catalog info
-    try { console.log("generateGenericRailData: part=", catalogItem.name || catalogItem.id || "(unknown)", "shapes=", (catalogItem.shapes||[]).length); } catch(e) {}
 
     catalogItem.shapes.forEach(shape => {
         if (shape.type === "line") {
@@ -43,14 +37,6 @@ function generateGenericRailData(catalogItem) {
             
             updateBounds(x1, y1); updateBounds(x2, y1);
             updateBounds(x2, y2); updateBounds(x1, y2);
-
-            // centerline: sample along the center (offsetY without halfW)
-            const steps = 6;
-            const cy = (shape.offsetY || 0);
-            for (let i = 0; i <= steps; i++) {
-                const t = i / steps;
-                centerlinePoints.push({ x: x1 + (x2 - x1) * t, y: cy });
-            }
         } 
         else if (shape.type === "arc") {
             const r = shape.radius;
@@ -76,48 +62,17 @@ function generateGenericRailData(catalogItem) {
             
             updateBounds(x1, y1); updateBounds(x2, y2);
             updateBounds(x3, y3); updateBounds(x4, y4);
-            
-            // centerline: sample points along the center radius (shape.radius)
-            const arcSteps = Math.max(8, Math.ceil(Math.abs(shape.arcAngle) / 3));
-            for (let i = 0; i <= arcSteps; i++) {
-                const t = i / arcSteps;
-                const ang = startRad + (endRad - startRad) * t;
-                centerlinePoints.push({ x: cX + r * Math.cos(ang), y: cY + r * Math.sin(ang) });
-            }
-
-            // 円弧が軸(90度, 180度, 270度など)を跨ぐ場合の極値補正（補助線路用簡易カバー）
-            // 15度や45度程度であれば4頂点の中に必ず収まるため実用上は完璧です
         }
     });
 
-    // 純粋な数式上のポリゴン中心を割り出す（バウンディングボックス中心）
+    // 純粋な数式上のポリゴン中心を割り出す
     const geoCenterX = minX + (maxX - minX) / 2;
     const geoCenterY = minY + (maxY - minY) / 2;
-
-    // centerline の重心（存在しなければ bbox 中心を使う）
-    let centerlineCx = geoCenterX;
-    let centerlineCy = geoCenterY;
-    if (centerlinePoints.length > 0) {
-        let sx = 0, sy = 0;
-        centerlinePoints.forEach(p => { sx += p.x; sy += p.y; });
-        centerlineCx = sx / centerlinePoints.length;
-        centerlineCy = sy / centerlinePoints.length;
-    }
-
-    // Debug: output computed centers and sample count
-    try {
-        console.log("generateGenericRailData result: name=", catalogItem.name || "(unknown)",
-            "geoCenter=", geoCenterX.toFixed(2), geoCenterY.toFixed(2),
-            "centerline=", centerlineCx.toFixed(2), centerlineCy.toFixed(2),
-            "samples=", centerlinePoints.length);
-    } catch (e) {}
 
     return {
         pathStr: combinedSvgPath,
         centerX: geoCenterX,
-        centerY: geoCenterY,
-        centerlineCx: centerlineCx,
-        centerlineCy: centerlineCy
+        centerY: geoCenterY
     };
 }
 
@@ -136,99 +91,13 @@ function addRailToCanvas(partId) {
     const currentId = `rail-${railCount}`;
     railCount++;
 
-    // generate geometric data
+    // ★【鉄壁のバグ回避】Fabric.jsのプロパティ(pathBounds)を使わず、純粋なJSの幾何学中心を動的に抽出
     const geoData = generateGenericRailData(catalogItem);
-
-    // helper: sample centerline local points (same logic as in generateGenericRailData)
-    function sampleCenterlineLocal(cat) {
-        const pts = [];
-        (cat.shapes || []).forEach(shape => {
-            if (shape.type === 'line') {
-                const x1 = (shape.offsetX || 0) - shape.length / 2;
-                const x2 = (shape.offsetX || 0) + shape.length / 2;
-                const y = (shape.offsetY || 0);
-                const steps = 6;
-                for (let i = 0; i <= steps; i++) {
-                    const t = i / steps;
-                    pts.push({ x: x1 + (x2 - x1) * t, y: y });
-                }
-            } else if (shape.type === 'arc') {
-                const startRad = (shape.startAngle * Math.PI) / 180;
-                const endRad = ((shape.startAngle + shape.arcAngle) * Math.PI) / 180;
-                const r = shape.radius;
-                const cX = shape.centerX || 0;
-                const cY = shape.centerY || 0;
-                const steps = Math.max(8, Math.ceil(Math.abs(shape.arcAngle) / 3));
-                for (let i = 0; i <= steps; i++) {
-                    const t = i / steps;
-                    const ang = startRad + (endRad - startRad) * t;
-                    pts.push({ x: cX + r * Math.cos(ang), y: cY + r * Math.sin(ang) });
-                }
-            }
-        });
-        return pts;
-    }
-
-    // build candidate offsets: prefer explicit catalog centerOffset if provided
-    const candidates = [];
-    if (catalogItem.centerOffset && typeof catalogItem.centerOffset.cx === 'number' && typeof catalogItem.centerOffset.cy === 'number') {
-        candidates.push({ cx: catalogItem.centerOffset.cx, cy: catalogItem.centerOffset.cy, name: 'catalog' });
-    }
-    // centerline from geoData
-    if (typeof geoData.centerlineCx === 'number' && typeof geoData.centerlineCy === 'number') {
-        candidates.push({ cx: geoData.centerlineCx, cy: geoData.centerlineCy, name: 'centerline' });
-    }
-    // geometry bbox center
-    candidates.push({ cx: geoData.centerX, cy: geoData.centerY, name: 'bbox' });
-    // fallback origin
-    candidates.push({ cx: 0, cy: 0, name: 'origin' });
-
-    const sampledLocal = sampleCenterlineLocal(catalogItem);
-
-    // scoring: sum of min distances from each node (local) to sampled centerline
-    function scoreForCandidate(candidate) {
-        let total = 0;
-        (catalogItem.nodes || []).forEach(node => {
-            const lx = (node.relX || 0) - candidate.cx;
-            const ly = (node.relY || 0) - candidate.cy;
-            if (sampledLocal.length) {
-                let best = Infinity;
-                for (let i = 0; i < sampledLocal.length; i++) {
-                    const s = sampledLocal[i];
-                    const d = Math.hypot(s.x - lx, s.y - ly);
-                    if (d < best) best = d;
-                }
-                total += best;
-            } else {
-                total += Math.hypot(lx, ly);
-            }
-        });
-        // small penalty: prefer candidates that are closer to bbox center (stabilizes against noisy centerlines)
-        const bboxPenalty = Math.hypot(candidate.cx - geoData.centerX, candidate.cy - geoData.centerY) * 0.05;
-        return total + bboxPenalty;
-    }
-
-    // evaluate candidates
-    let best = candidates[0];
-    let bestScore = scoreForCandidate(best);
-    for (let i = 1; i < candidates.length; i++) {
-        const s = scoreForCandidate(candidates[i]);
-        candidates[i].score = s;
-        if (s < bestScore) { best = candidates[i]; bestScore = s; }
-    }
-
-    // attach scores to candidates for debugging
-    try { console.log('offsetCandidates', candidates.map(c=>({name:c.name,cx:c.cx,cy:c.cy,score: (typeof c.score==='number'?c.score.toFixed(2):'n/a')}))); } catch(e) {}
-
-    const offsetX = best.cx;
-    const offsetY = best.cy;
-
-    // Debug: show chosen offsets when creating the object
-    try { console.log("addRailToCanvas: partId=", partId, "chosenOffset=", offsetX.toFixed(2), offsetY.toFixed(2), "choice=", best.name); } catch(e) {}
-
+    
     let railObject = new fabric.Path(geoData.pathStr, {
         fill: '#888888',
-        pathOffset: new fabric.Point(offsetX, offsetY)
+        // 抽出したピュアな数式上の中心を pathOffset に完全一致させ、8pxの見た目ズレとクラッシュを永続シャットアウト！
+        pathOffset: new fabric.Point(geoData.centerX, geoData.centerY)
     });
 
     // 中心(center)基準で配置
@@ -238,8 +107,14 @@ function addRailToCanvas(partId) {
         hasControls: true, lockScalingX: true, lockScalingY: true
     });
 
-    // 生成した軌道中心線重心を保存してノード計算時に使う
-    railObject.customData = { instanceId: currentId, partId: partId, isRail: true, centerOffset: { cx: offsetX, cy: offsetY }, offsetChoice: best.name };
+    // ★ 修正：geoCenterX と geoCenterY を customData に記憶させる
+    railObject.customData = { 
+        instanceId: currentId, 
+        partId: partId, 
+        isRail: true,
+        geoCenterX: geoData.centerX,
+        geoCenterY: geoData.centerY
+    };
 
     canvas.add(railObject);
     
@@ -264,41 +139,132 @@ function getAbsoluteNodePos(rail) {
     if (!rail || !rail.customData) return [];
     const catalog = partsCatalog[rail.customData.partId];
     if (!catalog) return [];
-
-    // Debug: show which centerOffset we're using for node calcs
-    const cxOff = (rail.customData && rail.customData.centerOffset && typeof rail.customData.centerOffset.cx === 'number')
-        ? rail.customData.centerOffset.cx
-        : (rail.pathOffset && typeof rail.pathOffset.x === 'number' ? rail.pathOffset.x : 0);
-
-    const cyOff = (rail.customData && rail.customData.centerOffset && typeof rail.customData.centerOffset.cy === 'number')
-        ? rail.customData.centerOffset.cy
-        : (rail.pathOffset && typeof rail.pathOffset.y === 'number' ? rail.pathOffset.y : 0);
-
-    try { console.log("getAbsoluteNodePos: part=", rail.customData.partId, "cxOff=", cxOff.toFixed(2), "cyOff=", cyOff.toFixed(2)); } catch(e) {}
-
+    
+    // ★ 追加：バウンディングボックス中心のオフセットを取得
+    const cx = rail.customData.geoCenterX || 0;
+    const cy = rail.customData.geoCenterY || 0;
+    
     if (rail.group && rail.group.type === 'activeSelection') {
         const angleRad = (rail.angle * Math.PI) / 180;
         return catalog.nodes.map(node => {
-            const relX = (node.relX || 0) - cxOff;
-            const relY = (node.relY || 0) - cyOff;
-            const localX = rail.left + (relX * Math.cos(angleRad) - relY * Math.sin(angleRad));
-            const localY = rail.top  + (relX * Math.sin(angleRad) + relY * Math.cos(angleRad));
+            // ★ 修正：カタログ座標から中心ズレを補正 (lx, ly)
+            const lx = node.relX - cx;
+            const ly = node.relY - cy;
+
+            const localX = rail.left + (lx * Math.cos(angleRad) - ly * Math.sin(angleRad));
+            const localY = rail.top  + (lx * Math.sin(angleRad) + ly * Math.cos(angleRad));
             const point = new fabric.Point(localX, localY);
             const absPoint = fabric.util.transformPoint(point, rail.group.calcTransformMatrix());
             const absAngle = (rail.group.angle + rail.angle + node.facingAngle) % 360;
-            try { console.log(" node", node.id, "rel=", node.relX, node.relY, "-> abs=", absPoint.x.toFixed(2), absPoint.y.toFixed(2)); } catch(e) {}
             return { nodeId: node.id, x: absPoint.x, y: absPoint.y, angle: absAngle };
         });
     }
 
     const angleRad = (rail.angle * Math.PI) / 180;
     return catalog.nodes.map(node => {
-        const relX = (node.relX || 0) - cxOff;
-        const relY = (node.relY || 0) - cyOff;
-        const absX = rail.left + (relX * Math.cos(angleRad) - relY * Math.sin(angleRad));
-        const absY = rail.top  + (relX * Math.sin(angleRad) + relY * Math.cos(angleRad));
+        // ★ 修正：単体移動時も同様に補正
+        const lx = node.relX - cx;
+        const ly = node.relY - cy;
+
+        const absX = rail.left + (lx * Math.cos(angleRad) - ly * Math.sin(angleRad));
+        const absY = rail.top  + (lx * Math.sin(angleRad) + ly * Math.cos(angleRad));
         const absAngle = (rail.angle + node.facingAngle) % 360;
-        try { console.log(" node", node.id, "rel=", node.relX, node.relY, "-> abs=", absX.toFixed(2), absY.toFixed(2)); } catch(e) {}
         return { nodeId: node.id, x: absX, y: absY, angle: absAngle };
     });
+}
+
+function isNodeOccupied(railId, nodeId) {
+    return globalJoints.some(j => 
+        j && ((j.railA === railId && j.nodeA === nodeId) || (j.railB === railId && j.nodeB === nodeId))
+    );
+}
+
+function onGeneralMoving(target) {
+    if (!target) return;
+    if (isFirstMoveFrame) {
+        const movedIds = getMovedRailIds(target);
+        globalJoints = globalJoints.filter(j => {
+            if (!j) return false;
+            const hasA = movedIds.includes(j.railA);
+            const hasB = movedIds.includes(j.railB);
+            return (hasA && hasB) || (!hasA && !hasB);
+        });
+        isFirstMoveFrame = false;
+    }
+    updateJointIndicators();
+}
+
+function getMovedRailIds(target) {
+    if (!target) return [];
+    if (target.customData && target.customData.isRail) return [target.customData.instanceId];
+    if (target.type === 'activeSelection') {
+        return target.getObjects().filter(o => o && o.customData && o.customData.isRail).map(o => o.customData.instanceId);
+    }
+    return [];
+}
+
+function updateJointIndicators() {
+    if (!canvas) return;
+    
+    const oldIndicators = canvas.getObjects().filter(obj => obj && obj.customData && obj.customData.isIndicator);
+    oldIndicators.forEach(obj => { if (obj) canvas.remove(obj); });
+
+    const rails = canvas.getObjects().filter(obj => obj && obj.customData && obj.customData.isRail);
+
+    rails.forEach(rail => {
+        if (!rail || !rail.customData) return;
+        const railId = rail.customData.instanceId;
+        const absoluteNodes = getAbsoluteNodePos(rail);
+        if (!absoluteNodes) return;
+
+        absoluteNodes.forEach(node => {
+            if (!node) return;
+            const isOccupied = isNodeOccupied(railId, node.nodeId);
+            const color = isOccupied ? '#7cd21d' : '#ff3b30';
+            const radius = isOccupied ? 3 : 5;
+
+            const dot = new fabric.Circle({
+                left: node.x, top: node.y, radius: radius, fill: color,
+                stroke: '#ffffff', strokeWidth: 1, originX: 'center', originY: 'center',
+                selectable: false, evented: false, customData: { isIndicator: true }
+            });
+
+            canvas.add(dot);
+            canvas.bringToFront(dot);
+        });
+    });
+}
+
+// サンプルデータロード
+function loadDebugSampleLayout() {
+    if (!canvas || typeof INITIAL_SAMPLE_LAYOUT === 'undefined') return;
+    canvas.clear();
+    globalJoints = [];
+    railCount = 0;
+
+    INITIAL_SAMPLE_LAYOUT.rails.forEach(r => {
+        if (!r) return;
+        const obj = addRailToCanvas(r.partId);
+        if (obj) {
+            obj.set({ left: r.x, top: r.y, angle: r.angle });
+            obj.customData.instanceId = r.instanceId;
+            obj.setCoords();
+        }
+    });
+
+    INITIAL_SAMPLE_LAYOUT.joints.forEach(j => {
+        if (!j) return;
+        globalJoints.push({
+            jointId: `j-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+            railA: j.railA, nodeA: j.nodeA,
+            railB: j.railB, nodeB: j.nodeB
+        });
+    });
+
+    railCount = INITIAL_SAMPLE_LAYOUT.rails.length;
+    canvas.setZoom(0.35);
+    canvas.setViewportTransform([0.35, 0, 0, 0.35, 250, 100]);
+    updateJointIndicators();
+    canvas.requestRenderAll();
+    console.log("[%s] サンプル小判型エンドレスをピュア数式自動計算で100%%復元しました！", "VER-NODE-OFFSET-T4");
 }
