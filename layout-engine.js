@@ -135,23 +135,42 @@ function getAbsoluteNodePos(rail) {
     if (!rail || !rail.customData) return [];
     const catalog = partsCatalog[rail.customData.partId];
     if (!catalog) return [];
-    
+
+    // pathOffset（Fabric.Path にセットした中心オフセット）を使って補正する
+    // Fabric の pathOffset は fabric.Point なので .x/.y を参照
+    const offsetX = (rail.pathOffset && typeof rail.pathOffset.x === 'number') ? rail.pathOffset.x : 0;
+    const offsetY = (rail.pathOffset && typeof rail.pathOffset.y === 'number') ? rail.pathOffset.y : 0;
+
+    // グループ選択（activeSelection）時の処理
     if (rail.group && rail.group.type === 'activeSelection') {
+        // 全体の回転（自身の角度のみ。グループ変換は transformPoint で扱う）
         const angleRad = (rail.angle * Math.PI) / 180;
         return catalog.nodes.map(node => {
-            const localX = rail.left + (node.relX * Math.cos(angleRad) - node.relY * Math.sin(angleRad));
-            const localY = rail.top  + (node.relX * Math.sin(angleRad) + node.relY * Math.cos(angleRad));
+            // node の相対座標から pathOffset を差し引いてローカル座標に合わせる
+            const localRelX = (node.relX || 0) - offsetX;
+            const localRelY = (node.relY || 0) - offsetY;
+
+            // 回転を適用してオブジェクト空間上の位置を求める（left/top はオブジェクト中心基準）
+            const localX = rail.left + (localRelX * Math.cos(angleRad) - localRelY * Math.sin(angleRad));
+            const localY = rail.top  + (localRelX * Math.sin(angleRad) + localRelY * Math.cos(angleRad));
+
+            // Group の変換行列でキャンバス座標へ変換
             const point = new fabric.Point(localX, localY);
             const absPoint = fabric.util.transformPoint(point, rail.group.calcTransformMatrix());
+
+            // 角度もグループ角度を含めて算出
             const absAngle = (rail.group.angle + rail.angle + node.facingAngle) % 360;
             return { nodeId: node.id, x: absPoint.x, y: absPoint.y, angle: absAngle };
         });
     }
 
+    // 非グループ時（通常のオブジェクト）
     const angleRad = (rail.angle * Math.PI) / 180;
     return catalog.nodes.map(node => {
-        const absX = rail.left + (node.relX * Math.cos(angleRad) - node.relY * Math.sin(angleRad));
-        const absY = rail.top  + (node.relX * Math.sin(angleRad) + node.relY * Math.cos(angleRad));
+        const relX = (node.relX || 0) - offsetX;
+        const relY = (node.relY || 0) - offsetY;
+        const absX = rail.left + (relX * Math.cos(angleRad) - relY * Math.sin(angleRad));
+        const absY = rail.top  + (relX * Math.sin(angleRad) + relY * Math.cos(angleRad));
         const absAngle = (rail.angle + node.facingAngle) % 360;
         return { nodeId: node.id, x: absX, y: absY, angle: absAngle };
     });
