@@ -29,6 +29,9 @@ function generateGenericRailData(catalogItem) {
         return { pathStr: "M 0 0 L 10 0", centerX: 5, centerY: 0, centerlineCx: 5, centerlineCy: 0 };
     }
 
+    // Debug: show incoming catalog info
+    try { console.log("generateGenericRailData: part=", catalogItem.name || catalogItem.id || "(unknown)", "shapes=", (catalogItem.shapes||[]).length); } catch(e) {}
+
     catalogItem.shapes.forEach(shape => {
         if (shape.type === "line") {
             const x1 = (shape.offsetX || 0) - shape.length / 2;
@@ -101,6 +104,14 @@ function generateGenericRailData(catalogItem) {
         centerlineCy = sy / centerlinePoints.length;
     }
 
+    // Debug: output computed centers and sample count
+    try {
+        console.log("generateGenericRailData result: name=", catalogItem.name || "(unknown)",
+            "geoCenter=", geoCenterX.toFixed(2), geoCenterY.toFixed(2),
+            "centerline=", centerlineCx.toFixed(2), centerlineCy.toFixed(2),
+            "samples=", centerlinePoints.length);
+    } catch (e) {}
+
     return {
         pathStr: combinedSvgPath,
         centerX: geoCenterX,
@@ -131,6 +142,9 @@ function addRailToCanvas(partId) {
     // pathOffset と customData.centerOffset には軌道中心線の重心を優先して使う
     const offsetX = (typeof geoData.centerlineCx === 'number') ? geoData.centerlineCx : geoData.centerX;
     const offsetY = (typeof geoData.centerlineCy === 'number') ? geoData.centerlineCy : geoData.centerY;
+
+    // Debug: show chosen offsets when creating the object
+    try { console.log("addRailToCanvas: partId=", partId, "useOffset=", offsetX.toFixed(2), offsetY.toFixed(2), "(centerline?", typeof geoData.centerlineCx === 'number', ")"); } catch(e) {}
 
     let railObject = new fabric.Path(geoData.pathStr, {
         fill: '#888888',
@@ -172,23 +186,40 @@ function getAbsoluteNodePos(rail) {
     const catalog = partsCatalog[rail.customData.partId];
     if (!catalog) return [];
 
+    // Debug: show which centerOffset we're using for node calcs
+    const cxOff = (rail.customData && rail.customData.centerOffset && typeof rail.customData.centerOffset.cx === 'number')
+        ? rail.customData.centerOffset.cx
+        : (rail.pathOffset && typeof rail.pathOffset.x === 'number' ? rail.pathOffset.x : 0);
+
+    const cyOff = (rail.customData && rail.customData.centerOffset && typeof rail.customData.centerOffset.cy === 'number')
+        ? rail.customData.centerOffset.cy
+        : (rail.pathOffset && typeof rail.pathOffset.y === 'number' ? rail.pathOffset.y : 0);
+
+    try { console.log("getAbsoluteNodePos: part=", rail.customData.partId, "cxOff=", cxOff.toFixed(2), "cyOff=", cyOff.toFixed(2)); } catch(e) {}
+
     if (rail.group && rail.group.type === 'activeSelection') {
         const angleRad = (rail.angle * Math.PI) / 180;
         return catalog.nodes.map(node => {
-            const localX = rail.left + (node.relX * Math.cos(angleRad) - node.relY * Math.sin(angleRad));
-            const localY = rail.top  + (node.relX * Math.sin(angleRad) + node.relY * Math.cos(angleRad));
+            const relX = (node.relX || 0) - cxOff;
+            const relY = (node.relY || 0) - cyOff;
+            const localX = rail.left + (relX * Math.cos(angleRad) - relY * Math.sin(angleRad));
+            const localY = rail.top  + (relX * Math.sin(angleRad) + relY * Math.cos(angleRad));
             const point = new fabric.Point(localX, localY);
             const absPoint = fabric.util.transformPoint(point, rail.group.calcTransformMatrix());
             const absAngle = (rail.group.angle + rail.angle + node.facingAngle) % 360;
+            try { console.log(" node", node.id, "rel=", node.relX, node.relY, "-> abs=", absPoint.x.toFixed(2), absPoint.y.toFixed(2)); } catch(e) {}
             return { nodeId: node.id, x: absPoint.x, y: absPoint.y, angle: absAngle };
         });
     }
 
     const angleRad = (rail.angle * Math.PI) / 180;
     return catalog.nodes.map(node => {
-        const absX = rail.left + (node.relX * Math.cos(angleRad) - node.relY * Math.sin(angleRad));
-        const absY = rail.top  + (node.relX * Math.sin(angleRad) + node.relY * Math.cos(angleRad));
+        const relX = (node.relX || 0) - cxOff;
+        const relY = (node.relY || 0) - cyOff;
+        const absX = rail.left + (relX * Math.cos(angleRad) - relY * Math.sin(angleRad));
+        const absY = rail.top  + (relX * Math.sin(angleRad) + relY * Math.cos(angleRad));
         const absAngle = (rail.angle + node.facingAngle) % 360;
+        try { console.log(" node", node.id, "rel=", node.relX, node.relY, "-> abs=", absX.toFixed(2), absY.toFixed(2)); } catch(e) {}
         return { nodeId: node.id, x: absX, y: absY, angle: absAngle };
     });
 }
