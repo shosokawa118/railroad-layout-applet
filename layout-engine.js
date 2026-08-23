@@ -136,19 +136,98 @@ function addRailToCanvas(partId) {
     const currentId = `rail-${railCount}`;
     railCount++;
 
-    // ★【鉄壁のバグ回避】Fabric.jsのプロパティ(pathBounds)を使わず、純粋なJSの幾何学中心を動的に抽出
+    // generate geometric data
     const geoData = generateGenericRailData(catalogItem);
-    
-    // pathOffset と customData.centerOffset には軌道中心線の重心を優先して使う
-    const offsetX = (typeof geoData.centerlineCx === 'number') ? geoData.centerlineCx : geoData.centerX;
-    const offsetY = (typeof geoData.centerlineCy === 'number') ? geoData.centerlineCy : geoData.centerY;
+
+    // helper: sample centerline local points (same logic as in generateGenericRailData)
+    function sampleCenterlineLocal(cat) {
+        const pts = [];
+        (cat.shapes || []).forEach(shape => {
+            if (shape.type === 'line') {
+                const x1 = (shape.offsetX || 0) - shape.length / 2;
+                const x2 = (shape.offsetX || 0) + shape.length / 2;
+                const y = (shape.offsetY || 0);
+                const steps = 6;
+                for (let i = 0; i <= steps; i++) {
+                    const t = i / steps;
+                    pts.push({ x: x1 + (x2 - x1) * t, y: y });
+                }
+            } else if (shape.type === 'arc') {
+                const startRad = (shape.startAngle * Math.PI) / 180;
+                const endRad = ((shape.startAngle + shape.arcAngle) * Math.PI) / 180;
+                const r = shape.radius;
+                const cX = shape.centerX || 0;
+                const cY = shape.centerY || 0;
+                const steps = Math.max(8, Math.ceil(Math.abs(shape.arcAngle) / 3));
+                for (let i = 0; i <= steps; i++) {
+                    const t = i / steps;
+                    const ang = startRad + (endRad - startRad) * t;
+                    pts.push({ x: cX + r * Math.cos(ang), y: cY + r * Math.sin(ang) });
+                }
+            }
+        });
+        return pts;
+    }
+
+    // build candidate offsets: prefer explicit catalog centerOffset if provided
+    const candidates = [];
+    if (catalogItem.centerOffset && typeof catalogItem.centerOffset.cx === 'number' && typeof catalogItem.centerOffset.cy === 'number') {
+        candidates.push({ cx: catalogItem.centerOffset.cx, cy: catalogItem.centerOffset.cy, name: 'catalog' });
+    }
+    // centerline from geoData
+    if (typeof geoData.centerlineCx === 'number' && typeof geoData.centerlineCy === 'number') {
+        candidates.push({ cx: geoData.centerlineCx, cy: geoData.centerlineCy, name: 'centerline' });
+    }
+    // geometry bbox center
+    candidates.push({ cx: geoData.centerX, cy: geoData.centerY, name: 'bbox' });
+    // fallback origin
+    candidates.push({ cx: 0, cy: 0, name: 'origin' });
+
+    const sampledLocal = sampleCenterlineLocal(catalogItem);
+
+    // scoring: sum of min distances from each node (local) to sampled centerline
+    function scoreForCandidate(candidate) {
+        let total = 0;
+        (catalogItem.nodes || []).forEach(node => {
+            const lx = (node.relX || 0) - candidate.cx;
+            const ly = (node.relY || 0) - candidate.cy;
+            if (sampledLocal.length) {
+                let best = Infinity;
+                for (let i = 0; i < sampledLocal.length; i++) {
+                    const s = sampledLocal[i];
+                    const d = Math.hypot(s.x - lx, s.y - ly);
+                    if (d < best) best = d;
+                }
+                total += best;
+            } else {
+                total += Math.hypot(lx, ly);
+            }
+        });
+        // small penalty: prefer candidates that are closer to bbox center (stabilizes against noisy centerlines)
+        const bboxPenalty = Math.hypot(candidate.cx - geoData.centerX, candidate.cy - geoData.centerY) * 0.05;
+        return total + bboxPenalty;
+    }
+
+    // evaluate candidates
+    let best = candidates[0];
+    let bestScore = scoreForCandidate(best);
+    for (let i = 1; i < candidates.length; i++) {
+        const s = scoreForCandidate(candidates[i]);
+        candidates[i].score = s;
+        if (s < bestScore) { best = candidates[i]; bestScore = s; }
+    }
+
+    // attach scores to candidates for debugging
+    try { console.log('offsetCandidates', candidates.map(c=>({name:c.name,cx:c.cx,cy:c.cy,score: (typeof c.score==='number'?c.score.toFixed(2):'n/a')}))); } catch(e) {}
+
+    const offsetX = best.cx;
+    const offsetY = best.cy;
 
     // Debug: show chosen offsets when creating the object
-    try { console.log("addRailToCanvas: partId=", partId, "useOffset=", offsetX.toFixed(2), offsetY.toFixed(2), "(centerline?", typeof geoData.centerlineCx === 'number', ")"); } catch(e) {}
+    try { console.log("addRailToCanvas: partId=", partId, "chosenOffset=", offsetX.toFixed(2), offsetY.toFixed(2), "choice=", best.name); } catch(e) {}
 
     let railObject = new fabric.Path(geoData.pathStr, {
         fill: '#888888',
-        // 軌道中心線の重心を pathOffset に設定
         pathOffset: new fabric.Point(offsetX, offsetY)
     });
 
@@ -160,7 +239,7 @@ function addRailToCanvas(partId) {
     });
 
     // 生成した軌道中心線重心を保存してノード計算時に使う
-    railObject.customData = { instanceId: currentId, partId: partId, isRail: true, centerOffset: { cx: offsetX, cy: offsetY } };
+    railObject.customData = { instanceId: currentId, partId: partId, isRail: true, centerOffset: { cx: offsetX, cy: offsetY }, offsetChoice: best.name };
 
     canvas.add(railObject);
     
@@ -222,100 +301,4 @@ function getAbsoluteNodePos(rail) {
         try { console.log(" node", node.id, "rel=", node.relX, node.relY, "-> abs=", absX.toFixed(2), absY.toFixed(2)); } catch(e) {}
         return { nodeId: node.id, x: absX, y: absY, angle: absAngle };
     });
-}
-
-function isNodeOccupied(railId, nodeId) {
-    return globalJoints.some(j => 
-        j && ((j.railA === railId && j.nodeA === nodeId) || (j.railB === railId && j.nodeB === nodeId))
-    );
-}
-
-function onGeneralMoving(target) {
-    if (!target) return;
-    if (isFirstMoveFrame) {
-        const movedIds = getMovedRailIds(target);
-        globalJoints = globalJoints.filter(j => {
-            if (!j) return false;
-            const hasA = movedIds.includes(j.railA);
-            const hasB = movedIds.includes(j.railB);
-            return (hasA && hasB) || (!hasA && !hasB);
-        });
-        isFirstMoveFrame = false;
-    }
-    updateJointIndicators();
-}
-
-function getMovedRailIds(target) {
-    if (!target) return [];
-    if (target.customData && target.customData.isRail) return [target.customData.instanceId];
-    if (target.type === 'activeSelection') {
-        return target.getObjects().filter(o => o && o.customData && o.customData.isRail).map(o => o.customData.instanceId);
-    }
-    return [];
-}
-
-function updateJointIndicators() {
-    if (!canvas) return;
-    
-    const oldIndicators = canvas.getObjects().filter(obj => obj && obj.customData && obj.customData.isIndicator);
-    oldIndicators.forEach(obj => { if (obj) canvas.remove(obj); });
-
-    const rails = canvas.getObjects().filter(obj => obj && obj.customData && obj.customData.isRail);
-
-    rails.forEach(rail => {
-        if (!rail || !rail.customData) return;
-        const railId = rail.customData.instanceId;
-        const absoluteNodes = getAbsoluteNodePos(rail);
-        if (!absoluteNodes) return;
-
-        absoluteNodes.forEach(node => {
-            if (!node) return;
-            const isOccupied = isNodeOccupied(railId, node.nodeId);
-            const color = isOccupied ? '#7cd21d' : '#ff3b30';
-            const radius = isOccupied ? 3 : 5;
-
-            const dot = new fabric.Circle({
-                left: node.x, top: node.y, radius: radius, fill: color,
-                stroke: '#ffffff', strokeWidth: 1, originX: 'center', originY: 'center',
-                selectable: false, evented: false, customData: { isIndicator: true }
-            });
-
-            canvas.add(dot);
-            canvas.bringToFront(dot);
-        });
-    });
-}
-
-// サンプルデータロード
-function loadDebugSampleLayout() {
-    if (!canvas || typeof INITIAL_SAMPLE_LAYOUT === 'undefined') return;
-    canvas.clear();
-    globalJoints = [];
-    railCount = 0;
-
-    INITIAL_SAMPLE_LAYOUT.rails.forEach(r => {
-        if (!r) return;
-        const obj = addRailToCanvas(r.partId);
-        if (obj) {
-            obj.set({ left: r.x, top: r.y, angle: r.angle });
-            obj.customData.instanceId = r.instanceId;
-            obj.setCoords();
-        }
-    });
-
-    INITIAL_SAMPLE_LAYOUT.joints.forEach(j => {
-        if (!j) return;
-        globalJoints.push({
-            jointId: `j-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-            railA: j.railA, nodeA: j.nodeA,
-            railB: j.railB, nodeB: j.nodeB
-        });
-    });
-
-    railCount = INITIAL_SAMPLE_LAYOUT.rails.length;
-    canvas.setZoom(0.35);
-    canvas.setViewportTransform([0.35, 0, 0, 0.35, 250, 100]);
-    updateJointIndicators();
-    canvas.requestRenderAll();
-    console.log("[%s] サンプル小判型エンドレスをピュア数式自動計算で100%%復元しました！", CODE_VERSION);
 }
