@@ -1,8 +1,8 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - スナップ＆多重結合マネージャー
-// バージョン: VER-MULTI-SNAP-J2
+// バージョン: VER-JSON-CLIPBOARD-J3
 // =============================================================
-console.log("スナップマネージャー（JS）が読み込まれました: VER-MULTI-SNAP-J2");
+console.log("スナップマネージャー（JS）が読み込まれました: VER-JSON-CLIPBOARD-J3");
 
 function applyClusterSnapLogic(movedRail) {
     isFirstMoveFrame = true;
@@ -48,7 +48,7 @@ function applyClusterSnapLogic(movedRail) {
     });
 
     if (bestSnap) {
-        console.log("[VER-MULTI-SNAP-J2] スナップを検知。グループ一体スナップを実行します。");
+        console.log("[VER-JSON-CLIPBOARD-J3] スナップを検知。グループ一体スナップを実行します。");
 
         const mRail = bestSnap.movedRail;
         const mCatalogNode = partsCatalog[mRail.customData.partId].nodes[bestSnap.mNode.nodeId];
@@ -77,7 +77,6 @@ function applyClusterSnapLogic(movedRail) {
             });
             movedRail.setCoords();
         } else {
-            // ★ 修正：単体スナップ時も中心オフセット(cx, cy)を適用して位置決め
             const cx = mRail.customData.geoCenterX || 0;
             const cy = mRail.customData.geoCenterY || 0;
             const lx = mCatalogNode.relX - cx;
@@ -123,7 +122,7 @@ function applyClusterSnapLogic(movedRail) {
                                 railA: rId, nodeA: mN.nodeId,
                                 railB: oId, nodeB: oN.nodeId
                             });
-                            console.log("[VER-MULTI-SNAP-J2] 🎉 自動連動ロック成立！ 端点ID:", rId, "->", oId);
+                            console.log("[VER-JSON-CLIPBOARD-J3] 🎉 自動連動ロック成立！ 端点ID:", rId, "->", oId);
                         }
                     });
                 });
@@ -135,6 +134,7 @@ function applyClusterSnapLogic(movedRail) {
     canvas.requestRenderAll();
 }
 
+// ★ 精度を 0.01 単位（Math.round(val * 100) / 100）に修正＆クリップボードへ出力
 function exportLayoutJSON() {
     if (!canvas) return;
     const objects = canvas.getObjects().filter(obj => obj.customData && obj.customData.isRail);
@@ -143,17 +143,31 @@ function exportLayoutJSON() {
         return {
             instanceId: obj.customData.instanceId,
             partId: obj.customData.partId,
-            x: Math.round(obj.left), y: Math.round(obj.top), angle: Math.round(obj.angle)
+            x: Math.round(obj.left * 100) / 100,
+            y: Math.round(obj.top * 100) / 100,
+            angle: Math.round(obj.angle * 100) / 100
         };
     });
 
     const completeSaveData = {
-        version: "VER-MULTI-SNAP-J2",
+        version: "VER-JSON-CLIPBOARD-J3",
         rails: railsData,
         joints: globalJoints
     };
 
-    console.log("[VER-MULTI-SNAP-J2] ======= 総合セーブデータ(JSON) =======");
-    console.log(JSON.stringify(completeSaveData, null, 2));
-    alert("ブラウザのコンソール(F12)に統合JSONを出力しました！");
+    const jsonString = JSON.stringify(completeSaveData, null, 2);
+
+    console.log("[VER-JSON-CLIPBOARD-J3] ======= 総合セーブデータ(JSON) =======");
+    console.log(jsonString);
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(jsonString).then(() => {
+            alert("レイアウトデータ(JSON)をクリップボードにコピーしました！\nメモ帳などに直接貼り付けられます。");
+        }).catch(err => {
+            console.warn("クリップボードへの書き込みに失敗したため、コンソール出力のみ行いました。", err);
+            alert("コンソール(F12)にJSONを出力しました！");
+        });
+    } else {
+        alert("コンソール(F12)にJSONを出力しました！");
+    }
 }
