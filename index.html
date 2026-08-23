@@ -6,7 +6,7 @@
     <title>鉄道模型レイアウトジェネレータ</title>
     
     <script>
-        const CODE_VERSION = "VER-DELETE-M4";
+        const CODE_VERSION = "VER-JSON-UI-M5";
         console.log("=========================================");
         console.log("ビュー（HTML）バージョン:", CODE_VERSION);
         console.log("=========================================");
@@ -21,7 +21,6 @@
                     allowTouchScrolling: false
                 });
 
-                // ★ 移動・回転の完了時にスナップ＆結合ロジックを共通適用
                 canvas.on('object:modified', function(options) {
                     if (options && options.target && typeof applyClusterSnapLogic === 'function') {
                         applyClusterSnapLogic(options.target);
@@ -42,7 +41,6 @@
             }
         }
 
-        // ★ キーボードの Delete / Backspace キーで選択パーツを削除
         function initKeyControls() {
             window.addEventListener('keydown', e => {
                 if ((e.key === 'Delete' || e.key === 'Backspace') && !isInputFocused()) {
@@ -54,6 +52,21 @@
         function isInputFocused() {
             const el = document.activeElement;
             return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA');
+        }
+
+        // ★ JSON貼り付けダイアログ＆読み込み関数
+        function promptImportJSON() {
+            const jsonText = prompt("貼り付けたいレイアウトJSONデータを入力してください:");
+            if (!jsonText || jsonText.trim() === "") return;
+
+            try {
+                const parsed = JSON.parse(jsonText);
+                const isOverwrite = confirm("現在のレイアウトを上書きしますか？\n[OK] 上書き読み込み\n[キャンセル] 既存の配置に追加");
+                importLayoutData(parsed, isOverwrite);
+            } catch (e) {
+                alert("JSONの読み込みに失敗しました。フォーマットを確認してください。");
+                console.error(e);
+            }
         }
 
         (function() {
@@ -99,6 +112,7 @@
         <button onclick="addRailToCanvas('KATO-EP4-R')" style="background-color: #fff3e0; font-weight: bold; border-color: #ff9800;">4番ポイント(右)</button>
         <button onclick="deleteSelectedRails()" class="btn-danger">選択削除 [Del]</button>
         <button onclick="exportLayoutJSON()" style="background-color: #eceff1;">JSON出力</button>
+        <button onclick="promptImportJSON()" style="background-color: #e1f5fe;">JSON読込</button>
         <button onclick="loadDebugSampleLayout()" style="background-color: #ff9500; color: #fff; border: none;">サンプル再読込</button>
     </div>
 
