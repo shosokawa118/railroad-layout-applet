@@ -30,13 +30,7 @@
                 initCameraControls();
                 if (typeof initTouchControls === 'function') initTouchControls();
 
-                console.log("[%s] Canvas初期化成功。初期配置データをロードします...", CODE_VERSION);
-                
-                setTimeout(() => {
-                    if (typeof loadDebugSampleLayout === 'function') {
-                        loadDebugSampleLayout();
-                    }
-                }, 300);
+                console.log("[%s] Canvas初期化成功。", CODE_VERSION);
             }
         }
 
