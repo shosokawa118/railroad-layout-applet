@@ -119,23 +119,24 @@ const railCatalog = {
             systemId: "KATO-UNITRACK-N",
             category: "straight",
             name: "S62J",
-            description: "ジョイント線路 62mm",
+            description: "ジョイントレール 62mm",
             nodes: [
-                { "id": 0, "relX": -31, "relY": 0, "facingAngle": 180, "connectorType": "kato-unijoiner" },
-                { "id": 1, "relX": 31,  "relY": 0, "facingAngle": 0,   "connectorType": "tomix-clapper" }
+                { "id": 0, "name": "KATO端",  "relX": -31.0, "relY": 0, "facingAngle": 180 },
+                { "id": 1, "name": "TOMIX端", "relX": 31.0,  "relY": 0, "facingAngle": 0 }
             ],
             shapes: [
-                { "type": "line", "length": 62, "offsetX": 0, "offsetY": 0 },
-                { 
-                    "type": "polygon", 
+                {
+                    "type": "polygon",
                     "points": [
-                        { "x": 31, "y": -9.25 },
-                        { "x": 41, "y": -9.25 },
-                        { "x": 41, "y": 9.25 },
-                        { "x": 31, "y": 9.25 }
-                    ],
-                    "fill": "#a39382",
-                    "stroke": "#555555"
+                        { "x": -31, "y": -12.5 },
+                        { "x":  21, "y": -12.5 },
+                        { "x":  21, "y": -9.0  },
+                        { "x":  31, "y": -9.0  },
+                        { "x":  31, "y":  9.0  },
+                        { "x":  21, "y":  9.0  },
+                        { "x":  21, "y":  12.5 },
+                        { "x": -31, "y":  12.5 }
+                    ]
                 }
             ]
         },
