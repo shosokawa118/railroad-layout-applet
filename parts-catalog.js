@@ -53,6 +53,16 @@ const railCatalog = {
             ],
             shapes: [{ "type": "line", "length": 124, "offsetX": 0, "offsetY": 0 }]
         },
+        "KATO-S62": {
+            systemId: "KATO-UNITRACK-N",
+            category: "straight",
+            name: "S62 (直線 62mm)",
+            nodes: [
+                { "id": 0, "relX": -31, "relY": 0, "facingAngle": 180 },
+                { "id": 1, "relX": 31,  "relY": 0, "facingAngle": 0 }
+            ],
+            shapes: [{ "type": "line", "length": 62, "offsetX": 0, "offsetY": 0 }]
+        },
         "KATO-S64": {
             systemId: "KATO-UNITRACK-N",
             category: "straight",
