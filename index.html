@@ -6,7 +6,7 @@
     <title>鉄道模型レイアウトジェネレータ</title>
     
     <script>
-        const CODE_VERSION = "VER-PALETTE-UI-M6";
+        const CODE_VERSION = "VER-PALETTE-UI-M7";
         console.log("=========================================");
         console.log("ビュー（HTML）バージョン:", CODE_VERSION);
         console.log("=========================================");
@@ -77,14 +77,21 @@
 
         function renderPartsPalette() {
             const paletteContainer = document.getElementById('partsPalette');
-            if (!paletteContainer || !railCatalog) return;
+            if (!paletteContainer || !railCatalog || !railCatalog.items) return;
 
             paletteContainer.innerHTML = '';
 
             const items = Object.keys(railCatalog.items)
                 .filter(id => {
                     const item = railCatalog.items[id];
-                    return item.systemId === currentSystemId && item.category === currentCategory;
+                    // カテゴリが一致しない場合は除外
+                    if (item.category !== currentCategory) return false;
+
+                    // compatibleSystems が定義されている場合はそちらを参照し、無ければ systemId で判定
+                    if (Array.isArray(item.compatibleSystems)) {
+                        return item.compatibleSystems.includes(currentSystemId);
+                    }
+                    return item.systemId === currentSystemId;
                 });
 
             if (items.length === 0) {
@@ -97,6 +104,7 @@
                 const btn = document.createElement('button');
                 btn.className = 'part-btn';
                 btn.textContent = item.name;
+                btn.title = item.description || item.name; // ホバー時に日本語説明を表示
                 btn.onclick = () => addRailToCanvas(partId);
                 paletteContainer.appendChild(btn);
             });
