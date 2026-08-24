@@ -1,8 +1,8 @@
 // =============================================================
-// 鉄道模型レイアウトジェネレータ - 基本エンジン (グループ化描画＆逆回り対応版)
-// バージョン: VER-DYNAMIC-WIDTH-U6
+// 鉄道模型レイアウトジェネレータ - 基本エンジン (Polygon完全対応版)
+// バージョン: VER-DYNAMIC-WIDTH-U8
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-DYNAMIC-WIDTH-U6");
+console.log("基本エンジン（JS）が読み込まれました: VER-DYNAMIC-WIDTH-U8");
 
 let globalJoints = [];
 let railCount = 0;
@@ -11,7 +11,6 @@ let isFirstMoveFrame = true;
 function generateGenericRailData(catalogItem) {
     const paths = [];
     
-    // ★ システム定義から道床幅を取得（デフォルト: 16）
     const sys = catalogItem && catalogItem.systemId ? railCatalog.systems[catalogItem.systemId] : null;
     const BALLAST_WIDTH = sys ? sys.ballastWidth : 16;
     const halfW = BALLAST_WIDTH / 2;
@@ -24,11 +23,21 @@ function generateGenericRailData(catalogItem) {
     }
 
     if (!catalogItem || !catalogItem.shapes) {
-        return { paths: ["M 0 0 L 10 0"], centerX: 5, centerY: 0 };
+        return { paths: ["M 0 0 L 10 0"], centerX: 0, centerY: 0 };
     }
 
     catalogItem.shapes.forEach(shape => {
-        if (shape.type === "line") {
+        if (shape.type === "polygon" && Array.isArray(shape.points) && shape.points.length > 0) {
+            // ★ 多角形（Polygon）のパス生成
+            let polyPath = "";
+            shape.points.forEach((pt, idx) => {
+                polyPath += (idx === 0 ? `M ${pt.x} ${pt.y}` : ` L ${pt.x} ${pt.y}`);
+                updateBounds(pt.x, pt.y);
+            });
+            polyPath += " Z";
+            paths.push(polyPath);
+        }
+        else if (shape.type === "line") {
             const x1 = (shape.offsetX || 0) - shape.length / 2;
             const x2 = (shape.offsetX || 0) + shape.length / 2;
             const y1 = (shape.offsetY || 0) - halfW;
@@ -73,12 +82,7 @@ function generateGenericRailData(catalogItem) {
 
             const ccwDistance = (fromDeg, toDeg) => ((toDeg - fromDeg) % 360 + 360) % 360;
             [0, 90, 180, 270].forEach(cardinal => {
-                let contains;
-                if (arcAngle >= 0) {
-                    contains = ccwDistance(startDeg, cardinal) <= arcAngle;
-                } else {
-                    contains = ccwDistance(cardinal, startDeg) <= -arcAngle;
-                }
+                let contains = arcAngle >= 0 ? ccwDistance(startDeg, cardinal) <= arcAngle : ccwDistance(cardinal, startDeg) <= -arcAngle;
                 if (contains) {
                     const rad = (cardinal * Math.PI) / 180;
                     updateBounds(cX + rOut * Math.cos(rad), cY + rOut * Math.sin(rad));
@@ -88,8 +92,9 @@ function generateGenericRailData(catalogItem) {
         }
     });
 
-    const geoCenterX = minX + (maxX - minX) / 2;
-    const geoCenterY = minY + (maxY - minY) / 2;
+    // BoundingBoxの幾何学中心を計算
+    const geoCenterX = (minX !== Infinity && maxX !== -Infinity) ? minX + (maxX - minX) / 2 : 0;
+    const geoCenterY = (minY !== Infinity && maxY !== -Infinity) ? minY + (maxY - minY) / 2 : 0;
 
     return {
         paths: paths,
@@ -113,20 +118,27 @@ function addRailToCanvas(partId) {
     railCount++;
 
     const geoData = generateGenericRailData(catalogItem);
-    
-    // ★ 各シェイプ（直線・曲線）を個別の Path として生成
+
+    // ★ Pathオブジェクト生成時に明示的に fill/stroke と原点を設定
     const pathObjects = geoData.paths.map(pStr => {
         return new fabric.Path(pStr, {
             fill: '#888888',
-            stroke: null
+            stroke: null,
+            originX: 'center',
+            originY: 'center'
         });
     });
 
-    // ★ Path を Group化することで白抜き（くり抜き）を物理的に回避
+    // ★ Group オブジェクトとしてまとめる
     let railObject = new fabric.Group(pathObjects, {
-        left: initialLeft, top: initialTop,
-        originX: 'center', originY: 'center', angle: 0,
-        hasControls: true, lockScalingX: true, lockScalingY: true
+        left: initialLeft, 
+        top: initialTop,
+        originX: 'center', 
+        originY: 'center', 
+        angle: 0,
+        hasControls: true, 
+        lockScalingX: true, 
+        lockScalingY: true
     });
 
     railObject.customData = { 
@@ -326,5 +338,5 @@ function loadDebugSampleLayout() {
     importLayoutData(INITIAL_SAMPLE_LAYOUT, true);
     canvas.setZoom(0.35);
     canvas.setViewportTransform([0.35, 0, 0, 0.35, 250, 100]);
-    console.log("[%s] サンプル小判型エンドレスをピュア数式自動計算で100%%復元しました！", "VER-DYNAMIC-WIDTH-U6");
+    console.log("[%s] サンプル小判型エンドレスをピュア数式自動計算で100%%復元しました！", "VER-DYNAMIC-WIDTH-U8");
 }
