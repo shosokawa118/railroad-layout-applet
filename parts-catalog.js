@@ -235,7 +235,7 @@ const railCatalog = {
             ],
             shapes: [
                 { "type": "line", "length": 126, "offsetX": 0, "offsetY": 0 },
-                { "type": "arc", "radius": 481, "arcAngle": 15, "centerX": -63.0, "centerY": -481.0, "startAngle": 90 }
+                { "type": "arc", "radius": 481, "arcAngle": -15, "centerX": -63.0, "centerY": -481.0, "startAngle": 90 }
             ]
         },
         "KATO-EP4-R": {
@@ -265,7 +265,7 @@ const railCatalog = {
             ],
             shapes: [
                 { "type": "line", "length": 186, "offsetX": 0, "offsetY": 0 },
-                { "type": "arc", "radius": 718, "arcAngle": 15, "centerX": -93.0, "centerY": -718.0, "startAngle": 90 }
+                { "type": "arc", "radius": 718, "arcAngle": -15, "centerX": -93.0, "centerY": -718.0, "startAngle": 90 }
             ]
         },
         "KATO-EP6-R": {
@@ -336,7 +336,7 @@ const railCatalog = {
             ],
             shapes: [
                 { "type": "line", "length": 124, "offsetX": 0, "offsetY": 0 },
-                { "type": "arc", "radius": 150, "arcAngle": 45, "centerX": -62.0, "centerY": -150.0, "startAngle": 90 }
+                { "type": "arc", "radius": 150, "arcAngle": -45, "centerX": -62.0, "centerY": -150.0, "startAngle": 90 }
             ]
         },
         "KATO-EP150-45R": {
@@ -513,7 +513,7 @@ const railCatalog = {
             ],
             shapes: [
                 { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
-                { "type": "arc", "radius": 541, "arcAngle": 15, "centerX": -70.0, "centerY": -541.0, "startAngle": 90 }
+                { "type": "arc", "radius": 541, "arcAngle": -15, "centerX": -70.0, "centerY": -541.0, "startAngle": 90 }
             ]
         }
     }
