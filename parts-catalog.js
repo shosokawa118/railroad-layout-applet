@@ -24,6 +24,13 @@ const railCatalog = {
             systemName: "ファイントラック (N)",
             ballastWidth: 18.5,
             connectorType: "tomix-clapper"
+        },
+        "TOMIX-MINICURVE-N": {
+            scale: "N",
+            brand: "TOMIX",
+            systemName: "ミニカーブ / スーパーミニカーブ (N)",
+            ballastWidth: 18.5,
+            connectorType: "tomix-clapper"
         }
     },
     items: {
@@ -355,12 +362,12 @@ const railCatalog = {
                 { "type": "arc", "radius": 150, "arcAngle": 45, "centerX": -62.0, "centerY": 150.0, "startAngle": 270 }
             ]
         },
-
         // =========================================================
-        // TOMIX 直線レール
+        // TOMIX 直線レール (ファイントラック 兼 ミニカーブ共有)
         // =========================================================
         "TOMIX-S280": {
             systemId: "TOMIX-FINETRACK-N",
+            compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-MINICURVE-N"],
             category: "straight",
             name: "S280-F",
             description: "ストレートPCレール 280mm",
@@ -372,6 +379,7 @@ const railCatalog = {
         },
         "TOMIX-S140": {
             systemId: "TOMIX-FINETRACK-N",
+            compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-MINICURVE-N"],
             category: "straight",
             name: "S140-F",
             description: "ストレートPCレール 140mm",
@@ -381,27 +389,43 @@ const railCatalog = {
             ],
             shapes: [{ "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 }]
         },
+        "TOMIX-S70": {
+            systemId: "TOMIX-FINETRACK-N",
+            compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-MINICURVE-N"],
+            category: "straight",
+            name: "S70-F",
+            description: "ストレートPCレール 70mm",
+            nodes: [
+                { "id": 0, "relX": -35, "relY": 0, "facingAngle": 180 },
+                { "id": 1, "relX": 35,  "relY": 0, "facingAngle": 0 }
+            ],
+            shapes: [{ "type": "line", "length": 70, "offsetX": 0, "offsetY": 0 }]
+        },
+
+        // =========================================================
+        // TOMIX その他直線レール
+        // =========================================================
         "TOMIX-S72.5": {
             systemId: "TOMIX-FINETRACK-N",
             category: "straight",
             name: "S72.5-F",
-            description: "ストレートPCレール 72.5mm",
+            description: "ストレート(15°)PCレール 72.5mm",
             nodes: [
                 { "id": 0, "relX": -36.25, "relY": 0, "facingAngle": 180 },
                 { "id": 1, "relX": 36.25,  "relY": 0, "facingAngle": 0 }
             ],
             shapes: [{ "type": "line", "length": 72.5, "offsetX": 0, "offsetY": 0 }]
         },
-        "TOMIX-S70": {
+        "TOMIX-S99": {
             systemId: "TOMIX-FINETRACK-N",
             category: "straight",
-            name: "S70-F",
-            description: "端数PCレール 70mm",
+            name: "S99-F",
+            description: "ストレート(45°)PCレール 99mm",
             nodes: [
-                { "id": 0, "relX": -35, "relY": 0, "facingAngle": 180 },
-                { "id": 1, "relX": 35,  "relY": 0, "facingAngle": 0 }
+                { "id": 0, "relX": -49.5, "relY": 0, "facingAngle": 180 },
+                { "id": 1, "relX": 49.5,  "relY": 0, "facingAngle": 0 }
             ],
-            shapes: [{ "type": "line", "length": 70, "offsetX": 0, "offsetY": 0 }]
+            shapes: [{ "type": "line", "length": 99, "offsetX": 0, "offsetY": 0 }]
         },
         "TOMIX-S33": {
             systemId: "TOMIX-FINETRACK-N",
@@ -482,6 +506,110 @@ const railCatalog = {
                 { "id": 1, "relX": 70.61,  "relY": 0, "facingAngle": 7.5 }
             ],
             shapes: [{ "type": "arc", "radius": 541, "arcAngle": 15, "centerX": 0, "centerY": 536.36, "startAngle": 262.5 }]
+        },
+        
+        // =========================================================
+        // TOMIX ミニカーブ / スーパーミニカーブ (曲線レール)
+        // =========================================================
+        "TOMIX-C103-30": {
+            systemId: "TOMIX-MINICURVE-N",
+            category: "curve",
+            name: "C103-30-F",
+            description: "スーパーミニカーブレール R103-30°",
+            nodes: [
+                { "id": 0, "relX": -26.66, "relY": 0, "facingAngle": 165.0 },
+                { "id": 1, "relX": 26.66,  "relY": 0, "facingAngle": 15.0 }
+            ],
+            shapes: [{ "type": "arc", "radius": 103, "arcAngle": 30, "centerX": 0, "centerY": 99.49, "startAngle": 255.0 }]
+        },
+        "TOMIX-C103-60": {
+            systemId: "TOMIX-MINICURVE-N",
+            category: "curve",
+            name: "C103-60-F",
+            description: "スーパーミニカーブレール R103-60°",
+            nodes: [
+                { "id": 0, "relX": -51.50, "relY": 0, "facingAngle": 150.0 },
+                { "id": 1, "relX": 51.50,  "relY": 0, "facingAngle": 30.0 }
+            ],
+            shapes: [{ "type": "arc", "radius": 103, "arcAngle": 60, "centerX": 0, "centerY": 89.20, "startAngle": 240.0 }]
+        },
+        "TOMIX-C140-30": {
+            systemId: "TOMIX-MINICURVE-N",
+            category: "curve",
+            name: "C140-30-F",
+            description: "ミニカーブレール R140-30°",
+            nodes: [
+                { "id": 0, "relX": -36.23, "relY": 0, "facingAngle": 165.0 },
+                { "id": 1, "relX": 36.23,  "relY": 0, "facingAngle": 15.0 }
+            ],
+            shapes: [{ "type": "arc", "radius": 140, "arcAngle": 30, "centerX": 0, "centerY": 135.23, "startAngle": 255.0 }]
+        },
+        "TOMIX-C140-60": {
+            systemId: "TOMIX-MINICURVE-N",
+            category: "curve",
+            name: "C140-60-F",
+            description: "ミニカーブレール R140-60°",
+            nodes: [
+                { "id": 0, "relX": -70.00, "relY": 0, "facingAngle": 150.0 },
+                { "id": 1, "relX": 70.00,  "relY": 0, "facingAngle": 30.0 }
+            ],
+            shapes: [{ "type": "arc", "radius": 140, "arcAngle": 60, "centerX": 0, "centerY": 121.24, "startAngle": 240.0 }]
+        },
+        "TOMIX-C177-30": {
+            systemId: "TOMIX-MINICURVE-N",
+            category: "curve",
+            name: "C177-30-F",
+            description: "ミニカーブレール R177-30°",
+            nodes: [
+                { "id": 0, "relX": -45.81, "relY": 0, "facingAngle": 165.0 },
+                { "id": 1, "relX": 45.81,  "relY": 0, "facingAngle": 15.0 }
+            ],
+            shapes: [{ "type": "arc", "radius": 177, "arcAngle": 30, "centerX": 0, "centerY": 170.97, "startAngle": 255.0 }]
+        },
+        "TOMIX-C177-60": {
+            systemId: "TOMIX-MINICURVE-N",
+            category: "curve",
+            name: "C177-60-F",
+            description: "ミニカーブレール R177-60°",
+            nodes: [
+                { "id": 0, "relX": -88.50, "relY": 0, "facingAngle": 150.0 },
+                { "id": 1, "relX": 88.50,  "relY": 0, "facingAngle": 30.0 }
+            ],
+            shapes: [{ "type": "arc", "radius": 177, "arcAngle": 60, "centerX": 0, "centerY": 153.29, "startAngle": 240.0 }]
+        },
+
+        // =========================================================
+        // TOMIX ミニカーブ用 ポイントレール (PL140-30 / PR140-30)
+        // =========================================================
+        "TOMIX-N-PL140-30": {
+            systemId: "TOMIX-MINICURVE-N",
+            category: "turnout",
+            name: "N-PL140-30-F",
+            description: "ミニ手動ポイント N-PL140-30 (左)",
+            nodes: [
+                { "id": 0, "name": "進入端", "relX": -70.0, "relY": 0,     "facingAngle": 180 },
+                { "id": 1, "name": "直進端", "relX": 70.0,  "relY": 0,     "facingAngle": 0 },
+                { "id": 2, "name": "分岐端", "relX": 51.2,  "relY": -37.5, "facingAngle": -30.0 }
+            ],
+            shapes: [
+                { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
+                { "type": "arc", "radius": 140, "arcAngle": -30, "centerX": -70.0, "centerY": -140.0, "startAngle": 90 }
+            ]
+        },
+        "TOMIX-N-PR140-30": {
+            systemId: "TOMIX-MINICURVE-N",
+            category: "turnout",
+            name: "N-PR140-30-F",
+            description: "ミニ手動ポイント N-PR140-30 (右)",
+            nodes: [
+                { "id": 0, "name": "進入端", "relX": -70.0, "relY": 0,    "facingAngle": 180 },
+                { "id": 1, "name": "直進端", "relX": 70.0,  "relY": 0,    "facingAngle": 0 },
+                { "id": 2, "name": "分岐端", "relX": 51.2,  "relY": 37.5, "facingAngle": 30.0 }
+            ],
+            shapes: [
+                { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
+                { "type": "arc", "radius": 140, "arcAngle": 30, "centerX": -70.0, "centerY": 140.0, "startAngle": 270 }
+            ]
         },
 
         // =========================================================
