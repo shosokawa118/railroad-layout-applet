@@ -1,8 +1,24 @@
 // =============================================================
-// 鉄道模型レイアウトジェネレータ - スナップ＆多重結合マネージャー
-// バージョン: VER-JSON-CLIPBOARD-J3
+// 鉄道模型レイアウトジェネレータ - スナップ＆多重結合マネージャー (コネクタ型ガード版)
+// バージョン: VER-CONNECTOR-GUARD-J4
 // =============================================================
-console.log("スナップマネージャー（JS）が読み込まれました: VER-JSON-CLIPBOARD-J3");
+console.log("スナップマネージャー（JS）が読み込まれました: VER-CONNECTOR-GUARD-J4");
+
+function canConnectNodes(railA, nodeAId, railB, nodeBId) {
+    const itemA = railCatalog.items[railA.customData.partId];
+    const itemB = railCatalog.items[railB.customData.partId];
+    if (!itemA || !itemB) return false;
+
+    const sysA = railCatalog.systems[itemA.systemId];
+    const sysB = railCatalog.systems[itemB.systemId];
+    if (!sysA || !sysB) return false;
+
+    // ノード個別にジョイント型が定義されている場合はそちらを優先、無ければシステム標準の型を比較
+    const connA = (itemA.nodes[nodeAId] && itemA.nodes[nodeAId].connectorType) || sysA.connectorType;
+    const connB = (itemB.nodes[nodeBId] && itemB.nodes[nodeBId].connectorType) || sysB.connectorType;
+
+    return connA === connB;
+}
 
 function applyClusterSnapLogic(movedRail) {
     isFirstMoveFrame = true;
@@ -34,6 +50,9 @@ function applyClusterSnapLogic(movedRail) {
                 otherNodes.forEach(oNode => {
                     if (isNodeOccupied(oId, oNode.nodeId)) return;
 
+                    // ★ コネクタ互換性チェック
+                    if (!canConnectNodes(mRail, mNode.nodeId, otherRail, oNode.nodeId)) return;
+
                     const dist = Math.sqrt(Math.pow(mNode.x - oNode.x, 2) + Math.pow(mNode.y - oNode.y, 2));
                     if (dist < minDistance) {
                         minDistance = dist;
@@ -48,10 +67,10 @@ function applyClusterSnapLogic(movedRail) {
     });
 
     if (bestSnap) {
-        console.log("[VER-JSON-CLIPBOARD-J3] スナップを検知。グループ一体スナップを実行します。");
+        console.log("[VER-CONNECTOR-GUARD-J4] スナップを検知。グループ一体スナップを実行します。");
 
         const mRail = bestSnap.movedRail;
-        const mCatalogNode = partsCatalog[mRail.customData.partId].nodes[bestSnap.mNode.nodeId];
+        const mCatalogNode = railCatalog.items[mRail.customData.partId].nodes[bestSnap.mNode.nodeId];
         
         let targetRailAngle = (bestSnap.oNode.angle - mCatalogNode.facingAngle + 180) % 360;
         if (targetRailAngle < 0) targetRailAngle += 360;
@@ -115,6 +134,8 @@ function applyClusterSnapLogic(movedRail) {
                     oNodes.forEach(oN => {
                         if (isNodeOccupied(oId, oN.nodeId)) return;
 
+                        if (!canConnectNodes(rRail, mN.nodeId, oRail, oN.nodeId)) return;
+
                         const dist = Math.sqrt(Math.pow(mN.x - oN.x, 2) + Math.pow(mN.y - oN.y, 2));
                         if (dist < 6) {
                             globalJoints.push({
@@ -122,7 +143,7 @@ function applyClusterSnapLogic(movedRail) {
                                 railA: rId, nodeA: mN.nodeId,
                                 railB: oId, nodeB: oN.nodeId
                             });
-                            console.log("[VER-JSON-CLIPBOARD-J3] 🎉 自動連動ロック成立！ 端点ID:", rId, "->", oId);
+                            console.log("[VER-CONNECTOR-GUARD-J4] 🎉 自動連動ロック成立！ 端点ID:", rId, "->", oId);
                         }
                     });
                 });
@@ -134,7 +155,6 @@ function applyClusterSnapLogic(movedRail) {
     canvas.requestRenderAll();
 }
 
-// ★ 精度を 0.01 単位（Math.round(val * 100) / 100）に修正＆クリップボードへ出力
 function exportLayoutJSON() {
     if (!canvas) return;
     const objects = canvas.getObjects().filter(obj => obj.customData && obj.customData.isRail);
@@ -150,14 +170,14 @@ function exportLayoutJSON() {
     });
 
     const completeSaveData = {
-        version: "VER-JSON-CLIPBOARD-J3",
+        version: "VER-CONNECTOR-GUARD-J4",
         rails: railsData,
         joints: globalJoints
     };
 
     const jsonString = JSON.stringify(completeSaveData, null, 2);
 
-    console.log("[VER-JSON-CLIPBOARD-J3] ======= 総合セーブデータ(JSON) =======");
+    console.log("[VER-CONNECTOR-GUARD-J4] ======= 総合セーブデータ(JSON) =======");
     console.log(jsonString);
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
