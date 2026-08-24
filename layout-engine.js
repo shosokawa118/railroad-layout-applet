@@ -1,8 +1,8 @@
 // =============================================================
-// 鉄道模型レイアウトジェネレータ - 基本エンジン (動的道床幅描画版)
-// バージョン: VER-DYNAMIC-WIDTH-U4
+// 鉄道模型レイアウトジェネレータ - 基本エンジン (動的道床幅＆逆回り描画対応版)
+// バージョン: VER-DYNAMIC-WIDTH-U5
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-DYNAMIC-WIDTH-U4");
+console.log("基本エンジン（JS）が読み込まれました: VER-DYNAMIC-WIDTH-U5");
 
 let globalJoints = [];
 let railCount = 0;
@@ -11,7 +11,7 @@ let isFirstMoveFrame = true;
 function generateGenericRailData(catalogItem) {
     let combinedSvgPath = "";
     
-    // ★ シ���テム定義から道床幅を取得（デフォルト: 16）
+    // ★ システム定義から道床幅を取得（デフォルト: 16）
     const sys = catalogItem && catalogItem.systemId ? railCatalog.systems[catalogItem.systemId] : null;
     const BALLAST_WIDTH = sys ? sys.ballastWidth : 16;
     const halfW = BALLAST_WIDTH / 2;
@@ -42,7 +42,7 @@ function generateGenericRailData(catalogItem) {
         else if (shape.type === "arc") {
             const r = shape.radius;
             const rOut = r + halfW;
-            // 内側半径はゼロ未満にならないようにする
+            // 内側半径はゼロ未満にならないように調整
             const rIn = Math.max(0, r - halfW);
             
             const startDeg = shape.startAngle;
@@ -63,11 +63,10 @@ function generateGenericRailData(catalogItem) {
             const x4 = cX + rIn  * Math.cos(startRad);
             const y4 = cY + rIn  * Math.sin(startRad);
 
-            // large-arc-flag: 絶対角度が 180 度以上なら 1
+            // large-arc-flag: 絶対角度が 180 度以上なら 1 (大回り円対応)
             const largeArcFlag = Math.abs(arcAngle) >= 180 ? 1 : 0;
             
-            // sweep-flag: arcAngle が正なら（通常）1、負なら 0
-            // 外側と内側は向きが逆になるため内側は反対フラグ
+            // sweep-flag: arcAngle が正なら 1 (時計回り)、負なら 0 (反時計回り)
             const sweepOut = arcAngle >= 0 ? 1 : 0;
             const sweepIn  = arcAngle >= 0 ? 0 : 1;
 
@@ -76,16 +75,13 @@ function generateGenericRailData(catalogItem) {
             updateBounds(x1, y1); updateBounds(x2, y2);
             updateBounds(x3, y3); updateBounds(x4, y4);
 
-            // 効率的かつ正確に「0,90,180,270 のいずれが弧の区間に含まれるか」を判定する関数
+            // 境界ボックス（Bounds）判定処理
             const ccwDistance = (fromDeg, toDeg) => ((toDeg - fromDeg) % 360 + 360) % 360;
             [0, 90, 180, 270].forEach(cardinal => {
                 let contains;
                 if (arcAngle >= 0) {
-                    // start から正方向（CCW）に arcAngle だけ進む区間に cardinal が入るか
                     contains = ccwDistance(startDeg, cardinal) <= arcAngle;
                 } else {
-                    // arcAngle が負なら start から負方向（CW）に進む。これは等価に
-                    // 「cardinal から start へ CCW で進む角度 <= -arcAngle」を使って判定できる
                     contains = ccwDistance(cardinal, startDeg) <= -arcAngle;
                 }
                 if (contains) {
@@ -125,6 +121,7 @@ function addRailToCanvas(partId) {
     
     let railObject = new fabric.Path(geoData.pathStr, {
         fill: '#888888',
+        fillRule: 'nonzero', // ★直線と円弧の重複領域における「白抜き」を解消
         pathOffset: new fabric.Point(geoData.centerX, geoData.centerY)
     });
 
@@ -331,5 +328,5 @@ function loadDebugSampleLayout() {
     importLayoutData(INITIAL_SAMPLE_LAYOUT, true);
     canvas.setZoom(0.35);
     canvas.setViewportTransform([0.35, 0, 0, 0.35, 250, 100]);
-    console.log("[%s] サンプル小判型エンドレスをピュア数式自動計算で100%%復元しました！", "VER-DYNAMIC-WIDTH-U4");
+    console.log("[%s] サンプル小判型エンドレスをピュア数式自動計算で100%%復元しました！", "VER-DYNAMIC-WIDTH-U5");
 }
