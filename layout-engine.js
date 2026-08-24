@@ -1,15 +1,15 @@
 // =============================================================
-// 鉄道模型レイアウトジェネレータ - 基本エンジン (動的道床幅＆逆回り描画対応版)
-// バージョン: VER-DYNAMIC-WIDTH-U5
+// 鉄道模型レイアウトジェネレータ - 基本エンジン (グループ化描画＆逆回り対応版)
+// バージョン: VER-DYNAMIC-WIDTH-U6
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-DYNAMIC-WIDTH-U5");
+console.log("基本エンジン（JS）が読み込まれました: VER-DYNAMIC-WIDTH-U6");
 
 let globalJoints = [];
 let railCount = 0;
 let isFirstMoveFrame = true;
 
 function generateGenericRailData(catalogItem) {
-    let combinedSvgPath = "";
+    const paths = [];
     
     // ★ システム定義から道床幅を取得（デフォルト: 16）
     const sys = catalogItem && catalogItem.systemId ? railCatalog.systems[catalogItem.systemId] : null;
@@ -24,7 +24,7 @@ function generateGenericRailData(catalogItem) {
     }
 
     if (!catalogItem || !catalogItem.shapes) {
-        return { pathStr: "M 0 0 L 10 0", centerX: 5, centerY: 0 };
+        return { paths: ["M 0 0 L 10 0"], centerX: 5, centerY: 0 };
     }
 
     catalogItem.shapes.forEach(shape => {
@@ -34,7 +34,7 @@ function generateGenericRailData(catalogItem) {
             const y1 = (shape.offsetY || 0) - halfW;
             const y2 = (shape.offsetY || 0) + halfW;
             
-            combinedSvgPath += ` M ${x1} ${y1} L ${x2} ${y1} L ${x2} ${y2} L ${x1} ${y2} Z `;
+            paths.push(`M ${x1} ${y1} L ${x2} ${y1} L ${x2} ${y2} L ${x1} ${y2} Z`);
             
             updateBounds(x1, y1); updateBounds(x2, y1);
             updateBounds(x2, y2); updateBounds(x1, y2);
@@ -42,7 +42,6 @@ function generateGenericRailData(catalogItem) {
         else if (shape.type === "arc") {
             const r = shape.radius;
             const rOut = r + halfW;
-            // 内側半径はゼロ未満にならないように調整
             const rIn = Math.max(0, r - halfW);
             
             const startDeg = shape.startAngle;
@@ -63,19 +62,15 @@ function generateGenericRailData(catalogItem) {
             const x4 = cX + rIn  * Math.cos(startRad);
             const y4 = cY + rIn  * Math.sin(startRad);
 
-            // large-arc-flag: 絶対角度が 180 度以上なら 1 (大回り円対応)
             const largeArcFlag = Math.abs(arcAngle) >= 180 ? 1 : 0;
-            
-            // sweep-flag: arcAngle が正なら 1 (時計回り)、負なら 0 (反時計回り)
             const sweepOut = arcAngle >= 0 ? 1 : 0;
             const sweepIn  = arcAngle >= 0 ? 0 : 1;
 
-            combinedSvgPath += ` M ${x1} ${y1} A ${rOut} ${rOut} 0 ${largeArcFlag} ${sweepOut} ${x2} ${y2} L ${x3} ${y3} A ${rIn} ${rIn} 0 ${largeArcFlag} ${sweepIn} ${x4} ${y4} Z `;
+            paths.push(`M ${x1} ${y1} A ${rOut} ${rOut} 0 ${largeArcFlag} ${sweepOut} ${x2} ${y2} L ${x3} ${y3} A ${rIn} ${rIn} 0 ${largeArcFlag} ${sweepIn} ${x4} ${y4} Z`);
             
             updateBounds(x1, y1); updateBounds(x2, y2);
             updateBounds(x3, y3); updateBounds(x4, y4);
 
-            // 境界ボックス（Bounds）判定処理
             const ccwDistance = (fromDeg, toDeg) => ((toDeg - fromDeg) % 360 + 360) % 360;
             [0, 90, 180, 270].forEach(cardinal => {
                 let contains;
@@ -97,7 +92,7 @@ function generateGenericRailData(catalogItem) {
     const geoCenterY = minY + (maxY - minY) / 2;
 
     return {
-        pathStr: combinedSvgPath,
+        paths: paths,
         centerX: geoCenterX,
         centerY: geoCenterY
     };
@@ -119,13 +114,16 @@ function addRailToCanvas(partId) {
 
     const geoData = generateGenericRailData(catalogItem);
     
-    let railObject = new fabric.Path(geoData.pathStr, {
-        fill: '#888888',
-        fillRule: 'nonzero', // ★直線と円弧の重複領域における「白抜き」を解消
-        pathOffset: new fabric.Point(geoData.centerX, geoData.centerY)
+    // ★ 各シェイプ（直線・曲線）を個別の Path として生成
+    const pathObjects = geoData.paths.map(pStr => {
+        return new fabric.Path(pStr, {
+            fill: '#888888',
+            stroke: null
+        });
     });
 
-    railObject.set({
+    // ★ Path を Group化することで白抜き（くり抜き）を物理的に回避
+    let railObject = new fabric.Group(pathObjects, {
         left: initialLeft, top: initialTop,
         originX: 'center', originY: 'center', angle: 0,
         hasControls: true, lockScalingX: true, lockScalingY: true
@@ -328,5 +326,5 @@ function loadDebugSampleLayout() {
     importLayoutData(INITIAL_SAMPLE_LAYOUT, true);
     canvas.setZoom(0.35);
     canvas.setViewportTransform([0.35, 0, 0, 0.35, 250, 100]);
-    console.log("[%s] サンプル小判型エンドレスをピュア数式自動計算で100%%復元しました！", "VER-DYNAMIC-WIDTH-U5");
+    console.log("[%s] サンプル小判型エンドレスをピュア数式自動計算で100%%復元しました！", "VER-DYNAMIC-WIDTH-U6");
 }
