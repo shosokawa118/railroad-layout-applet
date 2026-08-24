@@ -1,6 +1,6 @@
 // =============================================================
-// 鉄道模型レイアウトジェネレータ - パーツカタログ (スキーマ分離版)
-// バージョン: VER-CATALOG-SCHEMA-V2
+// 鉄道模型レイアウトジェネレータ - パーツカタログ (コンパクト対応版)
+// バージョン: VER-CATALOG-COMPACT-V1
 // =============================================================
 const railCatalog = {
     systems: {
@@ -8,6 +8,13 @@ const railCatalog = {
             scale: "N",
             brand: "KATO",
             systemName: "ユニトラック (N)",
+            ballastWidth: 25,
+            connectorType: "kato-unijoiner"
+        },
+        "KATO-UNITRACK-COMPACT-N": {
+            scale: "N",
+            brand: "KATO",
+            systemName: "ユニトラックコンパクト (N)",
             ballastWidth: 25,
             connectorType: "kato-unijoiner"
         },
@@ -21,10 +28,11 @@ const railCatalog = {
     },
     items: {
         // =========================================================
-        // KATO 直線レール
+        // KATO 直線レール (通常 兼 コンパクト共有線路)
         // =========================================================
         "KATO-248": {
             systemId: "KATO-UNITRACK-N",
+            compatibleSystems: ["KATO-UNITRACK-N", "KATO-UNITRACK-COMPACT-N"],
             category: "straight",
             name: "S248",
             description: "直線線路 248mm",
@@ -36,9 +44,10 @@ const railCatalog = {
         },
         "KATO-186": {
             systemId: "KATO-UNITRACK-N",
+            compatibleSystems: ["KATO-UNITRACK-N", "KATO-UNITRACK-COMPACT-N"],
             category: "straight",
             name: "S186",
-            description: "直線線路 186mm",
+            description: "直線線路 186mm (3/4)",
             nodes: [
                 { "id": 0, "relX": -93, "relY": 0, "facingAngle": 180 },
                 { "id": 1, "relX": 93,  "relY": 0, "facingAngle": 0 }
@@ -47,9 +56,10 @@ const railCatalog = {
         },
         "KATO-124": {
             systemId: "KATO-UNITRACK-N",
+            compatibleSystems: ["KATO-UNITRACK-N", "KATO-UNITRACK-COMPACT-N"],
             category: "straight",
             name: "S124",
-            description: "直線線路 124mm",
+            description: "直線線路 124mm (1/2)",
             nodes: [
                 { "id": 0, "relX": -62, "relY": 0, "facingAngle": 180 },
                 { "id": 1, "relX": 62,  "relY": 0, "facingAngle": 0 }
@@ -58,15 +68,20 @@ const railCatalog = {
         },
         "KATO-S62": {
             systemId: "KATO-UNITRACK-N",
+            compatibleSystems: ["KATO-UNITRACK-N", "KATO-UNITRACK-COMPACT-N"],
             category: "straight",
             name: "S62",
-            description: "直線線路 62mm",
+            description: "直線線路 62mm (1/4)",
             nodes: [
                 { "id": 0, "relX": -31, "relY": 0, "facingAngle": 180 },
                 { "id": 1, "relX": 31,  "relY": 0, "facingAngle": 0 }
             ],
             shapes: [{ "type": "line", "length": 62, "offsetX": 0, "offsetY": 0 }]
         },
+    
+        // =========================================================
+        // KATO その他直線レール
+        // =========================================================
         "KATO-S64": {
             systemId: "KATO-UNITRACK-N",
             category: "straight",
@@ -266,6 +281,77 @@ const railCatalog = {
             shapes: [
                 { "type": "line", "length": 186, "offsetX": 0, "offsetY": 0 },
                 { "type": "arc", "radius": 718, "arcAngle": 15, "centerX": -93.0, "centerY": 718.0, "startAngle": 270 }
+            ]
+        },
+
+        // =========================================================
+        // KATO ユニトラックコンパクト専用 曲線レール
+        // =========================================================
+        "KATO-CV117-45": {
+            systemId: "KATO-UNITRACK-COMPACT-N",
+            category: "curve",
+            name: "CV117-45",
+            description: "コンパクト曲線線路",
+            nodes: [
+                { "id": 0, "relX": -44.77, "relY": 0, "facingAngle": 157.5 },
+                { "id": 1, "relX": 44.77,  "relY": 0, "facingAngle": 22.5 }
+            ],
+            shapes: [{ "type": "arc", "radius": 117, "arcAngle": 45, "centerX": 0, "centerY": 108.09, "startAngle": 247.5 }]
+        },
+        "KATO-CV150-45": {
+            systemId: "KATO-UNITRACK-COMPACT-N",
+            category: "curve",
+            name: "CV150-45",
+            description: "コンパクト曲線線路",
+            nodes: [
+                { "id": 0, "relX": -57.40, "relY": 0, "facingAngle": 157.5 },
+                { "id": 1, "relX": 57.40,  "relY": 0, "facingAngle": 22.5 }
+            ],
+            shapes: [{ "type": "arc", "radius": 150, "arcAngle": 45, "centerX": 0, "centerY": 138.58, "startAngle": 247.5 }]
+        },
+        "KATO-CV183-45": {
+            systemId: "KATO-UNITRACK-COMPACT-N",
+            category: "curve",
+            name: "CV183-45",
+            description: "コンパクト曲線線路",
+            nodes: [
+                { "id": 0, "relX": -70.03, "relY": 0, "facingAngle": 157.5 },
+                { "id": 1, "relX": 70.03,  "relY": 0, "facingAngle": 22.5 }
+            ],
+            shapes: [{ "type": "arc", "radius": 183, "arcAngle": 45, "centerX": 0, "centerY": 169.07, "startAngle": 247.5 }]
+        },
+
+        // =========================================================
+        // KATO ユニトラックコンパクト専用 ポイントレール
+        // =========================================================
+        "KATO-EP150-45L": {
+            systemId: "KATO-UNITRACK-COMPACT-N",
+            category: "turnout",
+            name: "EP150-45L",
+            description: "電動ポイント150mm (左)",
+            nodes: [
+                { "id": 0, "name": "進入端", "relX": -62.0, "relY": 0,     "facingAngle": 180 },
+                { "id": 1, "name": "直進端", "relX": 62.0,  "relY": 0,     "facingAngle": 0 },
+                { "id": 2, "name": "分岐端", "relX": 43.9,  "relY": -43.9, "facingAngle": -45.0 }
+            ],
+            shapes: [
+                { "type": "line", "length": 124, "offsetX": 0, "offsetY": 0 },
+                { "type": "arc", "radius": 150, "arcAngle": 45, "centerX": -62.0, "centerY": -150.0, "startAngle": 90 }
+            ]
+        },
+        "KATO-EP150-45R": {
+            systemId: "KATO-UNITRACK-COMPACT-N",
+            category: "turnout",
+            name: "EP150-45R",
+            description: "電動ポイント150mm (右)",
+            nodes: [
+                { "id": 0, "name": "進入端", "relX": -62.0, "relY": 0,    "facingAngle": 180 },
+                { "id": 1, "name": "直進端", "relX": 62.0,  "relY": 0,    "facingAngle": 0 },
+                { "id": 2, "name": "分岐端", "relX": 43.9,  "relY": 43.9, "facingAngle": 45.0 }
+            ],
+            shapes: [
+                { "type": "line", "length": 124, "offsetX": 0, "offsetY": 0 },
+                { "type": "arc", "radius": 150, "arcAngle": 45, "centerX": -62.0, "centerY": 150.0, "startAngle": 270 }
             ]
         },
 
