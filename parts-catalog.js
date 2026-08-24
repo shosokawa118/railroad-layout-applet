@@ -1,6 +1,6 @@
 // =============================================================
-// 鉄道模型レイアウトジェネレータ - パーツカタログ (KATO＆TOMIX標準ラインナップ版)
-// バージョン: VER-CATALOG-KATO-TOMIX
+// 鉄道模型レイアウトジェネレータ - パーツカタログ (スキーマ分離版)
+// バージョン: VER-CATALOG-SCHEMA-V2
 // =============================================================
 const railCatalog = {
     systems: {
@@ -21,12 +21,13 @@ const railCatalog = {
     },
     items: {
         // =========================================================
-        // 直線レール (Straight Rails)
+        // KATO 直線レール
         // =========================================================
         "KATO-248": {
             systemId: "KATO-UNITRACK-N",
             category: "straight",
-            name: "S248 (直線 248mm)",
+            name: "S248",
+            description: "直線線路 248mm",
             nodes: [
                 { "id": 0, "relX": -124, "relY": 0, "facingAngle": 180 },
                 { "id": 1, "relX": 124,  "relY": 0, "facingAngle": 0 }
@@ -36,7 +37,8 @@ const railCatalog = {
         "KATO-186": {
             systemId: "KATO-UNITRACK-N",
             category: "straight",
-            name: "S186 (直線 186mm)",
+            name: "S186",
+            description: "直線線路 186mm",
             nodes: [
                 { "id": 0, "relX": -93, "relY": 0, "facingAngle": 180 },
                 { "id": 1, "relX": 93,  "relY": 0, "facingAngle": 0 }
@@ -46,7 +48,8 @@ const railCatalog = {
         "KATO-124": {
             systemId: "KATO-UNITRACK-N",
             category: "straight",
-            name: "S124 (直線 124mm)",
+            name: "S124",
+            description: "直線線路 124mm",
             nodes: [
                 { "id": 0, "relX": -62, "relY": 0, "facingAngle": 180 },
                 { "id": 1, "relX": 62,  "relY": 0, "facingAngle": 0 }
@@ -56,7 +59,8 @@ const railCatalog = {
         "KATO-S62": {
             systemId: "KATO-UNITRACK-N",
             category: "straight",
-            name: "S62 (直線 62mm)",
+            name: "S62",
+            description: "直線線路 62mm",
             nodes: [
                 { "id": 0, "relX": -31, "relY": 0, "facingAngle": 180 },
                 { "id": 1, "relX": 31,  "relY": 0, "facingAngle": 0 }
@@ -66,7 +70,8 @@ const railCatalog = {
         "KATO-S64": {
             systemId: "KATO-UNITRACK-N",
             category: "straight",
-            name: "S64 (直線 64mm)",
+            name: "S64",
+            description: "直線線路 64mm",
             nodes: [
                 { "id": 0, "relX": -32, "relY": 0, "facingAngle": 180 },
                 { "id": 1, "relX": 32,  "relY": 0, "facingAngle": 0 }
@@ -76,7 +81,8 @@ const railCatalog = {
         "KATO-S60": {
             systemId: "KATO-UNITRACK-N",
             category: "straight",
-            name: "S60 (端数 60mm)",
+            name: "S60",
+            description: "端数線路 60mm",
             nodes: [
                 { "id": 0, "relX": -30, "relY": 0, "facingAngle": 180 },
                 { "id": 1, "relX": 30,  "relY": 0, "facingAngle": 0 }
@@ -86,7 +92,8 @@ const railCatalog = {
         "KATO-S29": {
             systemId: "KATO-UNITRACK-N",
             category: "straight",
-            name: "S29 (端数 29mm)",
+            name: "S29",
+            description: "端数線路 29mm",
             nodes: [
                 { "id": 0, "relX": -14.5, "relY": 0, "facingAngle": 180 },
                 { "id": 1, "relX": 14.5,  "relY": 0, "facingAngle": 0 }
@@ -96,31 +103,46 @@ const railCatalog = {
         "KATO-S62J": {
             systemId: "KATO-UNITRACK-N",
             category: "straight",
-            name: "S62J (ジョイント線路 62mm)",
+            name: "S62J",
+            description: "ジョイント線路 62mm",
             nodes: [
                 { "id": 0, "relX": -31, "relY": 0, "facingAngle": 180, "connectorType": "kato-unijoiner" },
                 { "id": 1, "relX": 31,  "relY": 0, "facingAngle": 0,   "connectorType": "tomix-clapper" }
             ],
-            shapes: [{ "type": "line", "length": 62, "offsetX": 0, "offsetY": 0 }]
+            shapes: [
+                { "type": "line", "length": 62, "offsetX": 0, "offsetY": 0 },
+                { 
+                    "type": "polygon", 
+                    "points": [
+                        { "x": 31, "y": -9.25 },
+                        { "x": 41, "y": -9.25 },
+                        { "x": 41, "y": 9.25 },
+                        { "x": 31, "y": 9.25 }
+                    ],
+                    "fill": "#a39382",
+                    "stroke": "#555555"
+                }
+            ]
         },
         "KATO-BUMPER": {
             systemId: "KATO-UNITRACK-N",
             category: "straight",
-            name: "S64B (車止め線路 64mm)",
+            name: "S64B",
+            description: "車止め線路 64mm",
             nodes: [
                 { "id": 0, "relX": -32, "relY": 0, "facingAngle": 180 }
-                // 終端側は接続ノードなし
             ],
             shapes: [{ "type": "line", "length": 64, "offsetX": 0, "offsetY": 0 }]
         },
 
         // =========================================================
-        // 曲線レール (Curved Rails)
+        // KATO 曲線レール
         // =========================================================
         "KATO-R249-45": {
             systemId: "KATO-UNITRACK-N",
             category: "curve",
-            name: "R249-45°",
+            name: "R249-45",
+            description: "曲線線路",
             nodes: [
                 { "id": 0, "relX": -95.29, "relY": 0, "facingAngle": 157.5 },
                 { "id": 1, "relX": 95.29,  "relY": 0, "facingAngle": 22.5 }
@@ -130,7 +152,8 @@ const railCatalog = {
         "KATO-R282-45": {
             systemId: "KATO-UNITRACK-N",
             category: "curve",
-            name: "R282-45°",
+            name: "R282-45",
+            description: "曲線線路",
             nodes: [
                 { "id": 0, "relX": -107.92, "relY": 0, "facingAngle": 157.5 },
                 { "id": 1, "relX": 107.92,  "relY": 0, "facingAngle": 22.5 }
@@ -140,7 +163,8 @@ const railCatalog = {
         "KATO-R315-45": {
             systemId: "KATO-UNITRACK-N",
             category: "curve",
-            name: "R315-45°",
+            name: "R315-45",
+            description: "曲線線路",
             nodes: [
                 { "id": 0, "relX": -120.55, "relY": 0, "facingAngle": 157.5 },
                 { "id": 1, "relX": 120.55,  "relY": 0, "facingAngle": 22.5 }
@@ -150,7 +174,8 @@ const railCatalog = {
         "KATO-R348-45": {
             systemId: "KATO-UNITRACK-N",
             category: "curve",
-            name: "R348-45°",
+            name: "R348-45",
+            description: "曲線線路",
             nodes: [
                 { "id": 0, "relX": -133.17, "relY": 0, "facingAngle": 157.5 },
                 { "id": 1, "relX": 133.17,  "relY": 0, "facingAngle": 22.5 }
@@ -160,7 +185,8 @@ const railCatalog = {
         "KATO-R481-15": {
             systemId: "KATO-UNITRACK-N",
             category: "curve",
-            name: "R481-15° (ポイント調整等)",
+            name: "R481-15",
+            description: "曲線線路",
             nodes: [
                 { "id": 0, "relX": -62.78, "relY": 0, "facingAngle": 172.5 },
                 { "id": 1, "relX": 62.78,  "relY": 0, "facingAngle": 7.5 }
@@ -170,7 +196,8 @@ const railCatalog = {
         "KATO-R718-15": {
             systemId: "KATO-UNITRACK-N",
             category: "curve",
-            name: "R718-15° (大半径・ポイント用)",
+            name: "R718-15",
+            description: "曲線線路",
             nodes: [
                 { "id": 0, "relX": -93.75, "relY": 0, "facingAngle": 172.5 },
                 { "id": 1, "relX": 93.75,  "relY": 0, "facingAngle": 7.5 }
@@ -179,12 +206,13 @@ const railCatalog = {
         },
 
         // =========================================================
-        // ポイントレール (Turnouts)
+        // KATO ポイントレール
         // =========================================================
         "KATO-EP4-L": {
             systemId: "KATO-UNITRACK-N",
             category: "turnout",
-            name: "電動ポイント4番 (左)",
+            name: "EP481-15L",
+            description: "電動ポイント4番 (左)",
             nodes: [
                 { "id": 0, "name": "進入端", "relX": -63.0, "relY": 0,     "facingAngle": 180 },
                 { "id": 1, "name": "直進端", "relX": 63.0,  "relY": 0,     "facingAngle": 0 },
@@ -198,7 +226,8 @@ const railCatalog = {
         "KATO-EP4-R": {
             systemId: "KATO-UNITRACK-N",
             category: "turnout",
-            name: "電動ポイント4番 (右)",
+            name: "EP481-15R",
+            description: "電動ポイント4番 (右)",
             nodes: [
                 { "id": 0, "name": "進入端", "relX": -63.0, "relY": 0,    "facingAngle": 180 },
                 { "id": 1, "name": "直進端", "relX": 63.0,  "relY": 0,    "facingAngle": 0 },
@@ -212,7 +241,8 @@ const railCatalog = {
         "KATO-EP6-L": {
             systemId: "KATO-UNITRACK-N",
             category: "turnout",
-            name: "電動ポイント6番 (左)",
+            name: "EP718-15L",
+            description: "電動ポイント6番 (左)",
             nodes: [
                 { "id": 0, "name": "進入端", "relX": -93.0, "relY": 0,     "facingAngle": 180 },
                 { "id": 1, "name": "直進端", "relX": 93.0,  "relY": 0,     "facingAngle": 0 },
@@ -226,7 +256,8 @@ const railCatalog = {
         "KATO-EP6-R": {
             systemId: "KATO-UNITRACK-N",
             category: "turnout",
-            name: "電動ポイント6番 (右)",
+            name: "EP718-15R",
+            description: "電動ポイント6番 (右)",
             nodes: [
                 { "id": 0, "name": "進入端", "relX": -93.0, "relY": 0,    "facingAngle": 180 },
                 { "id": 1, "name": "直進端", "relX": 93.0,  "relY": 0,    "facingAngle": 0 },
@@ -239,12 +270,13 @@ const railCatalog = {
         },
 
         // =========================================================
-        // TOMIX 直線レール (Straight Rails)
+        // TOMIX 直線レール
         // =========================================================
         "TOMIX-S280": {
             systemId: "TOMIX-FINETRACK-N",
             category: "straight",
-            name: "S280 (直線 280mm)",
+            name: "S280-F",
+            description: "ストレートPCレール 280mm",
             nodes: [
                 { "id": 0, "relX": -140, "relY": 0, "facingAngle": 180 },
                 { "id": 1, "relX": 140,  "relY": 0, "facingAngle": 0 }
@@ -254,7 +286,8 @@ const railCatalog = {
         "TOMIX-S140": {
             systemId: "TOMIX-FINETRACK-N",
             category: "straight",
-            name: "S140 (直線 140mm)",
+            name: "S140-F",
+            description: "ストレートPCレール 140mm",
             nodes: [
                 { "id": 0, "relX": -70, "relY": 0, "facingAngle": 180 },
                 { "id": 1, "relX": 70,  "relY": 0, "facingAngle": 0 }
@@ -264,7 +297,8 @@ const railCatalog = {
         "TOMIX-S72.5": {
             systemId: "TOMIX-FINETRACK-N",
             category: "straight",
-            name: "S72.5 (直線 72.5mm)",
+            name: "S72.5-F",
+            description: "ストレートPCレール 72.5mm",
             nodes: [
                 { "id": 0, "relX": -36.25, "relY": 0, "facingAngle": 180 },
                 { "id": 1, "relX": 36.25,  "relY": 0, "facingAngle": 0 }
@@ -274,7 +308,8 @@ const railCatalog = {
         "TOMIX-S70": {
             systemId: "TOMIX-FINETRACK-N",
             category: "straight",
-            name: "S70 (端数 70mm)",
+            name: "S70-F",
+            description: "端数PCレール 70mm",
             nodes: [
                 { "id": 0, "relX": -35, "relY": 0, "facingAngle": 180 },
                 { "id": 1, "relX": 35,  "relY": 0, "facingAngle": 0 }
@@ -284,7 +319,8 @@ const railCatalog = {
         "TOMIX-S33": {
             systemId: "TOMIX-FINETRACK-N",
             category: "straight",
-            name: "S33 (端数 33mm)",
+            name: "S33-F",
+            description: "端数PCレール 33mm",
             nodes: [
                 { "id": 0, "relX": -16.5, "relY": 0, "facingAngle": 180 },
                 { "id": 1, "relX": 16.5,  "relY": 0, "facingAngle": 0 }
@@ -294,7 +330,8 @@ const railCatalog = {
         "TOMIX-S18.5": {
             systemId: "TOMIX-FINETRACK-N",
             category: "straight",
-            name: "S18.5 (端数 18.5mm)",
+            name: "S18.5-F",
+            description: "端数PCレール 18.5mm",
             nodes: [
                 { "id": 0, "relX": -9.25, "relY": 0, "facingAngle": 180 },
                 { "id": 1, "relX": 9.25,  "relY": 0, "facingAngle": 0 }
@@ -304,7 +341,8 @@ const railCatalog = {
         "TOMIX-BUMPER": {
             systemId: "TOMIX-FINETRACK-N",
             category: "straight",
-            name: "S70-B (車止め 70mm)",
+            name: "S70-B-F",
+            description: "車止めレール 70mm",
             nodes: [
                 { "id": 0, "relX": -35, "relY": 0, "facingAngle": 180 }
             ],
@@ -312,12 +350,13 @@ const railCatalog = {
         },
 
         // =========================================================
-        // TOMIX 曲線レール (Curved Rails)
+        // TOMIX 曲線レール
         // =========================================================
         "TOMIX-C280-45": {
             systemId: "TOMIX-FINETRACK-N",
             category: "curve",
-            name: "C280-45°",
+            name: "C280-45-F",
+            description: "カーブPCレール",
             nodes: [
                 { "id": 0, "relX": -107.15, "relY": 0, "facingAngle": 157.5 },
                 { "id": 1, "relX": 107.15,  "relY": 0, "facingAngle": 22.5 }
@@ -327,7 +366,8 @@ const railCatalog = {
         "TOMIX-C317-45": {
             systemId: "TOMIX-FINETRACK-N",
             category: "curve",
-            name: "C317-45°",
+            name: "C317-45-F",
+            description: "カーブPCレール",
             nodes: [
                 { "id": 0, "relX": -121.32, "relY": 0, "facingAngle": 157.5 },
                 { "id": 1, "relX": 121.32,  "relY": 0, "facingAngle": 22.5 }
@@ -337,7 +377,8 @@ const railCatalog = {
         "TOMIX-C243-45": {
             systemId: "TOMIX-FINETRACK-N",
             category: "curve",
-            name: "C243-45°",
+            name: "C243-45-F",
+            description: "カーブPCレール",
             nodes: [
                 { "id": 0, "relX": -92.99, "relY": 0, "facingAngle": 157.5 },
                 { "id": 1, "relX": 92.99,  "relY": 0, "facingAngle": 22.5 }
@@ -347,7 +388,8 @@ const railCatalog = {
         "TOMIX-C541-15": {
             systemId: "TOMIX-FINETRACK-N",
             category: "curve",
-            name: "C541-15° (ポイント分岐補正用)",
+            name: "C541-15-F",
+            description: "カーブPCレール",
             nodes: [
                 { "id": 0, "relX": -70.61, "relY": 0, "facingAngle": 172.5 },
                 { "id": 1, "relX": 70.61,  "relY": 0, "facingAngle": 7.5 }
@@ -356,12 +398,13 @@ const railCatalog = {
         },
 
         // =========================================================
-        // TOMIX ポイントレール (Turnouts)
+        // TOMIX ポイントレール
         // =========================================================
         "TOMIX-N-PR541-15": {
             systemId: "TOMIX-FINETRACK-N",
             category: "turnout",
-            name: "Nポイント N-PR541-15 (右)",
+            name: "N-PR541-15-F",
+            description: "電動合成枕木ポイント (右)",
             nodes: [
                 { "id": 0, "name": "進入端", "relX": -70.0, "relY": 0,    "facingAngle": 180 },
                 { "id": 1, "name": "直進端", "relX": 70.0,  "relY": 0,    "facingAngle": 0 },
@@ -375,7 +418,8 @@ const railCatalog = {
         "TOMIX-N-PL541-15": {
             systemId: "TOMIX-FINETRACK-N",
             category: "turnout",
-            name: "Nポイント N-PL541-15 (左)",
+            name: "N-PL541-15-F",
+            description: "電動合成枕木ポイント (左)",
             nodes: [
                 { "id": 0, "name": "進入端", "relX": -70.0, "relY": 0,     "facingAngle": 180 },
                 { "id": 1, "name": "直進端", "relX": 70.0,  "relY": 0,     "facingAngle": 0 },
@@ -390,4 +434,4 @@ const railCatalog = {
 };
 
 const partsCatalog = railCatalog.items;
-console.log("KATO標準ラインナップ一括追加完了: VER-CATALOG-KATO-EXP1");
+console.log("スキーマ分離完了: VER-CATALOG-SCHEMA-V2");
