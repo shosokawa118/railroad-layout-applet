@@ -121,21 +121,21 @@ const railCatalog = {
             name: "S62J",
             description: "ジョイントレール 62mm (+10mm)",
             nodes: [
-                { "id": 0, "name": "KATO端",  "relX": -31.0, "relY": 0, "facingAngle": 180 },
-                { "id": 1, "name": "TOMIX端", "relX":  31.0, "relY": 0, "facingAngle": 0 }
+                { "id": 0, "name": "KATO端",  "relX": -31.0, "relY": 0, "facingAngle": 180, "connectorType": "kato-unijoiner" },
+                { "id": 1, "name": "TOMIX端", "relX":  31.0, "relY": 0, "facingAngle": 0,   "connectorType": "tomix-clapper" }
             ],
             shapes: [
                 {
                     "type": "polygon",
                     "points": [
-                        { "x": -31, "y": -12.5 }, // KATO端 上 (幅25mm)
-                        { "x":  41, "y": -12.5 }, // TOMIX端　上 (右へ+10mm伸びる)
-                        { "x":  41, "y":  -9.5 }, // 凹みの先 上　(TOMIX接続部　幅19mmへ落とし込む)
-                        { "x":  31, "y":  -9.5 }, // 凹みの底 上　(接続面 X=31)
-                        { "x":  31, "y":   9.5 }, // 凹みの底 下
-                        { "x":  41, "y":   9.5 }, // 凹みの先　下
-                        { "x":  41, "y":  12.5 }, // TOMIX端 下 (右へ+10mm伸びる)
-                        { "x": -31, "y":  12.5 }  // KATO端 下
+                        { "x": -31, "y": -12.5 },
+                        { "x":  41, "y": -12.5 },
+                        { "x":  41, "y":  -9.5 },
+                        { "x":  31, "y":  -9.5 },
+                        { "x":  31, "y":   9.5 },
+                        { "x":  41, "y":   9.5 },
+                        { "x":  41, "y":  12.5 },
+                        { "x": -31, "y":  12.5 }
                     ]
                 }
             ]
