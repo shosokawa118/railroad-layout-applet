@@ -1,8 +1,8 @@
 // =============================================================
-// 鉄道模型レイアウトジェネレータ - 基本エンジン (JSONインポート対応版)
-// バージョン: VER-JSON-IMPORT-U3
+// 鉄道模型レイアウトジェネレータ - 基本エンジン (動的道床幅描画版)
+// バージョン: VER-DYNAMIC-WIDTH-U4
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-JSON-IMPORT-U3");
+console.log("基本エンジン（JS）が読み込まれました: VER-DYNAMIC-WIDTH-U4");
 
 let globalJoints = [];
 let railCount = 0;
@@ -10,7 +10,10 @@ let isFirstMoveFrame = true;
 
 function generateGenericRailData(catalogItem) {
     let combinedSvgPath = "";
-    const BALLAST_WIDTH = 16;
+    
+    // ★ システム定義から道床幅を取得（デフォルト: 16）
+    const sys = catalogItem && catalogItem.systemId ? railCatalog.systems[catalogItem.systemId] : null;
+    const BALLAST_WIDTH = sys ? sys.ballastWidth : 16;
     const halfW = BALLAST_WIDTH / 2;
 
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -91,7 +94,7 @@ function generateGenericRailData(catalogItem) {
 function addRailToCanvas(partId) {
     if (!canvas) return null;
 
-    const catalogItem = partsCatalog[partId];
+    const catalogItem = railCatalog.items[partId];
     if (!catalogItem) {
         console.error("未定義のパーツです:", partId);
         return null;
@@ -167,7 +170,6 @@ function deleteSelectedRails() {
     canvas.requestRenderAll();
 }
 
-// ★ 任意JSONデータの読み込み（上書き / 追記に対応）
 function importLayoutData(layoutData, isOverwrite = true) {
     if (!canvas || !layoutData || !Array.isArray(layoutData.rails)) {
         alert("無効なJSONフォーマットです。");
@@ -180,7 +182,7 @@ function importLayoutData(layoutData, isOverwrite = true) {
         railCount = 0;
     }
 
-    const idMap = {}; // ID衝突防止のための読み替えマップ（追記モード用）
+    const idMap = {};
 
     layoutData.rails.forEach(r => {
         if (!r || !r.partId) return;
@@ -214,7 +216,7 @@ function importLayoutData(layoutData, isOverwrite = true) {
 
 function getAbsoluteNodePos(rail) {
     if (!rail || !rail.customData) return [];
-    const catalog = partsCatalog[rail.customData.partId];
+    const catalog = railCatalog.items[rail.customData.partId];
     if (!catalog) return [];
     
     const cx = rail.customData.geoCenterX || 0;
@@ -314,5 +316,5 @@ function loadDebugSampleLayout() {
     importLayoutData(INITIAL_SAMPLE_LAYOUT, true);
     canvas.setZoom(0.35);
     canvas.setViewportTransform([0.35, 0, 0, 0.35, 250, 100]);
-    console.log("[%s] サンプル小判型エンドレスをピュア数式自動計算で100%%復元しました！", "VER-JSON-IMPORT-U3");
+    console.log("[%s] サンプル小判型エンドレスをピュア数式自動計算で100%%復元しました！", "VER-DYNAMIC-WIDTH-U4");
 }
