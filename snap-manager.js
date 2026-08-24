@@ -1,8 +1,8 @@
 // =============================================================
-// 鉄道模型レイアウトジェネレータ - スナップ＆多重結合マネージャー (コネクタ型ガード版)
-// バージョン: VER-CONNECTOR-GUARD-J4
+// 鉄道模型レイアウトジェネレータ - スナップ＆多重結合マネージャー (jointId撤去・軽量化版)
+// バージョン: VER-CLEAN-JOINTS-J5
 // =============================================================
-console.log("スナップマネージャー（JS）が読み込まれました: VER-CONNECTOR-GUARD-J4");
+console.log("スナップマネージャー（JS）が読み込まれました: VER-CLEAN-JOINTS-J5");
 
 function canConnectNodes(railA, nodeAId, railB, nodeBId) {
     const itemA = railCatalog.items[railA.customData.partId];
@@ -13,7 +13,6 @@ function canConnectNodes(railA, nodeAId, railB, nodeBId) {
     const sysB = railCatalog.systems[itemB.systemId];
     if (!sysA || !sysB) return false;
 
-    // ノード個別にジョイント型が定義されている場合はそちらを優先、無ければシステム標準の型を比較
     const connA = (itemA.nodes[nodeAId] && itemA.nodes[nodeAId].connectorType) || sysA.connectorType;
     const connB = (itemB.nodes[nodeBId] && itemB.nodes[nodeBId].connectorType) || sysB.connectorType;
 
@@ -50,7 +49,6 @@ function applyClusterSnapLogic(movedRail) {
                 otherNodes.forEach(oNode => {
                     if (isNodeOccupied(oId, oNode.nodeId)) return;
 
-                    // ★ コネクタ互換性チェック
                     if (!canConnectNodes(mRail, mNode.nodeId, otherRail, oNode.nodeId)) return;
 
                     const dist = Math.sqrt(Math.pow(mNode.x - oNode.x, 2) + Math.pow(mNode.y - oNode.y, 2));
@@ -67,7 +65,7 @@ function applyClusterSnapLogic(movedRail) {
     });
 
     if (bestSnap) {
-        console.log("[VER-CONNECTOR-GUARD-J4] スナップを検知。グループ一体スナップを実行します。");
+        console.log("[VER-CLEAN-JOINTS-J5] スナップを検知。グループ一体スナップを実行します。");
 
         const mRail = bestSnap.movedRail;
         const mCatalogNode = railCatalog.items[mRail.customData.partId].nodes[bestSnap.mNode.nodeId];
@@ -110,8 +108,8 @@ function applyClusterSnapLogic(movedRail) {
         }
         canvas.requestRenderAll();
 
+        // ★ jointId を除外したシンプル形式で追加
         globalJoints.push({
-            jointId: `j-${Date.now()}-1`,
             railA: mRail.customData.instanceId, nodeA: bestSnap.mNode.nodeId,
             railB: bestSnap.targetRail.customData.instanceId, nodeB: bestSnap.oNode.nodeId
         });
@@ -139,11 +137,10 @@ function applyClusterSnapLogic(movedRail) {
                         const dist = Math.sqrt(Math.pow(mN.x - oN.x, 2) + Math.pow(mN.y - oN.y, 2));
                         if (dist < 6) {
                             globalJoints.push({
-                                jointId: `j-${Date.now()}-${Math.floor(Math.random()*1000)}`,
                                 railA: rId, nodeA: mN.nodeId,
                                 railB: oId, nodeB: oN.nodeId
                             });
-                            console.log("[VER-CONNECTOR-GUARD-J4] 🎉 自動連動ロック成立！ 端点ID:", rId, "->", oId);
+                            console.log("[VER-CLEAN-JOINTS-J5] 🎉 自動連動ロック成立！ 端点ID:", rId, "->", oId);
                         }
                     });
                 });
@@ -170,21 +167,21 @@ function exportLayoutJSON() {
     });
 
     const completeSaveData = {
-        version: "VER-CONNECTOR-GUARD-J4",
+        version: "VER-CLEAN-JOINTS-J5",
         rails: railsData,
         joints: globalJoints
     };
 
     const jsonString = JSON.stringify(completeSaveData, null, 2);
 
-    console.log("[VER-CONNECTOR-GUARD-J4] ======= 総合セーブデータ(JSON) =======");
+    console.log("[VER-CLEAN-JOINTS-J5] ======= 総合セーブデータ(JSON) =======");
     console.log(jsonString);
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(jsonString).then(() => {
-            alert("レイアウトデータ(JSON)をクリップボードにコピーしました！\nメモ帳などに直接貼り付けられます。");
+            alert("レイアウトデータ(JSON)をクリップボードにコピーしました！");
         }).catch(err => {
-            console.warn("クリップボードへの書き込みに失敗したため、コンソール出力のみ行いました。", err);
+            console.warn("クリップボード書き込み失敗。コンソール出力のみ行いました。", err);
             alert("コンソール(F12)にJSONを出力しました！");
         });
     } else {
