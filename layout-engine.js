@@ -11,7 +11,7 @@ let isFirstMoveFrame = true;
 function generateGenericRailData(catalogItem) {
     let combinedSvgPath = "";
     
-    // ★ システム定義から道床幅を取得（デフォルト: 16）
+    // ★ シ���テム定義から道床幅を取得（デフォルト: 16）
     const sys = catalogItem && catalogItem.systemId ? railCatalog.systems[catalogItem.systemId] : null;
     const BALLAST_WIDTH = sys ? sys.ballastWidth : 16;
     const halfW = BALLAST_WIDTH / 2;
@@ -42,10 +42,12 @@ function generateGenericRailData(catalogItem) {
         else if (shape.type === "arc") {
             const r = shape.radius;
             const rOut = r + halfW;
-            const rIn = r - halfW;
+            // 内側半径はゼロ未満にならないようにする
+            const rIn = Math.max(0, r - halfW);
             
             const startDeg = shape.startAngle;
-            const endDeg = shape.startAngle + shape.arcAngle;
+            const arcAngle = shape.arcAngle;
+            const endDeg = startDeg + arcAngle;
             const startRad = (startDeg * Math.PI) / 180;
             const endRad = (endDeg * Math.PI) / 180;
             
@@ -56,26 +58,40 @@ function generateGenericRailData(catalogItem) {
             const y1 = cY + rOut * Math.sin(startRad);
             const x2 = cX + rOut * Math.cos(endRad);
             const y2 = cY + rOut * Math.sin(endRad);
-            const x3 = cX + rIn * Math.cos(endRad);
-            const y3 = cY + rIn * Math.sin(endRad);
-            const x4 = cX + rIn * Math.cos(startRad);
-            const y4 = cY + rIn * Math.sin(startRad);
+            const x3 = cX + rIn  * Math.cos(endRad);
+            const y3 = cY + rIn  * Math.sin(endRad);
+            const x4 = cX + rIn  * Math.cos(startRad);
+            const y4 = cY + rIn  * Math.sin(startRad);
 
-            combinedSvgPath += ` M ${x1} ${y1} A ${rOut} ${rOut} 0 0 1 ${x2} ${y2} L ${x3} ${y3} A ${rIn} ${rIn} 0 0 0 ${x4} ${y4} Z `;
+            // large-arc-flag: 絶対角度が 180 度以上なら 1
+            const largeArcFlag = Math.abs(arcAngle) >= 180 ? 1 : 0;
+            
+            // sweep-flag: arcAngle が正なら（通常）1、負なら 0
+            // 外側と内側は向きが逆になるため内側は反対フラグ
+            const sweepOut = arcAngle >= 0 ? 1 : 0;
+            const sweepIn  = arcAngle >= 0 ? 0 : 1;
+
+            combinedSvgPath += ` M ${x1} ${y1} A ${rOut} ${rOut} 0 ${largeArcFlag} ${sweepOut} ${x2} ${y2} L ${x3} ${y3} A ${rIn} ${rIn} 0 ${largeArcFlag} ${sweepIn} ${x4} ${y4} Z `;
             
             updateBounds(x1, y1); updateBounds(x2, y2);
             updateBounds(x3, y3); updateBounds(x4, y4);
 
+            // 効率的かつ正確に「0,90,180,270 のいずれが弧の区間に含まれるか」を判定する関数
+            const ccwDistance = (fromDeg, toDeg) => ((toDeg - fromDeg) % 360 + 360) % 360;
             [0, 90, 180, 270].forEach(cardinal => {
-                let normStart = ((startDeg % 360) + 360) % 360;
-                let normEnd = normStart + shape.arcAngle;
-                let target = cardinal;
-                if (target < normStart) target += 360;
-
-                if (target >= normStart && target <= normEnd) {
+                let contains;
+                if (arcAngle >= 0) {
+                    // start から正方向（CCW）に arcAngle だけ進む区間に cardinal が入るか
+                    contains = ccwDistance(startDeg, cardinal) <= arcAngle;
+                } else {
+                    // arcAngle が負なら start から負方向（CW）に進む。これは等価に
+                    // 「cardinal から start へ CCW で進む角度 <= -arcAngle」を使って判定できる
+                    contains = ccwDistance(cardinal, startDeg) <= -arcAngle;
+                }
+                if (contains) {
                     const rad = (cardinal * Math.PI) / 180;
                     updateBounds(cX + rOut * Math.cos(rad), cY + rOut * Math.sin(rad));
-                    updateBounds(cX + rIn * Math.cos(rad), cY + rIn * Math.sin(rad));
+                    updateBounds(cX + rIn  * Math.cos(rad), cY + rIn  * Math.sin(rad));
                 }
             });
         }
