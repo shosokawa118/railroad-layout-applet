@@ -203,7 +203,6 @@ function importLayoutData(layoutData, isOverwrite = true) {
             const mappedB = idMap[j.railB] || j.railB;
 
             globalJoints.push({
-                jointId: `j-${Date.now()}-${Math.floor(Math.random()*1000)}`,
                 railA: mappedA, nodeA: j.nodeA,
                 railB: mappedB, nodeB: j.nodeB
             });
