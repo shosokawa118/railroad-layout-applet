@@ -1,6 +1,6 @@
 // =============================================================
-// 鉄道模型レイアウトジェネレータ - パーツカタログ (KATO標準ラインナップ拡張版)
-// バージョン: VER-CATALOG-KATO-EXP1
+// 鉄道模型レイアウトジェネレータ - パーツカタログ (KATO＆TOMIX標準ラインナップ版)
+// バージョン: VER-CATALOG-KATO-TOMIX
 // =============================================================
 const railCatalog = {
     systems: {
@@ -235,6 +235,155 @@ const railCatalog = {
             shapes: [
                 { "type": "line", "length": 186, "offsetX": 0, "offsetY": 0 },
                 { "type": "arc", "radius": 718, "arcAngle": 15, "centerX": -93.0, "centerY": 718.0, "startAngle": 270 }
+            ]
+        },
+
+        // =========================================================
+        // TOMIX 直線レール (Straight Rails)
+        // =========================================================
+        "TOMIX-S280": {
+            systemId: "TOMIX-FINETRACK-N",
+            category: "straight",
+            name: "S280 (直線 280mm)",
+            nodes: [
+                { "id": 0, "relX": -140, "relY": 0, "facingAngle": 180 },
+                { "id": 1, "relX": 140,  "relY": 0, "facingAngle": 0 }
+            ],
+            shapes: [{ "type": "line", "length": 280, "offsetX": 0, "offsetY": 0 }]
+        },
+        "TOMIX-S140": {
+            systemId: "TOMIX-FINETRACK-N",
+            category: "straight",
+            name: "S140 (直線 140mm)",
+            nodes: [
+                { "id": 0, "relX": -70, "relY": 0, "facingAngle": 180 },
+                { "id": 1, "relX": 70,  "relY": 0, "facingAngle": 0 }
+            ],
+            shapes: [{ "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 }]
+        },
+        "TOMIX-S72.5": {
+            systemId: "TOMIX-FINETRACK-N",
+            category: "straight",
+            name: "S72.5 (直線 72.5mm)",
+            nodes: [
+                { "id": 0, "relX": -36.25, "relY": 0, "facingAngle": 180 },
+                { "id": 1, "relX": 36.25,  "relY": 0, "facingAngle": 0 }
+            ],
+            shapes: [{ "type": "line", "length": 72.5, "offsetX": 0, "offsetY": 0 }]
+        },
+        "TOMIX-S70": {
+            systemId: "TOMIX-FINETRACK-N",
+            category: "straight",
+            name: "S70 (端数 70mm)",
+            nodes: [
+                { "id": 0, "relX": -35, "relY": 0, "facingAngle": 180 },
+                { "id": 1, "relX": 35,  "relY": 0, "facingAngle": 0 }
+            ],
+            shapes: [{ "type": "line", "length": 70, "offsetX": 0, "offsetY": 0 }]
+        },
+        "TOMIX-S33": {
+            systemId: "TOMIX-FINETRACK-N",
+            category: "straight",
+            name: "S33 (端数 33mm)",
+            nodes: [
+                { "id": 0, "relX": -16.5, "relY": 0, "facingAngle": 180 },
+                { "id": 1, "relX": 16.5,  "relY": 0, "facingAngle": 0 }
+            ],
+            shapes: [{ "type": "line", "length": 33, "offsetX": 0, "offsetY": 0 }]
+        },
+        "TOMIX-S18.5": {
+            systemId: "TOMIX-FINETRACK-N",
+            category: "straight",
+            name: "S18.5 (端数 18.5mm)",
+            nodes: [
+                { "id": 0, "relX": -9.25, "relY": 0, "facingAngle": 180 },
+                { "id": 1, "relX": 9.25,  "relY": 0, "facingAngle": 0 }
+            ],
+            shapes: [{ "type": "line", "length": 18.5, "offsetX": 0, "offsetY": 0 }]
+        },
+        "TOMIX-BUMPER": {
+            systemId: "TOMIX-FINETRACK-N",
+            category: "straight",
+            name: "S70-B (車止め 70mm)",
+            nodes: [
+                { "id": 0, "relX": -35, "relY": 0, "facingAngle": 180 }
+            ],
+            shapes: [{ "type": "line", "length": 70, "offsetX": 0, "offsetY": 0 }]
+        },
+
+        // =========================================================
+        // TOMIX 曲線レール (Curved Rails)
+        // =========================================================
+        "TOMIX-C280-45": {
+            systemId: "TOMIX-FINETRACK-N",
+            category: "curve",
+            name: "C280-45°",
+            nodes: [
+                { "id": 0, "relX": -107.15, "relY": 0, "facingAngle": 157.5 },
+                { "id": 1, "relX": 107.15,  "relY": 0, "facingAngle": 22.5 }
+            ],
+            shapes: [{ "type": "arc", "radius": 280, "arcAngle": 45, "centerX": 0, "centerY": 258.68, "startAngle": 247.5 }]
+        },
+        "TOMIX-C317-45": {
+            systemId: "TOMIX-FINETRACK-N",
+            category: "curve",
+            name: "C317-45°",
+            nodes: [
+                { "id": 0, "relX": -121.32, "relY": 0, "facingAngle": 157.5 },
+                { "id": 1, "relX": 121.32,  "relY": 0, "facingAngle": 22.5 }
+            ],
+            shapes: [{ "type": "arc", "radius": 317, "arcAngle": 45, "centerX": 0, "centerY": 292.86, "startAngle": 247.5 }]
+        },
+        "TOMIX-C243-45": {
+            systemId: "TOMIX-FINETRACK-N",
+            category: "curve",
+            name: "C243-45°",
+            nodes: [
+                { "id": 0, "relX": -92.99, "relY": 0, "facingAngle": 157.5 },
+                { "id": 1, "relX": 92.99,  "relY": 0, "facingAngle": 22.5 }
+            ],
+            shapes: [{ "type": "arc", "radius": 243, "arcAngle": 45, "centerX": 0, "centerY": 224.50, "startAngle": 247.5 }]
+        },
+        "TOMIX-C541-15": {
+            systemId: "TOMIX-FINETRACK-N",
+            category: "curve",
+            name: "C541-15° (ポイント分岐補正用)",
+            nodes: [
+                { "id": 0, "relX": -70.61, "relY": 0, "facingAngle": 172.5 },
+                { "id": 1, "relX": 70.61,  "relY": 0, "facingAngle": 7.5 }
+            ],
+            shapes: [{ "type": "arc", "radius": 541, "arcAngle": 15, "centerX": 0, "centerY": 536.36, "startAngle": 262.5 }]
+        },
+
+        // =========================================================
+        // TOMIX ポイントレール (Turnouts)
+        // =========================================================
+        "TOMIX-N-PR541-15": {
+            systemId: "TOMIX-FINETRACK-N",
+            category: "turnout",
+            name: "Nポイント N-PR541-15 (右)",
+            nodes: [
+                { "id": 0, "name": "進入端", "relX": -70.0, "relY": 0,    "facingAngle": 180 },
+                { "id": 1, "name": "直進端", "relX": 70.0,  "relY": 0,    "facingAngle": 0 },
+                { "id": 2, "name": "分岐端", "relX": 68.7,  "relY": 18.3, "facingAngle": 15.0 }
+            ],
+            shapes: [
+                { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
+                { "type": "arc", "radius": 541, "arcAngle": 15, "centerX": -70.0, "centerY": 541.0, "startAngle": 270 }
+            ]
+        },
+        "TOMIX-N-PL541-15": {
+            systemId: "TOMIX-FINETRACK-N",
+            category: "turnout",
+            name: "Nポイント N-PL541-15 (左)",
+            nodes: [
+                { "id": 0, "name": "進入端", "relX": -70.0, "relY": 0,     "facingAngle": 180 },
+                { "id": 1, "name": "直進端", "relX": 70.0,  "relY": 0,     "facingAngle": 0 },
+                { "id": 2, "name": "分岐端", "relX": 68.7,  "relY": -18.3, "facingAngle": -15.0 }
+            ],
+            shapes: [
+                { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
+                { "type": "arc", "radius": 541, "arcAngle": 15, "centerX": -70.0, "centerY": -541.0, "startAngle": 90 }
             ]
         }
     }
