@@ -1,14 +1,18 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 基本エンジン
-// バージョン: VER-SNAP-MANAGER-BRIDGE-E17
-// (スナップマネージャー VER-SINGLE-ORIGIN-SNAP-S6 ブリッジ連携版)
+// バージョン: VER-SNAP-MANAGER-BRIDGE-E18
+// (イベントトリガー完全分離・手離しスナップ専用制御版)
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-SNAP-MANAGER-BRIDGE-E17");
+console.log("基本エンジン（JS）が読み込まれました: VER-SNAP-MANAGER-BRIDGE-E18");
 
 let globalJoints = [];
 let railCount = 0;
 let isFirstMoveFrame = true;
 let lastCanvasClickPos = null; // キャンバス最終クリック座標
+
+// ドラッグ中ガードフラグ
+let isDraggingRail = false;
+let globalEventsRegistered = false;
 
 // --- ライブラリ動的ローダー ---
 const loadedLibraries = new Set();
@@ -185,7 +189,6 @@ function generateGenericRailData(catalogItem) {
             const sweepOut = arcAngle >= 0 ? 1 : 0;
             const sweepIn  = arcAngle >= 0 ? 1 : 0;
 
-            // 円弧描画フラグ修正済み（道床と2本レール）
             basePaths.push(`M ${x1} ${y1} A ${rOut} ${rOut} 0 ${largeArcFlag} ${sweepOut} ${x2} ${y2} L ${x3} ${y3} A ${rIn} ${rIn} 0 ${largeArcFlag} ${1 - sweepIn} ${x4} ${y4} Z`);
             
             updateBounds(x1, y1); updateBounds(x2, y2);
@@ -283,11 +286,53 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
         top: newTop
     });
     newRail.setCoords();
+
+    // 自動追加時のジョイントを登録
+    globalJoints.push({
+        railA: parentRail.customData.instanceId,
+        nodeA: parentNodeId,
+        railB: newRail.customData.instanceId,
+        nodeB: newNode0.id
+    });
 }
 
-// 検証用フラグ・変数
-let isDraggingRail = false;
-let mouseUpListenerRegistered = false; // 二重登録防止フラグ
+function registerGlobalCanvasEvents() {
+    if (globalEventsRegistered || !canvas) return;
+    globalEventsRegistered = true;
+
+    canvas.on('object:moving', function(options) { 
+        isDraggingRail = true;
+        if (options && options.target) onGeneralTransform(options.target); 
+    });
+
+    canvas.on('object:rotating', function(options) { 
+        isDraggingRail = true;
+        if (options && options.target) onGeneralTransform(options.target); 
+    });
+    
+    // 手を離した瞬間のみ、かつ実際にドラッグ移動された場合のみスナップを実行
+    canvas.on('mouse:up', function() {
+        if (isDraggingRail) {
+            isDraggingRail = false; // フラグ解除
+            const activeObj = canvas.getActiveObject();
+            if (activeObj && typeof applyClusterSnapLogic === 'function') {
+                applyClusterSnapLogic(activeObj);
+            }
+        }
+    });
+
+    const handleSelection = (e) => {
+        const activeObject = canvas.getActiveObject();
+        if (activeObject && activeObject.type === 'activeSelection') {
+            configureControls(activeObject);
+            canvas.requestRenderAll();
+        }
+    };
+
+    canvas.on('selection:created', handleSelection);
+    canvas.on('selection:updated', handleSelection);
+    // ❌ mouse:down での handleSelection 呼び出しは重複イベントを招くため完全廃止
+}
 
 function addRailToCanvas(partId) {
     if (!canvas) return null;
@@ -371,7 +416,7 @@ function addRailToCanvas(partId) {
 
     canvas.add(railObject);
     
-    // ドラッグ中のみフラグをONにする
+    // 個別オブジェクトの変形フラグ
     railObject.on('moving', function() { 
         isDraggingRail = true; 
         onGeneralTransform(this); 
@@ -381,58 +426,8 @@ function addRailToCanvas(partId) {
         onGeneralTransform(this); 
     });
 
-    // リスナー登録は canvas 全体で「一生に1回」だけにする（railCountに依存させない）
-    if (!mouseUpListenerRegistered) {
-        mouseUpListenerRegistered = true;
-        console.log("[TRACE] mouse:up イベントリスナーを新規登録しました");
-
-        canvas.on('object:moving', function(options) { 
-            isDraggingRail = true;
-            if (options && options.target) onGeneralTransform(options.target); 
-        });
-        canvas.on('object:rotating', function(options) { 
-            isDraggingRail = true;
-            if (options && options.target) onGeneralTransform(options.target); 
-        });
-        
-        canvas.on('mouse:up', function(e) {
-            console.log(`[TRACE] mouse:up 発火 (isDraggingRail: ${isDraggingRail})`);
-            
-            // ドラッグ操作が行われた場合のみスナップを実行
-            if (isDraggingRail) {
-                isDraggingRail = false; // フラグ初期化
-                const activeObj = canvas.getActiveObject();
-                if (activeObj && typeof applyClusterSnapLogic === 'function') {
-                    console.group("[TRACE-CALL] mouse:up から applyClusterSnapLogic を呼び出します");
-                    console.trace(); // 呼び出し経路を出力
-                    console.groupEnd();
-                    
-                    applyClusterSnapLogic(activeObj);
-                }
-            }
-        });
-
-        const handleSelection = (e) => {
-            const activeObject = canvas.getActiveObject();
-            if (activeObject && activeObject.type === 'activeSelection') {
-                configureControls(activeObject);
-                canvas.requestRenderAll();
-            }
-        };
-
-        canvas.on('selection:created', handleSelection);
-        canvas.on('selection:updated', handleSelection);
-        canvas.on('mouse:down', handleSelection);
-    }
-
-    // ★パーツ追加時のスナップ呼び出し（スタックトレース付き）
-    if (typeof applyClusterSnapLogic === 'function') {
-        console.group("[TRACE-CALL] addRailToCanvas (パーツ追加時) から applyClusterSnapLogic を呼び出します");
-        console.trace();
-        console.groupEnd();
-        
-        applyClusterSnapLogic(railObject);
-    }
+    // グローバルキャンバスイベントの初回一括登録
+    registerGlobalCanvasEvents();
 
     canvas.setActiveObject(railObject);
 
@@ -617,5 +612,5 @@ function loadDebugSampleLayout() {
     importLayoutData(INITIAL_SAMPLE_LAYOUT, true);
     canvas.setZoom(0.35);
     canvas.setViewportTransform([0.35, 0, 0, 0.35, 250, 100]);
-    console.log("[%s] サンプル小判型エンドレスを展開しました！", "VER-SNAP-MANAGER-BRIDGE-E17");
+    console.log("[%s] サンプル小判型エンドレスを展開しました！", "VER-SNAP-MANAGER-BRIDGE-E18");
 }
