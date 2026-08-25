@@ -1,8 +1,12 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - スナップ＆多重結合マネージャー
-// バージョン: VER-SINGLE-ORIGIN-SNAP-S6
+// バージョン: VER-SINGLE-ORIGIN-SNAP-S7
+// (排他実行ガード isSnappingProcess 導入版)
 // =============================================================
-console.log("スナップマネージャー（JS）が読み込まれました: VER-SINGLE-ORIGIN-SNAP-S6");
+console.log("スナップマネージャー（JS）が読み込まれました: VER-SINGLE-ORIGIN-SNAP-S7");
+
+// 処理中の二重発火をシャットアウトする排他ガード
+let isSnappingProcess = false;
 
 function canConnectNodes(railA, nodeAId, railB, nodeBId) {
     const itemA = railCatalog.items[railA.customData.partId];
@@ -20,145 +24,152 @@ function canConnectNodes(railA, nodeAId, railB, nodeBId) {
 }
 
 function applyClusterSnapLogic(movedRail) {
-    // ★【検証用】呼び出し経路とスタックトレースの出力
-    const callerError = new Error();
-    const stack = callerError.stack ? callerError.stack.split('\n').slice(1, 4).join(' <- ') : 'unknown';
-    console.group(`[SNAP-TRACE] applyClusterSnapLogic 実行 (対象: ${movedRail?.customData?.instanceId || movedRail?.type})`);
-    console.log(`呼び出し経路:`, stack);
-    console.groupEnd();
+    if (!movedRail) return;
 
-    isFirstMoveFrame = true;
+    // ★すでにスナップ処理実行中であれば、イベント連鎖による再帰発火を即座にブロック
+    if (isSnappingProcess) {
+        return;
+    }
 
-    const allRails = canvas.getObjects().filter(obj => obj.customData && obj.customData.isRail);
-    const movedRails = (movedRail.type === 'activeSelection') 
-        ? movedRail.getObjects().filter(o => o.customData && o.customData.isRail)
-        : [movedRail];
+    try {
+        isSnappingProcess = true; // ガードON
 
-    const movedIds = movedRails.map(o => o.customData.instanceId);
-    const SNAP_THRESHOLD = 30;
+        isFirstMoveFrame = true;
 
-    let bestSnap = null;
-    let minDistance = SNAP_THRESHOLD;
+        const allRails = canvas.getObjects().filter(obj => obj.customData && obj.customData.isRail);
+        const movedRails = (movedRail.type === 'activeSelection') 
+            ? movedRail.getObjects().filter(o => o.customData && o.customData.isRail)
+            : [movedRail];
 
-    // 1. 最も近い「最初のスナップ候補（1箇所目）」を探索
-    movedRails.forEach(mRail => {
-        const mId = mRail.customData.instanceId;
-        const mNodes = getAbsoluteNodePos(mRail);
+        const movedIds = movedRails.map(o => o.customData.instanceId);
+        const SNAP_THRESHOLD = 30;
 
-        allRails.forEach(otherRail => {
-            const oId = otherRail.customData.instanceId;
-            if (movedIds.includes(oId)) return;
+        let bestSnap = null;
+        let minDistance = SNAP_THRESHOLD;
 
-            const otherNodes = getAbsoluteNodePos(otherRail);
+        // 1. 最も近い「最初のスナップ候補（1箇所目）」を探索
+        movedRails.forEach(mRail => {
+            const mId = mRail.customData.instanceId;
+            const mNodes = getAbsoluteNodePos(mRail);
 
-            mNodes.forEach(mNode => {
-                if (isNodeOccupied(mId, mNode.nodeId)) return;
-
-                otherNodes.forEach(oNode => {
-                    if (isNodeOccupied(oId, oNode.nodeId)) return;
-
-                    if (!canConnectNodes(mRail, mNode.nodeId, otherRail, oNode.nodeId)) return;
-
-                    const dist = Math.sqrt(Math.pow(mNode.x - oNode.x, 2) + Math.pow(mNode.y - oNode.y, 2));
-                    if (dist < minDistance) {
-                        minDistance = dist;
-                        bestSnap = {
-                            movedRail: mRail, mNode: mNode,
-                            targetRail: otherRail, oNode: oNode
-                        };
-                    }
-                });
-            });
-        });
-    });
-
-    // 2. 1箇所目の吸着（位置合わせ・回転）を実行
-    if (bestSnap) {
-        console.log("[VER-SINGLE-ORIGIN-SNAP-S6] 1箇所目の原点スナップを実行します。");
-
-        const mRail = bestSnap.movedRail;
-        const mCatalogNode = railCatalog.items[mRail.customData.partId].nodes[bestSnap.mNode.nodeId];
-        
-        let targetRailAngle = (bestSnap.oNode.angle - mCatalogNode.facingAngle + 180) % 360;
-        if (targetRailAngle < 0) targetRailAngle += 360;
-
-        if (movedRail.type === 'activeSelection') {
-            const currentRailAbsAngle = (movedRail.angle + mRail.angle + mCatalogNode.facingAngle) % 360;
-            let deltaAngle = (bestSnap.oNode.angle - currentRailAbsAngle + 180) % 360;
-            if (deltaAngle > 180) deltaAngle -= 360;
-            if (deltaAngle < -180) deltaAngle += 360;
-
-            movedRail.set('angle', movedRail.angle + deltaAngle);
-            movedRail.setCoords();
-
-            const rotatedNodes = getAbsoluteNodePos(mRail);
-            const rotatedMNode = rotatedNodes.find(n => n.nodeId === bestSnap.mNode.nodeId);
-            
-            const deltaX = bestSnap.oNode.x - rotatedMNode.x;
-            const deltaY = bestSnap.oNode.y - rotatedMNode.y;
-
-            movedRail.set({
-                left: movedRail.left + deltaX,
-                top: movedRail.top + deltaY
-            });
-            movedRail.setCoords();
-        } else {
-            const cx = mRail.customData.geoCenterX || 0;
-            const cy = mRail.customData.geoCenterY || 0;
-            const lx = mCatalogNode.relX - cx;
-            const ly = mCatalogNode.relY - cy;
-
-            const newAngleRad = (targetRailAngle * Math.PI) / 180;
-            const newLeft = bestSnap.oNode.x - (lx * Math.cos(newAngleRad) - ly * Math.sin(newAngleRad));
-            const newTop  = bestSnap.oNode.y - (lx * Math.sin(newAngleRad) + ly * Math.cos(newAngleRad));
-
-            mRail.set({ left: newLeft, top: newTop, angle: targetRailAngle });
-            mRail.setCoords();
-        }
-
-        // 1箇所目の接続登録
-        globalJoints.push({
-            railA: mRail.customData.instanceId, nodeA: bestSnap.mNode.nodeId,
-            railB: bestSnap.targetRail.customData.instanceId, nodeB: bestSnap.oNode.nodeId
-        });
-
-        // 3. 移動・回転を行わず、位置が重なった（届いた）他ノードをそのまま多重ロック
-        const postAllRails = canvas.getObjects().filter(obj => obj.customData && obj.customData.isRail);
-        
-        movedRails.forEach(rRail => {
-            const rId = rRail.customData.instanceId;
-            const rNodes = getAbsoluteNodePos(rRail);
-
-            postAllRails.forEach(oRail => {
-                const oId = oRail.customData.instanceId;
+            allRails.forEach(otherRail => {
+                const oId = otherRail.customData.instanceId;
                 if (movedIds.includes(oId)) return;
 
-                const oNodes = getAbsoluteNodePos(oRail);
+                const otherNodes = getAbsoluteNodePos(otherRail);
 
-                rNodes.forEach(mN => {
-                    if (isNodeOccupied(rId, mN.nodeId)) return;
+                mNodes.forEach(mNode => {
+                    if (isNodeOccupied(mId, mNode.nodeId)) return;
 
-                    oNodes.forEach(oN => {
-                        if (isNodeOccupied(oId, oN.nodeId)) return;
+                    otherNodes.forEach(oNode => {
+                        if (isNodeOccupied(oId, oNode.nodeId)) return;
 
-                        if (!canConnectNodes(rRail, mN.nodeId, oRail, oN.nodeId)) return;
+                        if (!canConnectNodes(mRail, mNode.nodeId, otherRail, oNode.nodeId)) return;
 
-                        const dist = Math.sqrt(Math.pow(mN.x - oN.x, 2) + Math.pow(mN.y - oN.y, 2));
-                        if (dist < 8) {
-                            globalJoints.push({
-                                railA: rId, nodeA: mN.nodeId,
-                                railB: oId, nodeB: oN.nodeId
-                            });
-                            console.log("[VER-SINGLE-ORIGIN-SNAP-S6] 同位置多重ロック成立:", rId, "->", oId);
+                        const dist = Math.sqrt(Math.pow(mNode.x - oNode.x, 2) + Math.pow(mNode.y - oNode.y, 2));
+                        if (dist < minDistance) {
+                            minDistance = dist;
+                            bestSnap = {
+                                movedRail: mRail, mNode: mNode,
+                                targetRail: otherRail, oNode: oNode
+                            };
                         }
                     });
                 });
             });
         });
-    }
 
-    updateJointIndicators();
-    canvas.requestRenderAll();
+        // 2. 1箇所目の吸着（位置合わせ・回転）を実行
+        if (bestSnap) {
+            console.log("[VER-SINGLE-ORIGIN-SNAP-S7] 1箇所目の原点スナップを実行します。");
+
+            const mRail = bestSnap.movedRail;
+            const mCatalogNode = railCatalog.items[mRail.customData.partId].nodes[bestSnap.mNode.nodeId];
+            
+            let targetRailAngle = (bestSnap.oNode.angle - mCatalogNode.facingAngle + 180) % 360;
+            if (targetRailAngle < 0) targetRailAngle += 360;
+
+            if (movedRail.type === 'activeSelection') {
+                const currentRailAbsAngle = (movedRail.angle + mRail.angle + mCatalogNode.facingAngle) % 360;
+                let deltaAngle = (bestSnap.oNode.angle - currentRailAbsAngle + 180) % 360;
+                if (deltaAngle > 180) deltaAngle -= 360;
+                if (deltaAngle < -180) deltaAngle += 360;
+
+                movedRail.set('angle', movedRail.angle + deltaAngle);
+                movedRail.setCoords();
+
+                const rotatedNodes = getAbsoluteNodePos(mRail);
+                const rotatedMNode = rotatedNodes.find(n => n.nodeId === bestSnap.mNode.nodeId);
+                
+                const deltaX = bestSnap.oNode.x - rotatedMNode.x;
+                const deltaY = bestSnap.oNode.y - rotatedMNode.y;
+
+                movedRail.set({
+                    left: movedRail.left + deltaX,
+                    top: movedRail.top + deltaY
+                });
+                movedRail.setCoords();
+            } else {
+                const cx = mRail.customData.geoCenterX || 0;
+                const cy = mRail.customData.geoCenterY || 0;
+                const lx = mCatalogNode.relX - cx;
+                const ly = mCatalogNode.relY - cy;
+
+                const newAngleRad = (targetRailAngle * Math.PI) / 180;
+                const newLeft = bestSnap.oNode.x - (lx * Math.cos(newAngleRad) - ly * Math.sin(newAngleRad));
+                const newTop  = bestSnap.oNode.y - (lx * Math.sin(newAngleRad) + ly * Math.cos(newAngleRad));
+
+                mRail.set({ left: newLeft, top: newTop, angle: targetRailAngle });
+                mRail.setCoords();
+            }
+
+            // 1箇所目の接続登録
+            globalJoints.push({
+                railA: mRail.customData.instanceId, nodeA: bestSnap.mNode.nodeId,
+                railB: bestSnap.targetRail.customData.instanceId, nodeB: bestSnap.oNode.nodeId
+            });
+
+            // 3. 移動・回転を行わず、位置が重なった（届いた）他ノードをそのまま多重ロック
+            const postAllRails = canvas.getObjects().filter(obj => obj.customData && obj.customData.isRail);
+            
+            movedRails.forEach(rRail => {
+                const rId = rRail.customData.instanceId;
+                const rNodes = getAbsoluteNodePos(rRail);
+
+                postAllRails.forEach(oRail => {
+                    const oId = oRail.customData.instanceId;
+                    if (movedIds.includes(oId)) return;
+
+                    oNodes = getAbsoluteNodePos(oRail);
+
+                    rNodes.forEach(mN => {
+                        if (isNodeOccupied(rId, mN.nodeId)) return;
+
+                        oNodes.forEach(oN => {
+                            if (isNodeOccupied(oId, oN.nodeId)) return;
+
+                            if (!canConnectNodes(rRail, mN.nodeId, oRail, oN.nodeId)) return;
+
+                            const dist = Math.sqrt(Math.pow(mN.x - oN.x, 2) + Math.pow(mN.y - oN.y, 2));
+                            if (dist < 8) {
+                                globalJoints.push({
+                                    railA: rId, nodeA: mN.nodeId,
+                                    railB: oId, nodeB: oN.nodeId
+                                });
+                                console.log("[VER-SINGLE-ORIGIN-SNAP-S7] 同位置多重ロック成立:", rId, "->", oId);
+                            }
+                        });
+                    });
+                });
+            });
+        }
+
+        updateJointIndicators();
+        canvas.requestRenderAll();
+
+    } finally {
+        isSnappingProcess = false; // 処理完了後に必ずガードOFF
+    }
 }
 
 function exportLayoutJSON() {
@@ -176,13 +187,13 @@ function exportLayoutJSON() {
     });
 
     const completeSaveData = {
-        version: "VER-SINGLE-ORIGIN-SNAP-S6",
+        version: "VER-SINGLE-ORIGIN-SNAP-S7",
         rails: railsData,
         joints: globalJoints
     };
 
     const jsonString = JSON.stringify(completeSaveData, null, 2);
-    console.log("[VER-SINGLE-ORIGIN-SNAP-S6] セーブデータ(JSON):", jsonString);
+    console.log("[VER-SINGLE-ORIGIN-SNAP-S7] セーブデータ(JSON):", jsonString);
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(jsonString).then(() => {
