@@ -22,7 +22,7 @@ const railCatalog = {
             scale: "N",
             brand: "KATO",
             systemName: "ユニトラム (N)",
-            ballastWidth: 60,
+            ballastWidth: 37,
             connectorType: "kato-unijoiner"
         },
         "TOMIX-FINETRACK-N": {
@@ -423,8 +423,8 @@ const railCatalog = {
             nodes: [
                 { "id": 0, "name": "直線側-内軌", "relX": -62.0, "relY": -12.5, "facingAngle": 180 },
                 { "id": 1, "name": "直線側-外軌", "relX": -62.0, "relY":  12.5, "facingAngle": 180 },
-                { "id": 2, "name": "45°頂点-内軌", "relX":  90.28, "relY": -102.28, "facingAngle": -45 },
-                { "id": 3, "name": "45°頂点-外軌", "relX": 113.84, "relY": -78.72,  "facingAngle": -45 }
+                { "id": 2, "name": "45°頂点-内軌", "relX":  90.28, "relY": -65.22, "facingAngle": -45 },
+                { "id": 3, "name": "45°頂点-外軌", "relX": 115.28, "relY": -40.22, "facingAngle": -45 }
             ],
             shapes: [
                 { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": -12.5 },
@@ -443,8 +443,8 @@ const railCatalog = {
             nodes: [
                 { "id": 0, "name": "直線側-内軌", "relX": -62.0, "relY":  12.5, "facingAngle": 180 },
                 { "id": 1, "name": "直線側-外軌", "relX": -62.0, "relY": -12.5, "facingAngle": 180 },
-                { "id": 2, "name": "45°頂点-内軌", "relX":  90.28, "relY":  102.28, "facingAngle": 45 },
-                { "id": 3, "name": "45°頂点-外軌", "relX": 113.84, "relY":  78.72,  "facingAngle": 45 }
+                { "id": 2, "name": "45°頂点-内軌", "relX":  90.28, "relY":  65.22, "facingAngle": 45 },
+                { "id": 3, "name": "45°頂点-外軌", "relX": 115.28, "relY":  40.22, "facingAngle": 45 }
             ],
             shapes: [
                 { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": 12.5 },
@@ -454,23 +454,23 @@ const railCatalog = {
             ]
         },
 
-        // --- 複線分岐ポイント L (左) ---
+        // --- 複線分岐ポイント L ---
         "KATO-UNITRAM-TURNOUT-L": {
             systemId: "KATO-UNITRAM-N",
             category: "turnout",
             name: "複線分岐ポイント L",
-            description: "電動複線分岐ポイント (186mm直進 + C-L曲線分岐)",
+            description: "電動複線分岐ポイント (124mm直進 + C-L曲線分岐)",
             nodes: [
                 { "id": 0, "name": "進入-内軌", "relX": -62.0, "relY": -12.5, "facingAngle": 180 },
                 { "id": 1, "name": "進入-外軌", "relX": -62.0, "relY":  12.5, "facingAngle": 180 },
-                { "id": 2, "name": "直進-内軌", "relX": 124.0, "relY": -12.5, "facingAngle": 0 },
-                { "id": 3, "name": "直進-外軌", "relX": 124.0, "relY":  12.5, "facingAngle": 0 },
-                { "id": 4, "name": "分岐-内軌", "relX":  90.28, "relY": -102.28, "facingAngle": -45 },
-                { "id": 5, "name": "分岐-外軌", "relX": 113.84, "relY": -78.72,  "facingAngle": -45 }
+                { "id": 2, "name": "直進-内軌", "relX":  62.0, "relY": -12.5, "facingAngle": 0 },
+                { "id": 3, "name": "直進-外軌", "relX":  62.0, "relY":  12.5, "facingAngle": 0 },
+                { "id": 4, "name": "分岐-内軌", "relX":  90.28, "relY": -65.22, "facingAngle": -45 },
+                { "id": 5, "name": "分岐-外軌", "relX": 115.28, "relY": -40.22, "facingAngle": -45 }
             ],
             shapes: [
-                { "type": "line", "length": 186, "offsetX": 0, "offsetY": -12.5 },
-                { "type": "line", "length": 186, "offsetX": 0, "offsetY":  12.5 },
+                { "type": "line", "length": 124, "offsetX": 0, "offsetY": -12.5 },
+                { "type": "line", "length": 124, "offsetX": 0, "offsetY":  12.5 },
                 { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": -12.5 },
                 { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -37.0, "centerY": -192.5, "startAngle": 90 },
                 { "type": "line", "length": 50, "offsetX": -37.0, "offsetY": 12.5 },
@@ -478,7 +478,7 @@ const railCatalog = {
             ]
         },
 
-        // --- 複線分岐ポイント R (右) ---
+        // --- 複線分岐ポイント R ---
         "KATO-UNITRAM-TURNOUT-R": {
             systemId: "KATO-UNITRAM-N",
             category: "turnout",
@@ -487,14 +487,14 @@ const railCatalog = {
             nodes: [
                 { "id": 0, "name": "進入-内軌", "relX": -62.0, "relY":  12.5, "facingAngle": 180 },
                 { "id": 1, "name": "進入-外軌", "relX": -62.0, "relY": -12.5, "facingAngle": 180 },
-                { "id": 2, "name": "直進-内軌", "relX": 124.0, "relY":  12.5, "facingAngle": 0 },
-                { "id": 3, "name": "直進-外軌", "relX": 124.0, "relY": -12.5, "facingAngle": 0 },
-                { "id": 4, "name": "分岐-内軌", "relX":  90.28, "relY":  127.28, "facingAngle": 45 },
-                { "id": 5, "name": "分岐-外軌", "relX": 113.84, "relY":  103.72, "facingAngle": 45 }
+                { "id": 2, "name": "直進-内軌", "relX":  62.0, "relY":  12.5, "facingAngle": 0 },
+                { "id": 3, "name": "直進-外軌", "relX":  62.0, "relY": -12.5, "facingAngle": 0 },
+                { "id": 4, "name": "分岐-内軌", "relX":  90.28, "relY":  65.22, "facingAngle": 45 },
+                { "id": 5, "name": "分岐-外軌", "relX": 115.28, "relY":  40.22, "facingAngle": 45 }
             ],
             shapes: [
-                { "type": "line", "length": 186, "offsetX": 0, "offsetY": -12.5 },
-                { "type": "line", "length": 186, "offsetX": 0, "offsetY":  12.5 },
+                { "type": "line", "length": 124, "offsetX": 0, "offsetY": -12.5 },
+                { "type": "line", "length": 124, "offsetX": 0, "offsetY":  12.5 },
                 { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": 12.5 },
                 { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -37.0, "centerY": 192.5, "startAngle": 270 },
                 { "type": "line", "length": 50, "offsetX": -37.0, "offsetY": -12.5 },
