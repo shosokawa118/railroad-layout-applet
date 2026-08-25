@@ -1,8 +1,8 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - スナップ＆多重結合マネージャー
-// バージョン: VER-SNAP-MOUSEUP-SEPARATE-S8
+// バージョン: VER-SNAP-MOUSEUP-SEPARATE-S9
 // =============================================================
-console.log("スナップマネージャー（JS）が読み込まれました: VER-SNAP-MOUSEUP-SEPARATE-S8");
+console.log("スナップマネージャー（JS）が読み込まれました: VER-SNAP-MOUSEUP-SEPARATE-S9");
 
 function applyClusterSnapLogic(movedRail) {
     if (!movedRail) return;
@@ -124,9 +124,6 @@ function applyClusterSnapLogic(movedRail) {
     canvas.requestRenderAll();
 }
 
-/**
- * UI側から呼ばれる保存用エクスポート関数
- */
 function exportLayoutJSON() {
     const completeSaveData = exportLayoutData();
     if (!completeSaveData) return;
