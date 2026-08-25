@@ -1,9 +1,9 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 基本エンジン
-// バージョン: VER-SNAP-MANAGER-BRIDGE-E18
-// (イベントトリガー完全分離・手離しスナップ専用制御版)
+// バージョン: VER-LAYOUT-AUTOCONNECT-E19
+// (自動接続・手離しスナップ分離 / 接続登録ヘルパー共通化版)
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-SNAP-MANAGER-BRIDGE-E18");
+console.log("基本エンジン（JS）が読み込まれました: VER-LAYOUT-AUTOCONNECT-E19");
 
 let globalJoints = [];
 let railCount = 0;
@@ -235,6 +235,32 @@ function generateGenericRailData(catalogItem) {
     };
 }
 
+/**
+ * railId/nodeId の組合せを既存の globalJoints と比較し、重複がなければ追加する。
+ * 逆向き（A↔B と B↔A）も同一とみなして重複を防ぐ。
+ * 返り値: 追加したら true、既に存在する等で追加しなかったら false
+ */
+function addGlobalJointIfFree(railAId, nodeAId, railBId, nodeBId) {
+    if (!railAId || !railBId || nodeAId === undefined || nodeBId === undefined) return false;
+
+    // 同一エントリ（向き違い含む）があれば追加しない
+    const exists = globalJoints.some(j => 
+        j && (
+            (j.railA === railAId && j.nodeA === nodeAId && j.railB === railBId && j.nodeB === nodeBId) ||
+            (j.railA === railBId && j.nodeA === nodeBId && j.railB === railAId && j.nodeB === nodeAId)
+        )
+    );
+    if (exists) return false;
+
+    // ノードが既に占有されているなら追加しない（冗長チェック）
+    if (isNodeOccupied(railAId, nodeAId) || isNodeOccupied(railBId, nodeBId)) return false;
+
+    globalJoints.push({
+        railA: railAId, nodeA: nodeAId, railB: railBId, nodeB: nodeBId
+    });
+    return true;
+}
+
 function findTargetNodeForAutoConnect(parentRail) {
     if (!parentRail || !parentRail.customData) return null;
     const catalog = railCatalog.items[parentRail.customData.partId];
@@ -287,13 +313,13 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
     });
     newRail.setCoords();
 
-    // 自動追加時のジョイントを登録
-    globalJoints.push({
-        railA: parentRail.customData.instanceId,
-        nodeA: parentNodeId,
-        railB: newRail.customData.instanceId,
-        nodeB: newNode0.id
-    });
+    // ★接続登録の共通化ヘルパーを呼び出し
+    addGlobalJointIfFree(
+        parentRail.customData.instanceId,
+        parentNodeId,
+        newRail.customData.instanceId,
+        newNode0.id
+    );
 }
 
 function registerGlobalCanvasEvents() {
@@ -310,7 +336,7 @@ function registerGlobalCanvasEvents() {
         if (options && options.target) onGeneralTransform(options.target); 
     });
     
-    // 手を離した瞬間のみ、かつ実際にドラッグ移動された場合のみスナップを実行
+    // 手を離した瞬間のみ、かつ実際にドラッグ移動された場合のみユーザー操作スナップを実行
     canvas.on('mouse:up', function() {
         if (isDraggingRail) {
             isDraggingRail = false; // フラグ解除
@@ -331,7 +357,6 @@ function registerGlobalCanvasEvents() {
 
     canvas.on('selection:created', handleSelection);
     canvas.on('selection:updated', handleSelection);
-    // ❌ mouse:down での handleSelection 呼び出しは重複イベントを招くため完全廃止
 }
 
 function addRailToCanvas(partId) {
@@ -416,7 +441,7 @@ function addRailToCanvas(partId) {
 
     canvas.add(railObject);
     
-    // 個別オブジェクトの変形フラグ
+    // 個別オブジェクトの変形フラグ設定
     railObject.on('moving', function() { 
         isDraggingRail = true; 
         onGeneralTransform(this); 
@@ -497,10 +522,8 @@ function importLayoutData(layoutData, isOverwrite = true) {
             const mappedA = idMap[j.railA] || j.railA;
             const mappedB = idMap[j.railB] || j.railB;
 
-            globalJoints.push({
-                railA: mappedA, nodeA: j.nodeA,
-                railB: mappedB, nodeB: j.nodeB
-            });
+            // ★接続登録の共通化ヘルパーを呼び出し
+            addGlobalJointIfFree(mappedA, j.nodeA, mappedB, j.nodeB);
         });
     }
 
@@ -612,5 +635,5 @@ function loadDebugSampleLayout() {
     importLayoutData(INITIAL_SAMPLE_LAYOUT, true);
     canvas.setZoom(0.35);
     canvas.setViewportTransform([0.35, 0, 0, 0.35, 250, 100]);
-    console.log("[%s] サンプル小判型エンドレスを展開しました！", "VER-SNAP-MANAGER-BRIDGE-E18");
+    console.log("[%s] サンプル小判型エンドレスを展開しました！", "VER-LAYOUT-AUTOCONNECT-E19");
 }
