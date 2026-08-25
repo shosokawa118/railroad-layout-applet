@@ -5,8 +5,63 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>鉄道模型レイアウトジェネレータ</title>
     
+    <!-- 定義のみのコアファイルおよび基幹スクリプト -->
+    <script src="rail-catalog-core.js"></script>
+    <script src="layout-engine.js"></script>
+    <script src="snap-manager.js"></script>
+    <script src="sample-data.js"></script>
+
+    <style>
+        body { margin: 0; padding: 10px; background-color: #f0f0f0; font-family: sans-serif; touch-action: none; }
+        #controls { margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; background: #fff; padding: 10px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        .canvas-container { position: relative !important; width: 800px !important; height: 600px !important; border: 1px solid #ccc; background-color: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        canvas { position: absolute !important; left: 0 !important; top: 0 !important; width: 800px !important; height: 600px !important; }
+        
+        button { padding: 4px 10px; border-radius: 4px; border: 1px solid #ccc; background-color: #fff; cursor: pointer; font-size: 13px; }
+        button:hover { background-color: #f0f0f0; }
+        
+        select { padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; background-color: #fff; font-size: 13px; font-weight: bold; }
+        
+        .tab-btn { border: none; background: transparent; border-bottom: 2px solid transparent; border-radius: 0; padding: 4px 12px; font-weight: bold; color: #666; }
+        .tab-btn.active { border-bottom-color: #0288d1; color: #0288d1; }
+        
+        .part-btn { background-color: #e3f2fd; border-color: #90caf9; }
+        .part-btn:hover { background-color: #bbdefb; }
+
+        .btn-danger { background-color: #ffebee; color: #c62828; border-color: #ef9a9a; font-weight: bold; }
+        .btn-danger:hover { background-color: #ffcdd2; }
+    </style>
+</head>
+<body>
+
+    <div id="controls">
+        <!-- システム選択＆ユーティリティボタン -->
+        <div class="row">
+            <label for="systemSelect" style="font-size: 12px; font-weight: bold; color: #555;">レール規格:</label>
+            <select id="systemSelect"></select>
+            <span style="border-left: 1px solid #ccc; height: 16px; margin: 0 4px;"></span>
+            <button onclick="deleteSelectedRails()" class="btn-danger">選択削除 [Del]</button>
+            <button onclick="exportLayoutJSON()" style="background-color: #eceff1;">JSON出力</button>
+            <button onclick="promptImportJSON()" style="background-color: #e1f5fe;">JSON読込</button>
+            <button onclick="loadDebugSampleLayout()" style="background-color: #ff9500; color: #fff; border: none;">サンプル再読込</button>
+        </div>
+
+        <!-- カテゴリタブ -->
+        <div class="row" style="border-bottom: 1px solid #eee; padding-bottom: 2px;">
+            <button class="tab-btn active" data-cat="straight" onclick="setCategory('straight')">直線</button>
+            <button class="tab-btn" data-cat="curve" onclick="setCategory('curve')">曲線</button>
+            <button class="tab-btn" data-cat="turnout" onclick="setCategory('turnout')">ポイント</button>
+        </div>
+
+        <!-- 動的パーツパレット -->
+        <div id="partsPalette" class="row"></div>
+    </div>
+
+    <canvas id="layoutCanvas" width="800" height="600"></canvas>
+
     <script>
-        const CODE_VERSION = "VER-PALETTE-UI-M8";
+        const CODE_VERSION = "VER-PALETTE-UI-M9";
         console.log("=========================================");
         console.log("ビュー（HTML）バージョン:", CODE_VERSION);
         console.log("=========================================");
@@ -14,6 +69,58 @@
         let canvas = null;
         let currentSystemId = "KATO-UNITRACK-N";
         let currentCategory = "straight";
+
+        function initCameraControls() {
+            if (!canvas) return;
+            canvas.on('mouse:wheel', function(opt) {
+                if (!opt || !opt.e) return;
+                let delta = opt.e.deltaY; let zoom = canvas.getZoom(); zoom *= 0.999 ** delta;
+                if (zoom > 20) zoom = 20; if (zoom < 0.1) zoom = 0.1;
+                canvas.zoomToPoint({ x: opt.e.offsetX || 400, y: opt.e.offsetY || 300 }, zoom);
+                opt.e.preventDefault(); opt.e.stopPropagation();
+            });
+
+            let isSpacePressed = false; let isDraggingCamera = false; let lastX, lastY;
+            window.addEventListener('keydown', e => { if (e && e.code === 'Space') { isSpacePressed = true; canvas.defaultCursor = 'grab'; } });
+            window.addEventListener('keyup', e => { if (e && e.code === 'Space') { isSpacePressed = false; canvas.defaultCursor = 'default'; } });
+            
+            canvas.on('mouse:down', opt => { 
+                if (isSpacePressed && opt && opt.e) { isDraggingCamera = true; canvas.defaultCursor = 'grabbing'; lastX = opt.e.clientX; lastY = opt.e.clientY; } 
+            });
+            canvas.on('mouse:move', opt => {
+                if (isDraggingCamera && opt && opt.e) {
+                    let vpt = canvas.viewportTransform.slice();
+                    vpt[4] += opt.e.clientX - lastX; vpt[5] += opt.e.clientY - lastY;
+                    canvas.setViewportTransform(vpt); canvas.requestRenderAll(); lastX = opt.e.clientX; lastY = opt.e.clientY;
+                }
+            });
+            canvas.on('mouse:up', () => { if (isDraggingCamera) { isDraggingCamera = false; canvas.defaultCursor = isSpacePressed ? 'grab' : 'default'; } });
+        }
+
+        function initTouchControls() {
+            if (typeof Hammer === 'undefined') return;
+            const touchArea = document.getElementById('layoutCanvas').parentElement;
+            if (!touchArea) return;
+            const mc = new Hammer.Manager(touchArea);
+            const pinch = new Hammer.Pinch();
+            const pan = new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, pointers: 2 });
+            pinch.recognizeWith(pan); mc.add([pinch, pan]);
+
+            let adjustZoom = 1; let adjustPosX = 0; let adjustPosY = 0;
+            mc.on("pinchstart pinchmove", function(e) {
+                if (!e) return;
+                if (e.type === 'pinchstart') adjustZoom = canvas.getZoom();
+                let zoom = adjustZoom * e.scale; if (zoom > 20) zoom = 20; if (zoom < 0.1) zoom = 0.1;
+                canvas.zoomToPoint({ x: e.center.x, y: e.center.y }, zoom);
+            });
+            mc.on("panstart panmove", function(e) {
+                if (!e) return;
+                let vpt = canvas.viewportTransform.slice();
+                if (e.type === 'panstart') { adjustPosX = vpt[4]; adjustPosY = vpt[5]; }
+                vpt[4] = adjustPosX + e.deltaX; vpt[5] = adjustPosY + e.deltaY;
+                canvas.setViewportTransform(vpt); canvas.requestRenderAll();
+            });
+        }
 
         function startApplication() {
             if (typeof fabric !== 'undefined' && !canvas) {
@@ -29,8 +136,8 @@
                     }
                 });
 
-                initCameraControls();
-                initKeyControls();
+                if (typeof initCameraControls === 'function') initCameraControls();
+                if (typeof initKeyControls === 'function') initKeyControls();
                 if (typeof initTouchControls === 'function') initTouchControls();
                 
                 initPaletteUI();
@@ -145,6 +252,7 @@
             }
         }
 
+        // ライブラリ動的読み込みローダー
         (function() {
             const el = document.createElement('script');
             const protocol = 'https://';
@@ -159,114 +267,6 @@
             };
             document.head.appendChild(el);
         })();
-    </script>
-
-    <!-- 定義のみのコアファイルおよび基幹スクリプト -->
-    <script src="rail-catalog-core.js"></script>
-    <script src="layout-engine.js"></script>
-    <script src="snap-manager.js"></script>
-    <script src="sample-data.js"></script>
-
-    <style>
-        body { margin: 0; padding: 10px; background-color: #f0f0f0; font-family: sans-serif; touch-action: none; }
-        #controls { margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; background: #fff; padding: 10px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-        .canvas-container { position: relative !important; width: 800px !important; height: 600px !important; border: 1px solid #ccc; background-color: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        canvas { position: absolute !important; left: 0 !important; top: 0 !important; width: 800px !important; height: 600px !important; }
-        
-        button { padding: 4px 10px; border-radius: 4px; border: 1px solid #ccc; background-color: #fff; cursor: pointer; font-size: 13px; }
-        button:hover { background-color: #f0f0f0; }
-        
-        select { padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; background-color: #fff; font-size: 13px; font-weight: bold; }
-        
-        .tab-btn { border: none; background: transparent; border-bottom: 2px solid transparent; border-radius: 0; padding: 4px 12px; font-weight: bold; color: #666; }
-        .tab-btn.active { border-bottom-color: #0288d1; color: #0288d1; }
-        
-        .part-btn { background-color: #e3f2fd; border-color: #90caf9; }
-        .part-btn:hover { background-color: #bbdefb; }
-
-        .btn-danger { background-color: #ffebee; color: #c62828; border-color: #ef9a9a; font-weight: bold; }
-        .btn-danger:hover { background-color: #ffcdd2; }
-    </style>
-</head>
-<body>
-
-    <div id="controls">
-        <!-- システム選択＆ユーティリティボタン -->
-        <div class="row">
-            <label for="systemSelect" style="font-size: 12px; font-weight: bold; color: #555;">レール規格:</label>
-            <select id="systemSelect"></select>
-            <span style="border-left: 1px solid #ccc; height: 16px; margin: 0 4px;"></span>
-            <button onclick="deleteSelectedRails()" class="btn-danger">選択削除 [Del]</button>
-            <button onclick="exportLayoutJSON()" style="background-color: #eceff1;">JSON出力</button>
-            <button onclick="promptImportJSON()" style="background-color: #e1f5fe;">JSON読込</button>
-            <button onclick="loadDebugSampleLayout()" style="background-color: #ff9500; color: #fff; border: none;">サンプル再読込</button>
-        </div>
-
-        <!-- カテゴリタブ -->
-        <div class="row" style="border-bottom: 1px solid #eee; padding-bottom: 2px;">
-            <button class="tab-btn active" data-cat="straight" onclick="setCategory('straight')">直線</button>
-            <button class="tab-btn" data-cat="curve" onclick="setCategory('curve')">曲線</button>
-            <button class="tab-btn" data-cat="turnout" onclick="setCategory('turnout')">ポイント</button>
-        </div>
-
-        <!-- 動的パーツパレット -->
-        <div id="partsPalette" class="row"></div>
-    </div>
-
-    <canvas id="layoutCanvas" width="800" height="600"></canvas>
-
-    <script>
-        function initCameraControls() {
-            canvas.on('mouse:wheel', function(opt) {
-                if (!opt || !opt.e) return;
-                let delta = opt.e.deltaY; let zoom = canvas.getZoom(); zoom *= 0.999 ** delta;
-                if (zoom > 20) zoom = 20; if (zoom < 0.1) zoom = 0.1;
-                canvas.zoomToPoint({ x: opt.e.offsetX || 400, y: opt.e.offsetY || 300 }, zoom);
-                opt.e.preventDefault(); opt.e.stopPropagation();
-            });
-
-            let isSpacePressed = false; let isDraggingCamera = false; let lastX, lastY;
-            window.addEventListener('keydown', e => { if (e && e.code === 'Space') { isSpacePressed = true; canvas.defaultCursor = 'grab'; } });
-            window.addEventListener('keyup', e => { if (e && e.code === 'Space') { isSpacePressed = false; canvas.defaultCursor = 'default'; } });
-            
-            canvas.on('mouse:down', opt => { 
-                if (isSpacePressed && opt && opt.e) { isDraggingCamera = true; canvas.defaultCursor = 'grabbing'; lastX = opt.e.clientX; lastY = opt.e.clientY; } 
-            });
-            canvas.on('mouse:move', opt => {
-                if (isDraggingCamera && opt && opt.e) {
-                    let vpt = canvas.viewportTransform.slice();
-                    vpt[4] += opt.e.clientX - lastX; vpt[5] += opt.e.clientY - lastY;
-                    canvas.setViewportTransform(vpt); canvas.requestRenderAll(); lastX = opt.e.clientX; lastY = opt.e.clientY;
-                }
-            });
-            canvas.on('mouse:up', () => { if (isDraggingCamera) { isDraggingCamera = false; canvas.defaultCursor = isSpacePressed ? 'grab' : 'default'; } });
-        }
-
-        function initTouchControls() {
-            if (typeof Hammer === 'undefined') return;
-            const touchArea = document.getElementById('layoutCanvas').parentElement;
-            if (!touchArea) return;
-            const mc = new Hammer.Manager(touchArea);
-            const pinch = new Hammer.Pinch();
-            const pan = new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, pointers: 2 });
-            pinch.recognizeWith(pan); mc.add([pinch, pan]);
-
-            let adjustZoom = 1; let adjustPosX = 0; let adjustPosY = 0;
-            mc.on("pinchstart pinchmove", function(e) {
-                if (!e) return;
-                if (e.type === 'pinchstart') adjustZoom = canvas.getZoom();
-                let zoom = adjustZoom * e.scale; if (zoom > 20) zoom = 20; if (zoom < 0.1) zoom = 0.1;
-                canvas.zoomToPoint({ x: e.center.x, y: e.center.y }, zoom);
-            });
-            mc.on("panstart panmove", function(e) {
-                if (!e) return;
-                let vpt = canvas.viewportTransform.slice();
-                if (e.type === 'panstart') { adjustPosX = vpt[4]; adjustPosY = vpt[5]; }
-                vpt[4] = adjustPosX + e.deltaX; vpt[5] = adjustPosY + e.deltaY;
-                canvas.setViewportTransform(vpt); canvas.requestRenderAll();
-            });
-        }
     </script>
 </body>
 </html>
