@@ -20,6 +20,13 @@ function canConnectNodes(railA, nodeAId, railB, nodeBId) {
 }
 
 function applyClusterSnapLogic(movedRail) {
+    // ★【検証用】呼び出し経路とスタックトレースの出力
+    const callerError = new Error();
+    const stack = callerError.stack ? callerError.stack.split('\n').slice(1, 4).join(' <- ') : 'unknown';
+    console.group(`[SNAP-TRACE] applyClusterSnapLogic 実行 (対象: ${movedRail?.customData?.instanceId || movedRail?.type})`);
+    console.log(`呼び出し経路:`, stack);
+    console.groupEnd();
+
     isFirstMoveFrame = true;
 
     const allRails = canvas.getObjects().filter(obj => obj.customData && obj.customData.isRail);
