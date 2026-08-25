@@ -59,12 +59,20 @@
             });
 
             sysSelect.value = currentSystemId;
-            sysSelect.addEventListener('change', (e) => {
+
+            sysSelect.addEventListener('change', async (e) => {
                 currentSystemId = e.target.value;
-                renderPartsPalette();
+                try {
+                    await loadSystemLibrary(currentSystemId);
+                    renderPartsPalette();
+                } catch (err) {
+                    console.error(err);
+                }
             });
 
-            renderPartsPalette();
+            loadSystemLibrary(currentSystemId).then(() => {
+                renderPartsPalette();
+            });
         }
 
         function setCategory(cat) {
@@ -153,10 +161,11 @@
         })();
     </script>
 
-    <script src="parts-catalog.js"></script>
+    <!-- 全件登録版(parts-catalog.js)を廃止し、定義のみのコアファイルに変更 -->
+    <script src="rail-catalog-core.js"></script>
     <script src="layout-engine.js"></script>
-    <script src="sample-data.js"></script>
     <script src="snap-manager.js"></script>
+    <script src="sample-data.js"></script>
 
     <style>
         body { margin: 0; padding: 10px; background-color: #f0f0f0; font-family: sans-serif; touch-action: none; }
