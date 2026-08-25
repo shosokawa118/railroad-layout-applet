@@ -1,8 +1,8 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 基本エンジン
-// バージョン: VER-AUTO-CONNECT-COMMON-U13
+// バージョン: VER-SNAP-TRANSFORM-U14
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-AUTO-CONNECT-COMMON-U13");
+console.log("基本エンジン（JS）が読み込まれました: VER-SNAP-TRANSFORM-U14");
 
 let globalJoints = [];
 let railCount = 0;
@@ -276,53 +276,83 @@ function findTargetNodeForAutoConnect(parentRail) {
 }
 
 /**
- * 共通処理: 全レールの空きノード同士で距離が近いものを自動で接続判定・ジョイント登録する
- * @param {fabric.Object} [targetRail] - 指定した場合はそのレールの周りだけチェック、未指定なら全チェック
- * @param {number} [threshold=15] - 接続とみなすノード間距離ピクセル
+ * ★共通スナップ移動回転・ジョイント自動接続ロジック
+ * 対象レールを近傍（snapDistance以内）の空きノードへ位置・角度をピッタリ吸着させて接続する
  */
-function checkAndConnectNearbyNodes(targetRail = null, threshold = 15) {
-    if (!canvas) return;
-    const rails = canvas.getObjects().filter(o => o && o.customData && o.customData.isRail);
-    const checkRails = targetRail ? [targetRail] : rails;
+function snapRailToNearbyNodes(targetRail, snapDistance = 25) {
+    if (!canvas || !targetRail || !targetRail.customData) return;
 
-    checkRails.forEach(railA => {
-        const railAId = railA.customData.instanceId;
-        const nodesA = getAbsoluteNodePos(railA);
+    const targetRailId = targetRail.customData.instanceId;
+    const catalog = railCatalog.items[targetRail.customData.partId];
+    if (!catalog || !catalog.nodes) return;
 
-        nodesA.forEach(nodeA => {
-            // 既にジョイントで埋まっているノードはスキップ
-            if (isNodeOccupied(railAId, nodeA.nodeId)) return;
+    const otherRails = canvas.getObjects().filter(o => 
+        o && o.customData && o.customData.isRail && o.customData.instanceId !== targetRailId
+    );
 
-            rails.forEach(railB => {
-                const railBId = railB.customData.instanceId;
-                if (railAId === railBId) return; // 自分自身はスキップ
+    if (otherRails.length === 0) return;
 
-                const nodesB = getAbsoluteNodePos(railB);
-                nodesB.forEach(nodeB => {
-                    if (isNodeOccupied(railBId, nodeB.nodeId)) return;
+    let targetNodes = getAbsoluteNodePos(targetRail);
 
-                    // 2ノード間の距離計算
-                    const dx = nodeA.x - nodeB.x;
-                    const dy = nodeA.y - nodeB.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
+    for (let tNode of targetNodes) {
+        if (isNodeOccupied(targetRailId, tNode.nodeId)) continue;
 
-                    if (dist <= threshold) {
-                        // 重なり検知：ジョイント追加
-                        globalJoints.push({
-                            railA: railAId,
-                            nodeA: nodeA.nodeId,
-                            railB: railBId,
-                            nodeB: nodeB.nodeId
-                        });
-                    }
-                });
-            });
-        });
-    });
+        for (let otherRail of otherRails) {
+            const otherRailId = otherRail.customData.instanceId;
+            const otherNodes = getAbsoluteNodePos(otherRail);
+
+            for (let oNode of otherNodes) {
+                if (isNodeOccupied(otherRailId, oNode.nodeId)) continue;
+
+                // 2つのノード間の距離を算出
+                const dx = tNode.x - oNode.x;
+                const dy = tNode.y - oNode.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist <= snapDistance) {
+                    // --- 1. レールの角度をスナップ回転 ---
+                    const targetLocalNode = catalog.nodes.find(n => n.id === tNode.nodeId);
+                    if (!targetLocalNode) continue;
+
+                    // 対向角度 (相手ノード角度 + 180 - 自ノードローカル角度)
+                    const snappedAngle = (oNode.angle + 180 - targetLocalNode.facingAngle + 360) % 360;
+                    targetRail.set({ angle: snappedAngle });
+
+                    // --- 2. レールの位置をスナップ移動 ---
+                    const cx = targetRail.customData.geoCenterX || 0;
+                    const cy = targetRail.customData.geoCenterY || 0;
+                    const lx = targetLocalNode.relX - cx;
+                    const ly = targetLocalNode.relY - cy;
+                    const rad = (snappedAngle * Math.PI) / 180;
+
+                    const snappedLeft = oNode.x - (lx * Math.cos(rad) - ly * Math.sin(rad));
+                    const snappedTop  = oNode.y - (lx * Math.sin(rad) + ly * Math.cos(rad));
+
+                    targetRail.set({
+                        left: snappedLeft,
+                        top: snappedTop
+                    });
+                    targetRail.setCoords();
+
+                    // --- 3. ジョイント配列への接続登録 ---
+                    globalJoints.push({
+                        railA: otherRailId,
+                        nodeA: oNode.nodeId,
+                        railB: targetRailId,
+                        nodeB: tNode.nodeId
+                    });
+
+                    // 1箇所接続されたら、更新された位置で再計算し他の近傍ノードも判定できるように最新化
+                    targetNodes = getAbsoluteNodePos(targetRail);
+                    break;
+                }
+            }
+        }
+    }
 }
 
 /**
- * 新パーツのノード0を親パーツの指定ノードへ位置・角度合わせ（配置のみ）
+ * 新パーツのノード0を親パーツの指定ノードへおおまかに配置（スナップ前段階）
  */
 function alignRailToParentNode(newRail, parentRail, parentNodeId) {
     const parentNodes = getAbsoluteNodePos(parentRail);
@@ -464,8 +494,8 @@ function addRailToCanvas(partId) {
         canvas.on('mouse:down', handleSelection);
     }
 
-    // ★共通処理の呼び出し: 新しく追加したレール周辺の全ノードに対して距離判定を行い自動接続
-    checkAndConnectNearbyNodes(railObject, 15);
+    // ★共通処理: 近傍ノードへのピタッとスナップ移動・回転および接続登録
+    snapRailToNearbyNodes(railObject, 25);
 
     // 追加した新レールを選択状態（Active）にして次回の親パーツにする
     canvas.setActiveObject(railObject);
@@ -601,8 +631,11 @@ function onGeneralTransform(target) {
         isFirstMoveFrame = false;
     }
     
-    // ドラッグ・回転終了時等にも近傍ノードの接続判定を行う
-    checkAndConnectNearbyNodes(target, 15);
+    // ★手動移動・回転時：単体レール移動の場合、スナップ処理を実行
+    if (target.customData && target.customData.isRail) {
+        snapRailToNearbyNodes(target, 25);
+    }
+
     updateJointIndicators();
 }
 
@@ -652,5 +685,5 @@ function loadDebugSampleLayout() {
     importLayoutData(INITIAL_SAMPLE_LAYOUT, true);
     canvas.setZoom(0.35);
     canvas.setViewportTransform([0.35, 0, 0, 0.35, 250, 100]);
-    console.log("[%s] サンプル小判型エンドレスを展開しました！", "VER-AUTO-CONNECT-COMMON-U13");
+    console.log("[%s] サンプル小判型エンドレスを展開しました！", "VER-SNAP-TRANSFORM-U14");
 }
