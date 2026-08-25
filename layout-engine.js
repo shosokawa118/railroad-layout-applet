@@ -285,6 +285,10 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
     newRail.setCoords();
 }
 
+// 検証用フラグ・変数
+let isDraggingRail = false;
+let mouseUpListenerRegistered = false; // 二重登録防止フラグ
+
 function addRailToCanvas(partId) {
     if (!canvas) return null;
 
@@ -367,18 +371,44 @@ function addRailToCanvas(partId) {
 
     canvas.add(railObject);
     
-    railObject.on('moving', function() { onGeneralTransform(this); });
-    railObject.on('rotating', function() { onGeneralTransform(this); });
+    // ドラッグ中のみフラグをONにする
+    railObject.on('moving', function() { 
+        isDraggingRail = true; 
+        onGeneralTransform(this); 
+    });
+    railObject.on('rotating', function() { 
+        isDraggingRail = true; 
+        onGeneralTransform(this); 
+    });
 
-    if (railCount === 1) {
-        canvas.on('object:moving', function(options) { if (options && options.target) onGeneralTransform(options.target); });
-        canvas.on('object:rotating', function(options) { if (options && options.target) onGeneralTransform(options.target); });
+    // リスナー登録は canvas 全体で「一生に1回」だけにする（railCountに依存させない）
+    if (!mouseUpListenerRegistered) {
+        mouseUpListenerRegistered = true;
+        console.log("[TRACE] mouse:up イベントリスナーを新規登録しました");
+
+        canvas.on('object:moving', function(options) { 
+            isDraggingRail = true;
+            if (options && options.target) onGeneralTransform(options.target); 
+        });
+        canvas.on('object:rotating', function(options) { 
+            isDraggingRail = true;
+            if (options && options.target) onGeneralTransform(options.target); 
+        });
         
-        // 手を離した瞬間にスナップマネージャーの applyClusterSnapLogic を1回呼び出す
-        canvas.on('mouse:up', function() {
-            const activeObj = canvas.getActiveObject();
-            if (activeObj && typeof applyClusterSnapLogic === 'function') {
-                applyClusterSnapLogic(activeObj);
+        canvas.on('mouse:up', function(e) {
+            console.log(`[TRACE] mouse:up 発火 (isDraggingRail: ${isDraggingRail})`);
+            
+            // ドラッグ操作が行われた場合のみスナップを実行
+            if (isDraggingRail) {
+                isDraggingRail = false; // フラグ初期化
+                const activeObj = canvas.getActiveObject();
+                if (activeObj && typeof applyClusterSnapLogic === 'function') {
+                    console.group("[TRACE-CALL] mouse:up から applyClusterSnapLogic を呼び出します");
+                    console.trace(); // 呼び出し経路を出力
+                    console.groupEnd();
+                    
+                    applyClusterSnapLogic(activeObj);
+                }
             }
         });
 
@@ -395,8 +425,12 @@ function addRailToCanvas(partId) {
         canvas.on('mouse:down', handleSelection);
     }
 
-    // パーツ追加時もスナップマネージャー経由で接続判定
+    // ★パーツ追加時のスナップ呼び出し（スタックトレース付き）
     if (typeof applyClusterSnapLogic === 'function') {
+        console.group("[TRACE-CALL] addRailToCanvas (パーツ追加時) から applyClusterSnapLogic を呼び出します");
+        console.trace();
+        console.groupEnd();
+        
         applyClusterSnapLogic(railObject);
     }
 
