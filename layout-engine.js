@@ -1,8 +1,9 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 基本エンジン
-// バージョン: VER-LAYOUT-AUTOCONNECT-E22-REFACTORED
+// バージョン: VER-LAYOUT-AUTOCONNECT-E24
+// (サンプル読み込み安全ガード＆ログ強化版)
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-LAYOUT-AUTOCONNECT-E22-REFACTORED");
+console.log("基本エンジン（JS）が読み込まれました: VER-LAYOUT-AUTOCONNECT-E24");
 
 let lastCanvasClickPos = null;
 let isDraggingRail = false;
@@ -175,11 +176,14 @@ function registerGlobalCanvasEvents() {
     canvas.on('selection:updated', handleSelection);
 }
 
-function addRailToCanvas(partId) {
+function addRailToCanvas(partId, options = {}) {
     if (!canvas) return null;
 
     const catalogItem = railCatalog.items[partId];
-    if (!catalogItem) return null;
+    if (!catalogItem) {
+        console.warn(`[VER-LAYOUT-AUTOCONNECT-E24] 存在しないpartIdです: ${partId}`);
+        return null;
+    }
 
     const currentId = `rail-${railCount++}`;
     const geoData = generateGenericRailData(catalogItem);
@@ -201,18 +205,20 @@ function addRailToCanvas(partId) {
         geoCenterY: geoData.centerY
     };
 
-    const activeObj = canvas.getActiveObject();
-    const parentRail = (activeObj && activeObj.customData && activeObj.customData.isRail) ? activeObj : null;
-    const targetNodeId = parentRail ? findTargetNodeForAutoConnect(parentRail) : null;
+    if (!options.skipAutoConnect) {
+        const activeObj = canvas.getActiveObject();
+        const parentRail = (activeObj && activeObj.customData && activeObj.customData.isRail) ? activeObj : null;
+        const targetNodeId = parentRail ? findTargetNodeForAutoConnect(parentRail) : null;
 
-    if (parentRail && targetNodeId !== null) {
-        alignRailToParentNode(railObject, parentRail, targetNodeId);
-    } else if (lastCanvasClickPos) {
-        railObject.set({ left: lastCanvasClickPos.x, top: lastCanvasClickPos.y, angle: 0 });
-        railObject.setCoords();
-    } else {
-        railObject.set({ left: 250 + (railCount % 5) * 25, top: 450 + (railCount % 5) * 25, angle: 0 });
-        railObject.setCoords();
+        if (parentRail && targetNodeId !== null) {
+            alignRailToParentNode(railObject, parentRail, targetNodeId);
+        } else if (lastCanvasClickPos) {
+            railObject.set({ left: lastCanvasClickPos.x, top: lastCanvasClickPos.y, angle: 0 });
+            railObject.setCoords();
+        } else {
+            railObject.set({ left: 250 + (railCount % 5) * 25, top: 450 + (railCount % 5) * 25, angle: 0 });
+            railObject.setCoords();
+        }
     }
 
     canvas.add(railObject);
@@ -221,7 +227,10 @@ function addRailToCanvas(partId) {
     railObject.on('rotating', function() { isDraggingRail = true; onGeneralTransform(this); });
 
     registerGlobalCanvasEvents();
-    canvas.setActiveObject(railObject);
+
+    if (!options.skipSelect) {
+        canvas.setActiveObject(railObject);
+    }
 
     updateJointIndicators();
     canvas.calcOffset();
@@ -258,7 +267,12 @@ function deleteSelectedRails() {
 }
 
 function importLayoutData(layoutData, isOverwrite = true) {
-    if (!canvas || !layoutData || !Array.isArray(layoutData.rails)) {
+    if (!canvas) {
+        console.error("[VER-LAYOUT-AUTOCONNECT-E24] canvasが初期化されていません。");
+        return;
+    }
+    if (!layoutData || !Array.isArray(layoutData.rails)) {
+        console.error("[VER-LAYOUT-AUTOCONNECT-E24] 読み込みデータの形式が不正です:", layoutData);
         alert("無効なJSONフォーマットです。");
         return;
     }
@@ -271,10 +285,9 @@ function importLayoutData(layoutData, isOverwrite = true) {
 
     const createdObjects = [];
 
-    // 1. レールを配置順に追加（インデックス順）
     layoutData.rails.forEach(r => {
         if (!r || !r.partId) return;
-        const newObj = addRailToCanvas(r.partId);
+        const newObj = addRailToCanvas(r.partId, { skipAutoConnect: true, skipSelect: true });
         if (newObj) {
             newObj.set({ left: r.x, top: r.y, angle: r.angle });
             newObj.setCoords();
@@ -282,7 +295,6 @@ function importLayoutData(layoutData, isOverwrite = true) {
         }
     });
 
-    // 2. 案3（配列インデックス）または旧仕様（ID参照）のいずれでもジョイント復元
     if (Array.isArray(layoutData.joints)) {
         layoutData.joints.forEach(j => {
             if (!j) return;
@@ -296,6 +308,7 @@ function importLayoutData(layoutData, isOverwrite = true) {
         });
     }
 
+    canvas.discardActiveObject();
     updateJointIndicators();
     canvas.requestRenderAll();
 }
@@ -334,4 +347,17 @@ function updateJointIndicators() {
             canvas.bringToFront(dot);
         });
     });
+}
+
+function loadDebugSampleLayout() {
+    console.log("[VER-LAYOUT-AUTOCONNECT-E24] loadDebugSampleLayout 呼び出し");
+    if (typeof INITIAL_SAMPLE_LAYOUT === 'undefined') {
+        console.error("[VER-LAYOUT-AUTOCONNECT-E24] INITIAL_SAMPLE_LAYOUT が未定義です。定義ファイルが読み込まれているか確認してください。");
+        return;
+    }
+    importLayoutData(INITIAL_SAMPLE_LAYOUT, true);
+    if (canvas) {
+        canvas.setZoom(0.35);
+        canvas.setViewportTransform([0.35, 0, 0, 0.35, 250, 100]);
+    }
 }
