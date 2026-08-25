@@ -73,26 +73,49 @@ function generateGenericRailData(catalogItem) {
         }
         // --- 2. 直線（Line） ---
         else if (shape.type === "line") {
-            const x1 = (shape.offsetX || 0) - shape.length / 2;
-            const x2 = (shape.offsetX || 0) + shape.length / 2;
-            const y1 = (shape.offsetY || 0) - halfW;
-            const y2 = (shape.offsetY || 0) + halfW;
-            
+            const len = shape.length;
+            const shapeAngle = shape.angle || 0;
+            const rad = (shapeAngle * Math.PI) / 180;
+            const cos = Math.cos(rad);
+            const sin = Math.sin(rad);
+
+            const offX = shape.offsetX || 0;
+            const offY = shape.offsetY || 0;
+
+            // ローカル座標（回転前）
+            const x1_loc = -len / 2, y1_loc = -halfW;
+            const x2_loc =  len / 2, y2_loc = -halfW;
+            const x3_loc =  len / 2, y3_loc =  halfW;
+            const x4_loc = -len / 2, y4_loc =  halfW;
+
+            // 回転・オフセット適用関数
+            const trans = (lx, ly) => ({
+                x: offX + (lx * cos - ly * sin),
+                y: offY + (lx * sin + ly * cos)
+            });
+
+            const p1 = trans(x1_loc, y1_loc);
+            const p2 = trans(x2_loc, y2_loc);
+            const p3 = trans(x3_loc, y3_loc);
+            const p4 = trans(x4_loc, y4_loc);
+
             // 道床（面）
-            basePaths.push(`M ${x1} ${y1} L ${x2} ${y1} L ${x2} ${y2} L ${x1} ${y2} Z`);
+            basePaths.push(`M ${p1.x} ${p1.y} L ${p2.x} ${p2.y} L ${p3.x} ${p3.y} L ${p4.x} ${p4.y} Z`);
             
-            updateBounds(x1, y1); updateBounds(x2, y1);
-            updateBounds(x2, y2); updateBounds(x1, y2);
+            updateBounds(p1.x, p1.y); updateBounds(p2.x, p2.y);
+            updateBounds(p3.x, p3.y); updateBounds(p4.x, p4.y);
 
             // 動的レール（線）
             if (shouldRenderRails) {
-                const centerY = shape.offsetY || 0;
-                const railY1 = centerY - halfGauge;
-                const railY2 = centerY + halfGauge;
-                railPaths.push(`M ${x1} ${railY1} L ${x2} ${railY1}`);
-                railPaths.push(`M ${x1} ${railY2} L ${x2} ${railY2}`);
+                const r1_start = trans(-len / 2, -halfGauge);
+                const r1_end   = trans( len / 2, -halfGauge);
+                const r2_start = trans(-len / 2,  halfGauge);
+                const r2_end   = trans( len / 2,  halfGauge);
+
+                railPaths.push(`M ${r1_start.x} ${r1_start.y} L ${r1_end.x} ${r1_end.y}`);
+                railPaths.push(`M ${r2_start.x} ${r2_start.y} L ${r2_end.x} ${r2_end.y}`);
             }
-        } 
+        }
         // --- 3. 曲線（Arc） ---
         else if (shape.type === "arc") {
             const r = shape.radius;
