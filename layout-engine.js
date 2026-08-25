@@ -1,9 +1,9 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 基本エンジン
-// バージョン: VER-LAYOUT-AUTOCONNECT-E26
-// (読込時エラー・不整合ログ出力＆ノンストップ処理版)
+// バージョン: VER-LAYOUT-AUTOCONNECT-E27
+// (システムライブラリ自動事前ロード＆JSON出力/読込対応版)
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-LAYOUT-AUTOCONNECT-E26");
+console.log("基本エンジン（JS）が読み込まれました: VER-LAYOUT-AUTOCONNECT-E27");
 
 let lastCanvasClickPos = null;
 let isDraggingRail = false;
@@ -16,7 +16,10 @@ const loadingPromises = {};
 function loadSystemLibrary(systemId) {
     if (!railCatalog || !railCatalog.systems) return Promise.reject("railCatalogが定義されていません");
     const system = railCatalog.systems[systemId];
-    if (!system) return Promise.reject(`未定義のシステムIDです: ${systemId}`);
+    if (!system) {
+        console.warn(`[VER-LAYOUT-AUTOCONNECT-E27] 未定義のシステムIDです: ${systemId}`);
+        return Promise.resolve(); // 処理を止めずに続行
+    }
 
     const fileName = system.libraryFile;
     if (!fileName || loadedLibraries.has(fileName)) return Promise.resolve();
@@ -30,12 +33,14 @@ function loadSystemLibrary(systemId) {
         script.onload = () => {
             loadedLibraries.add(fileName);
             delete loadingPromises[fileName];
+            console.log(`[VER-LAYOUT-AUTOCONNECT-E27] ライブラリロード完了: ${fileName}`);
             resolve();
         };
 
         script.onerror = () => {
             delete loadingPromises[fileName];
-            reject(new Error(`読み込み失敗: ${fileName}`));
+            console.error(`[VER-LAYOUT-AUTOCONNECT-E27] ライブラリ読み込み失敗: ${fileName}`);
+            resolve(); // エラー出力の上で展開は続行するためresolve
         };
 
         document.head.appendChild(script);
@@ -181,7 +186,7 @@ function addRailToCanvas(partId, options = {}) {
 
     const catalogItem = railCatalog.items[partId];
     if (!catalogItem) {
-        console.error(`[VER-LAYOUT-AUTOCONNECT-E26] 該当パーツが見つかりません (partId: "${partId}")`);
+        console.error(`[VER-LAYOUT-AUTOCONNECT-E27] 該当パーツが見つかりません (partId: "${partId}")`);
         return null;
     }
 
@@ -266,11 +271,57 @@ function deleteSelectedRails() {
     canvas.requestRenderAll();
 }
 
-function importLayoutData(layoutData, isOverwrite = true) {
+// --- JSON出力（システム情報付き） ---
+function exportLayoutData() {
+    if (!canvas) return null;
+
+    const rails = canvas.getObjects().filter(obj => obj && obj.customData && obj.customData.isRail);
+    const systemSet = new Set();
+    const railList = [];
+
+    rails.forEach((rail, index) => {
+        const partId = rail.customData.partId;
+        const catalogItem = railCatalog.items[partId];
+
+        if (catalogItem && catalogItem.system) {
+            systemSet.add(catalogItem.system);
+        }
+
+        railList.push({
+            instanceId: rail.customData.instanceId,
+            partId: partId,
+            x: Math.round(rail.left * 100) / 100,
+            y: Math.round(rail.top * 100) / 100,
+            angle: Math.round(rail.angle * 100) / 100
+        });
+    });
+
+    return {
+        version: "VER-LAYOUT-AUTOCONNECT-E27",
+        systems: Array.from(systemSet),
+        rails: railList,
+        joints: globalJoints.map(j => ({
+            railA: j.railA,
+            nodeA: j.nodeA,
+            railB: j.railB,
+            nodeB: j.nodeB
+        }))
+    };
+}
+
+// --- JSON読込（ライブラリ事前ロード対応） ---
+async function importLayoutData(layoutData, isOverwrite = true) {
     if (!canvas) return;
     if (!layoutData || !Array.isArray(layoutData.rails)) {
-        console.error("[VER-LAYOUT-AUTOCONNECT-E26] 読み込みデータのフォーマットが不正です。", layoutData);
+        console.error("[VER-LAYOUT-AUTOCONNECT-E27] 読み込みデータのフォーマットが不正です。", layoutData);
         return;
+    }
+
+    // 1. 必要システムの事前ロード
+    if (Array.isArray(layoutData.systems) && layoutData.systems.length > 0) {
+        console.log(`[VER-LAYOUT-AUTOCONNECT-E27] 必要ライブラリの事前読み込み中:`, layoutData.systems);
+        const loadTasks = layoutData.systems.map(sysId => loadSystemLibrary(sysId));
+        await Promise.all(loadTasks);
     }
 
     if (isOverwrite) {
@@ -283,10 +334,10 @@ function importLayoutData(layoutData, isOverwrite = true) {
     const idToInstanceMap = {};
     const instanceMap = {};
 
-    // 1. レールオブジェクトの生成と配置
+    // 2. レールオブジェクトの生成と配置
     layoutData.rails.forEach((r, idx) => {
         if (!r || !r.partId) {
-            console.warn(`[VER-LAYOUT-AUTOCONNECT-E26] レール定義不備 (Index: ${idx})`);
+            console.warn(`[VER-LAYOUT-AUTOCONNECT-E27] レール定義不備 (Index: ${idx})`);
             return;
         }
         
@@ -305,7 +356,7 @@ function importLayoutData(layoutData, isOverwrite = true) {
         }
     });
 
-    // 2. ジョイント（接続関係）の検証と復元
+    // 3. ジョイント（接続関係）の検証と復元
     if (Array.isArray(layoutData.joints)) {
         layoutData.joints.forEach((j, idx) => {
             if (!j) return;
@@ -328,13 +379,11 @@ function importLayoutData(layoutData, isOverwrite = true) {
             const railObjA = instanceMap[railAId];
             const railObjB = instanceMap[railBId];
 
-            // レール存在チェック
             if (!railObjA || !railObjB) {
-                console.warn(`[VER-LAYOUT-AUTOCONNECT-E26] ジョイント接続対象のレールが見つかりません (Joint Index: ${idx}, railA: "${j.railA}", railB: "${j.railB}")`);
+                console.warn(`[VER-LAYOUT-AUTOCONNECT-E27] ジョイント接続対象のレールが見つかりません (Joint Index: ${idx}, railA: "${j.railA}", railB: "${j.railB}")`);
                 return;
             }
 
-            // ノード座標取得と検証
             const absoluteNodesA = getAbsoluteNodePos(railObjA);
             const absoluteNodesB = getAbsoluteNodePos(railObjB);
 
@@ -342,16 +391,15 @@ function importLayoutData(layoutData, isOverwrite = true) {
             const nodeBData = absoluteNodesB.find(n => n.nodeId === j.nodeB);
 
             if (!nodeAData || !nodeBData) {
-                console.warn(`[VER-LAYOUT-AUTOCONNECT-E26] ジョイント接続対象のノードが存在しません (Joint Index: ${idx}, nodeA: ${j.nodeA}, nodeB: ${j.nodeB})`);
+                console.warn(`[VER-LAYOUT-AUTOCONNECT-E27] ジョイント接続対象のノードが存在しません (Joint Index: ${idx}, nodeA: ${j.nodeA}, nodeB: ${j.nodeB})`);
                 return;
             }
 
-            // ノード距離チェック (離れすぎている場合)
             const dist = Math.sqrt(Math.pow(nodeAData.x - nodeBData.x, 2) + Math.pow(nodeAData.y - nodeBData.y, 2));
-            const maxAllowedDist = 8; // 許容限界ピクセル
+            const maxAllowedDist = 8;
 
             if (dist > maxAllowedDist) {
-                console.warn(`[VER-LAYOUT-AUTOCONNECT-E26] ジョイント接続対象が離れすぎています (Joint Index: ${idx}, 距離: ${dist.toFixed(2)}px > 許容: ${maxAllowedDist}px)`);
+                console.warn(`[VER-LAYOUT-AUTOCONNECT-E27] ジョイント接続対象が離れすぎています (Joint Index: ${idx}, 距離: ${dist.toFixed(2)}px > 許容: ${maxAllowedDist}px)`);
                 return;
             }
 
@@ -359,7 +407,7 @@ function importLayoutData(layoutData, isOverwrite = true) {
         });
     }
 
-    // 3. 選択解除と再描画
+    // 4. 選択解除と再描画
     canvas.discardActiveObject();
     updateJointIndicators();
     canvas.requestRenderAll();
@@ -401,12 +449,12 @@ function updateJointIndicators() {
     });
 }
 
-function loadDebugSampleLayout() {
+async function loadDebugSampleLayout() {
     if (typeof INITIAL_SAMPLE_LAYOUT === 'undefined') {
-        console.error("[VER-LAYOUT-AUTOCONNECT-E26] INITIAL_SAMPLE_LAYOUT が読み込まれていません。");
+        console.error("[VER-LAYOUT-AUTOCONNECT-E27] INITIAL_SAMPLE_LAYOUT が読み込まれていません。");
         return;
     }
-    importLayoutData(INITIAL_SAMPLE_LAYOUT, true);
+    await importLayoutData(INITIAL_SAMPLE_LAYOUT, true);
     if (canvas) {
         canvas.setZoom(0.35);
         canvas.setViewportTransform([0.35, 0, 0, 0.35, 250, 100]);
