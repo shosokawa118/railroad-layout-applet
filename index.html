@@ -61,7 +61,7 @@
     <canvas id="layoutCanvas" width="800" height="600"></canvas>
 
     <script>
-        const CODE_VERSION = "VER-PALETTE-UI-M9";
+        const CODE_VERSION = "VER-AUTO-CONNECT-AC1";
         console.log("=========================================");
         console.log("ビュー（HTML）バージョン:", CODE_VERSION);
         console.log("=========================================");
@@ -72,6 +72,14 @@
 
         function initCameraControls() {
             if (!canvas) return;
+            
+            // キャンバス上の最後のエレメント非選択クリック座標を記憶（オートコネクト非適用時のフォールバック位置）
+            canvas.on('mouse:down', function(opt) {
+                if (opt.pointer && !opt.target) {
+                    lastCanvasClickPos = { x: opt.pointer.x, y: opt.pointer.y };
+                }
+            });
+
             canvas.on('mouse:wheel', function(opt) {
                 if (!opt || !opt.e) return;
                 let delta = opt.e.deltaY; let zoom = canvas.getZoom(); zoom *= 0.999 ** delta;
