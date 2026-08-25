@@ -188,13 +188,17 @@ function generateGenericRailData(catalogItem) {
             const y4 = cY + rIn  * Math.sin(startRad);
 
             const largeArcFlag = Math.abs(arcAngle) >= 180 ? 1 : 0;
+            
+            // ★【修正ポイント】sweep-flag の向きを正しく修正
             const sweepOut = arcAngle >= 0 ? 1 : 0;
-            const sweepIn  = arcAngle >= 0 ? 0 : 1;
+            const sweepIn  = arcAngle >= 0 ? 1 : 0; // 反転させず同じ向き（1/0）にする
 
-            basePaths.push(`M ${x1} ${y1} A ${rOut} ${rOut} 0 ${largeArcFlag} ${sweepOut} ${x2} ${y2} L ${x3} ${y3} A ${rIn} ${rIn} 0 ${largeArcFlag} ${sweepIn} ${x4} ${y4} Z`);
+            // 道床ポリゴン（外側の弧を通って内側の弧で戻る）
+            // ★【修正ポイント】内側の弧に戻る時は sweep-flag を反転させるため (1 - sweepIn) に変更
+            basePaths.push(`M ${x1} ${y1} A ${rOut} ${rOut} 0 ${largeArcFlag} ${sweepOut} ${x2} ${y2} L ${x3} ${y3} A ${rIn} ${rIn} 0 ${largeArcFlag} ${1 - sweepIn} ${x4} ${y4} Z`);
             
             updateBounds(x1, y1); updateBounds(x2, y2);
-            updateBounds(x3, y3); updateBounds(x4, y4);
+            updateBounds(x3, y3); updateBounds(y4, y4);
 
             const ccwDistance = (fromDeg, toDeg) => ((toDeg - fromDeg) % 360 + 360) % 360;
             [0, 90, 180, 270].forEach(cardinal => {
@@ -220,8 +224,9 @@ function generateGenericRailData(catalogItem) {
                 const rx4 = cX + rRailIn * Math.cos(endRad);
                 const ry4 = cY + rRailIn * Math.sin(endRad);
 
+                // ★【修正ポイント】2本のレールとも始点から終点へ同じ向き(sweepOut)で円弧を描く
                 railPaths.push(`M ${rx1} ${ry1} A ${rRailOut} ${rRailOut} 0 ${largeArcFlag} ${sweepOut} ${rx2} ${ry2}`);
-                railPaths.push(`M ${rx3} ${ry3} A ${rRailIn} ${rRailIn} 0 ${largeArcFlag} ${sweepIn} ${rx4} ${ry4}`);
+                railPaths.push(`M ${rx3} ${ry3} A ${rRailIn} ${rRailIn} 0 ${largeArcFlag} ${sweepOut} ${rx4} ${ry4}`);
             }
         }
     });
