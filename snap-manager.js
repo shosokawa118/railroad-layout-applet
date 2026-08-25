@@ -1,8 +1,8 @@
 // =============================================================
-// 鉄道模型レイアウトジェネレータ - スナップ＆多重結合マネージャー (jointId撤去・軽量化版)
-// バージョン: VER-CLEAN-JOINTS-J5
+// 鉄道模型レイアウトジェネレータ - スナップ＆多重結合マネージャー
+// バージョン: VER-SINGLE-ORIGIN-SNAP-S6
 // =============================================================
-console.log("スナップマネージャー（JS）が読み込まれました: VER-CLEAN-JOINTS-J5");
+console.log("スナップマネージャー（JS）が読み込まれました: VER-SINGLE-ORIGIN-SNAP-S6");
 
 function canConnectNodes(railA, nodeAId, railB, nodeBId) {
     const itemA = railCatalog.items[railA.customData.partId];
@@ -33,6 +33,7 @@ function applyClusterSnapLogic(movedRail) {
     let bestSnap = null;
     let minDistance = SNAP_THRESHOLD;
 
+    // 1. 最も近い「最初のスナップ候補（1箇所目）」を探索
     movedRails.forEach(mRail => {
         const mId = mRail.customData.instanceId;
         const mNodes = getAbsoluteNodePos(mRail);
@@ -64,8 +65,9 @@ function applyClusterSnapLogic(movedRail) {
         });
     });
 
+    // 2. 1箇所目の吸着（位置合わせ・回転）を実行
     if (bestSnap) {
-        console.log("[VER-CLEAN-JOINTS-J5] スナップを検知。グループ一体スナップを実行します。");
+        console.log("[VER-SINGLE-ORIGIN-SNAP-S6] 1箇所目の原点スナップを実行します。");
 
         const mRail = bestSnap.movedRail;
         const mCatalogNode = railCatalog.items[mRail.customData.partId].nodes[bestSnap.mNode.nodeId];
@@ -106,14 +108,14 @@ function applyClusterSnapLogic(movedRail) {
             mRail.set({ left: newLeft, top: newTop, angle: targetRailAngle });
             mRail.setCoords();
         }
-        canvas.requestRenderAll();
 
-        // ★ jointId を除外したシンプル形式で追加
+        // 1箇所目の接続登録
         globalJoints.push({
             railA: mRail.customData.instanceId, nodeA: bestSnap.mNode.nodeId,
             railB: bestSnap.targetRail.customData.instanceId, nodeB: bestSnap.oNode.nodeId
         });
 
+        // 3. 移動・回転を行わず、位置が重なった（届いた）他ノードをそのまま多重ロック
         const postAllRails = canvas.getObjects().filter(obj => obj.customData && obj.customData.isRail);
         
         movedRails.forEach(rRail => {
@@ -135,12 +137,12 @@ function applyClusterSnapLogic(movedRail) {
                         if (!canConnectNodes(rRail, mN.nodeId, oRail, oN.nodeId)) return;
 
                         const dist = Math.sqrt(Math.pow(mN.x - oN.x, 2) + Math.pow(mN.y - oN.y, 2));
-                        if (dist < 6) {
+                        if (dist < 8) {
                             globalJoints.push({
                                 railA: rId, nodeA: mN.nodeId,
                                 railB: oId, nodeB: oN.nodeId
                             });
-                            console.log("[VER-CLEAN-JOINTS-J5] 🎉 自動連動ロック成立！ 端点ID:", rId, "->", oId);
+                            console.log("[VER-SINGLE-ORIGIN-SNAP-S6] 同位置多重ロック成立:", rId, "->", oId);
                         }
                     });
                 });
@@ -167,21 +169,18 @@ function exportLayoutJSON() {
     });
 
     const completeSaveData = {
-        version: "VER-CLEAN-JOINTS-J5",
+        version: "VER-SINGLE-ORIGIN-SNAP-S6",
         rails: railsData,
         joints: globalJoints
     };
 
     const jsonString = JSON.stringify(completeSaveData, null, 2);
-
-    console.log("[VER-CLEAN-JOINTS-J5] ======= 総合セーブデータ(JSON) =======");
-    console.log(jsonString);
+    console.log("[VER-SINGLE-ORIGIN-SNAP-S6] セーブデータ(JSON):", jsonString);
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(jsonString).then(() => {
             alert("レイアウトデータ(JSON)をクリップボードにコピーしました！");
         }).catch(err => {
-            console.warn("クリップボード書き込み失敗。コンソール出力のみ行いました。", err);
             alert("コンソール(F12)にJSONを出力しました！");
         });
     } else {
