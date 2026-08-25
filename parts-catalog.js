@@ -144,6 +144,9 @@ const railCatalog = {
                 { "id": 1, "name": "TOMIX端", "relX":  31.0, "relY": 0, "facingAngle": 0,   "connectorType": "tomix-clapper" }
             ],
             shapes: [
+                // ベース直線レール（これで動的レール2本が自動生成されます）
+                { "type": "line", "length": 62, "offsetX": 0, "offsetY": 0 },
+                // TOMIX側ジョイント部分の凸凹道床ポリゴン
                 {
                     "type": "polygon",
                     "points": [
@@ -538,22 +541,12 @@ const railCatalog = {
                 { "id": 7, "name": "南-外軌", "relX": -12.5, "relY":  31, "facingAngle": 90 }
             ],
             shapes: [
-                { "type": "line", "length": 62, "offsetX": 0, "offsetY": -12.5 },
-                { "type": "line", "length": 62, "offsetX": 0, "offsetY":  12.5 },
-                {
-                    "type": "polygon",
-                    "points": [
-                        { "x": -12.5, "y": -31 }, { "x": -10.5, "y": -31 },
-                        { "x": -10.5, "y":  31 }, { "x": -12.5, "y":  31 }
-                    ]
-                },
-                {
-                    "type": "polygon",
-                    "points": [
-                        { "x": 10.5, "y": -31 }, { "x": 12.5, "y": -31 },
-                        { "x": 12.5, "y":  31 }, { "x": 10.5, "y":  31 }
-                    ]
-                }
+                // 横方向 2本
+                { "type": "line", "length": 62, "offsetX": 0, "offsetY": -12.5, "angle": 0 },
+                { "type": "line", "length": 62, "offsetX": 0, "offsetY":  12.5, "angle": 0 },
+                // 縦方向 2本（90度回転させることで計4本の動的レールを生成）
+                { "type": "line", "length": 62, "offsetX": -12.5, "offsetY": 0, "angle": 90 },
+                { "type": "line", "length": 62, "offsetX":  12.5, "offsetY": 0, "angle": 90 }
             ]
         },
 
