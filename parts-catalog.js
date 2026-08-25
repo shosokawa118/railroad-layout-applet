@@ -519,7 +519,7 @@ const railCatalog = {
         // --- 複線十字軌道 62mm ---
         "KATO-UNITRAM-CROSS-62D": {
             systemId: "KATO-UNITRAM-N",
-            category: "special",
+            category: "turnout",
             name: "複線十字軌道 62mm",
             description: "62mm×62mm 複線十字交差点軌道",
             nodes: [
