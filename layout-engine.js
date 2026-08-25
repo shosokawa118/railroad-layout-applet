@@ -1,8 +1,9 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 基本エンジン
-// バージョン: VER-SNAP-TRANSFORM-U14
+// バージョン: VER-SNAP-MANAGER-INTEGRATED-U16
+// (スナップマネージャー VER-CLEAN-JOINTS-J5 完全連携版)
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-SNAP-TRANSFORM-U14");
+console.log("基本エンジン（JS）が読み込まれました: VER-SNAP-MANAGER-INTEGRATED-U16");
 
 let globalJoints = [];
 let railCount = 0;
@@ -97,7 +98,6 @@ function generateGenericRailData(catalogItem) {
     const BALLAST_WIDTH = sys ? sys.ballastWidth : 16;
     const halfW = BALLAST_WIDTH / 2;
 
-    // --- システム & トラックタイプの判定 ---
     const trackType = (catalogItem && catalogItem.trackType) || (sys && sys.trackType) || 'standard';
     const gauge = sys ? sys.gauge : null;
     const shouldRenderRails = (trackType === 'standard') && (typeof gauge === 'number' && gauge > 0);
@@ -115,7 +115,6 @@ function generateGenericRailData(catalogItem) {
     }
 
     catalogItem.shapes.forEach(shape => {
-        // --- 1. 多角形（Polygon） ---
         if (shape.type === "polygon" && Array.isArray(shape.points) && shape.points.length > 0) {
             let polyPath = "";
             shape.points.forEach((pt, idx) => {
@@ -125,7 +124,6 @@ function generateGenericRailData(catalogItem) {
             polyPath += " Z";
             basePaths.push(polyPath);
         }
-        // --- 2. 直線（Line） ---
         else if (shape.type === "line") {
             const len = shape.length;
             const shapeAngle = shape.angle || 0;
@@ -136,13 +134,11 @@ function generateGenericRailData(catalogItem) {
             const offX = shape.offsetX || 0;
             const offY = shape.offsetY || 0;
 
-            // ローカル座標（回転前）
             const x1_loc = -len / 2, y1_loc = -halfW;
             const x2_loc =  len / 2, y2_loc = -halfW;
             const x3_loc =  len / 2, y3_loc =  halfW;
             const x4_loc = -len / 2, y4_loc =  halfW;
 
-            // 回転・オフセット適用関数
             const trans = (lx, ly) => ({
                 x: offX + (lx * cos - ly * sin),
                 y: offY + (lx * sin + ly * cos)
@@ -153,13 +149,11 @@ function generateGenericRailData(catalogItem) {
             const p3 = trans(x3_loc, y3_loc);
             const p4 = trans(x4_loc, y4_loc);
 
-            // 道床（面）
             basePaths.push(`M ${p1.x} ${p1.y} L ${p2.x} ${p2.y} L ${p3.x} ${p3.y} L ${p4.x} ${p4.y} Z`);
             
             updateBounds(p1.x, p1.y); updateBounds(p2.x, p2.y);
             updateBounds(p3.x, p3.y); updateBounds(p4.x, p4.y);
 
-            // 動的レール（線）
             if (shouldRenderRails) {
                 const r1_start = trans(-len / 2, -halfGauge);
                 const r1_end   = trans( len / 2, -halfGauge);
@@ -170,7 +164,6 @@ function generateGenericRailData(catalogItem) {
                 railPaths.push(`M ${r2_start.x} ${r2_start.y} L ${r2_end.x} ${r2_end.y}`);
             }
         }
-        // --- 3. 曲線（Arc） ---
         else if (shape.type === "arc") {
             const r = shape.radius;
             const rOut = r + halfW;
@@ -198,7 +191,6 @@ function generateGenericRailData(catalogItem) {
             const sweepOut = arcAngle >= 0 ? 1 : 0;
             const sweepIn  = arcAngle >= 0 ? 0 : 1;
 
-            // 道床（面）
             basePaths.push(`M ${x1} ${y1} A ${rOut} ${rOut} 0 ${largeArcFlag} ${sweepOut} ${x2} ${y2} L ${x3} ${y3} A ${rIn} ${rIn} 0 ${largeArcFlag} ${sweepIn} ${x4} ${y4} Z`);
             
             updateBounds(x1, y1); updateBounds(x2, y2);
@@ -214,7 +206,6 @@ function generateGenericRailData(catalogItem) {
                 }
             });
 
-            // 動的レール（線）
             if (shouldRenderRails) {
                 const rRailIn = r - halfGauge;
                 const rRailOut = r + halfGauge;
@@ -230,12 +221,11 @@ function generateGenericRailData(catalogItem) {
                 const ry4 = cY + rRailIn * Math.sin(endRad);
 
                 railPaths.push(`M ${rx1} ${ry1} A ${rRailOut} ${rRailOut} 0 ${largeArcFlag} ${sweepOut} ${rx2} ${ry2}`);
-                railPaths.push(`M ${rx3} ${ry3} A ${rRailIn} ${rRailIn} 0 ${largeArcFlag} ${sweepOut} ${rx4} ${ry4}`);
+                railPaths.push(`M ${rx3} ${ry3} A ${rRailIn} ${rRailIn} 0 ${largeArcFlag} ${sweepIn} ${rx4} ${ry4}`);
             }
         }
     });
 
-    // BoundingBoxの幾何学中心を計算
     const geoCenterX = (minX !== Infinity && maxX !== -Infinity) ? minX + (maxX - minX) / 2 : 0;
     const geoCenterY = (minY !== Infinity && maxY !== -Infinity) ? minY + (maxY - minY) / 2 : 0;
 
@@ -247,9 +237,6 @@ function generateGenericRailData(catalogItem) {
     };
 }
 
-/**
- * 空きノード検索ロジック (ノード1 -> 2 -> ... -> 0 の順で探索)
- */
 function findTargetNodeForAutoConnect(parentRail) {
     if (!parentRail || !parentRail.customData) return null;
     const catalog = railCatalog.items[parentRail.customData.partId];
@@ -258,7 +245,6 @@ function findTargetNodeForAutoConnect(parentRail) {
     const nodes = catalog.nodes;
     const nodeCount = nodes.length;
     
-    // 探索順序: 1, 2, ..., nodeCount-1, 0
     const searchOrder = [];
     for (let i = 1; i < nodeCount; i++) {
         searchOrder.push(nodes[i].id);
@@ -275,85 +261,6 @@ function findTargetNodeForAutoConnect(parentRail) {
     return null;
 }
 
-/**
- * ★共通スナップ移動回転・ジョイント自動接続ロジック
- * 対象レールを近傍（snapDistance以内）の空きノードへ位置・角度をピッタリ吸着させて接続する
- */
-function snapRailToNearbyNodes(targetRail, snapDistance = 25) {
-    if (!canvas || !targetRail || !targetRail.customData) return;
-
-    const targetRailId = targetRail.customData.instanceId;
-    const catalog = railCatalog.items[targetRail.customData.partId];
-    if (!catalog || !catalog.nodes) return;
-
-    const otherRails = canvas.getObjects().filter(o => 
-        o && o.customData && o.customData.isRail && o.customData.instanceId !== targetRailId
-    );
-
-    if (otherRails.length === 0) return;
-
-    let targetNodes = getAbsoluteNodePos(targetRail);
-
-    for (let tNode of targetNodes) {
-        if (isNodeOccupied(targetRailId, tNode.nodeId)) continue;
-
-        for (let otherRail of otherRails) {
-            const otherRailId = otherRail.customData.instanceId;
-            const otherNodes = getAbsoluteNodePos(otherRail);
-
-            for (let oNode of otherNodes) {
-                if (isNodeOccupied(otherRailId, oNode.nodeId)) continue;
-
-                // 2つのノード間の距離を算出
-                const dx = tNode.x - oNode.x;
-                const dy = tNode.y - oNode.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-
-                if (dist <= snapDistance) {
-                    // --- 1. レールの角度をスナップ回転 ---
-                    const targetLocalNode = catalog.nodes.find(n => n.id === tNode.nodeId);
-                    if (!targetLocalNode) continue;
-
-                    // 対向角度 (相手ノード角度 + 180 - 自ノードローカル角度)
-                    const snappedAngle = (oNode.angle + 180 - targetLocalNode.facingAngle + 360) % 360;
-                    targetRail.set({ angle: snappedAngle });
-
-                    // --- 2. レールの位置をスナップ移動 ---
-                    const cx = targetRail.customData.geoCenterX || 0;
-                    const cy = targetRail.customData.geoCenterY || 0;
-                    const lx = targetLocalNode.relX - cx;
-                    const ly = targetLocalNode.relY - cy;
-                    const rad = (snappedAngle * Math.PI) / 180;
-
-                    const snappedLeft = oNode.x - (lx * Math.cos(rad) - ly * Math.sin(rad));
-                    const snappedTop  = oNode.y - (lx * Math.sin(rad) + ly * Math.cos(rad));
-
-                    targetRail.set({
-                        left: snappedLeft,
-                        top: snappedTop
-                    });
-                    targetRail.setCoords();
-
-                    // --- 3. ジョイント配列への接続登録 ---
-                    globalJoints.push({
-                        railA: otherRailId,
-                        nodeA: oNode.nodeId,
-                        railB: targetRailId,
-                        nodeB: tNode.nodeId
-                    });
-
-                    // 1箇所接続されたら、更新された位置で再計算し他の近傍ノードも判定できるように最新化
-                    targetNodes = getAbsoluteNodePos(targetRail);
-                    break;
-                }
-            }
-        }
-    }
-}
-
-/**
- * 新パーツのノード0を親パーツの指定ノードへおおまかに配置（スナップ前段階）
- */
 function alignRailToParentNode(newRail, parentRail, parentNodeId) {
     const parentNodes = getAbsoluteNodePos(parentRail);
     const parentNode = parentNodes.find(n => n.nodeId === parentNodeId);
@@ -397,7 +304,6 @@ function addRailToCanvas(partId) {
 
     const geoData = generateGenericRailData(catalogItem);
 
-    // 1. 道床オブジェクト (グレー塗潰し)
     const baseObjects = geoData.basePaths.map(pStr => {
         return new fabric.Path(pStr, {
             fill: '#888888',
@@ -407,7 +313,6 @@ function addRailToCanvas(partId) {
         });
     });
 
-    // 2. レールオブジェクト (暗色・線の太さ1.5)
     const railObjects = geoData.railPaths.map(pStr => {
         return new fabric.Path(pStr, {
             fill: null,
@@ -419,7 +324,6 @@ function addRailToCanvas(partId) {
         });
     });
 
-    // Group オブジェクトとしてまとめる
     let railObject = new fabric.Group([...baseObjects, ...railObjects], {
         left: 0, 
         top: 0,
@@ -428,7 +332,6 @@ function addRailToCanvas(partId) {
         angle: 0
     });
 
-    // 変形ロック＆スケーリングハンドルの非表示設定適用
     configureControls(railObject);
 
     railObject.customData = { 
@@ -439,7 +342,6 @@ function addRailToCanvas(partId) {
         geoCenterY: geoData.centerY
     };
 
-    // --- 選択状態の親パーツを取得 ---
     const activeObj = canvas.getActiveObject();
     let parentRail = null;
     if (activeObj && activeObj.customData && activeObj.customData.isRail) {
@@ -449,10 +351,8 @@ function addRailToCanvas(partId) {
     const targetNodeId = parentRail ? findTargetNodeForAutoConnect(parentRail) : null;
 
     if (parentRail && targetNodeId !== null) {
-        // パターン1: 親パーツのノードに位置合わせ配置
         alignRailToParentNode(railObject, parentRail, targetNodeId);
     } else if (lastCanvasClickPos) {
-        // パターン2: キャンバスの最終タップ位置に配置
         railObject.set({
             left: lastCanvasClickPos.x,
             top: lastCanvasClickPos.y,
@@ -460,7 +360,6 @@ function addRailToCanvas(partId) {
         });
         railObject.setCoords();
     } else {
-        // パターン3: 初期配置 (従来通り少しずつずらして配置)
         const initialLeft = 250 + (railCount % 5) * 25;
         const initialTop = 450 + (railCount % 5) * 25;
         railObject.set({
@@ -480,7 +379,14 @@ function addRailToCanvas(partId) {
         canvas.on('object:moving', function(options) { if (options && options.target) onGeneralTransform(options.target); });
         canvas.on('object:rotating', function(options) { if (options && options.target) onGeneralTransform(options.target); });
         
-        // 範囲選択（複数選択）枠に対する非表示・変形ロック制御
+        // ★手で動かして「手を離した瞬間（mouse:up）」にスナップマネージャーを実行
+        canvas.on('mouse:up', function() {
+            const activeObj = canvas.getActiveObject();
+            if (activeObj && typeof applyClusterSnapLogic === 'function') {
+                applyClusterSnapLogic(activeObj);
+            }
+        });
+
         const handleSelection = (e) => {
             const activeObject = canvas.getActiveObject();
             if (activeObject && activeObject.type === 'activeSelection') {
@@ -494,10 +400,11 @@ function addRailToCanvas(partId) {
         canvas.on('mouse:down', handleSelection);
     }
 
-    // ★共通処理: 近傍ノードへのピタッとスナップ移動・回転および接続登録
-    snapRailToNearbyNodes(railObject, 25);
+    // ★自動追加時もスナップマネージャーを通して吸着判定＆ジョイント接続
+    if (typeof applyClusterSnapLogic === 'function') {
+        applyClusterSnapLogic(railObject);
+    }
 
-    // 追加した新レールを選択状態（Active）にして次回の親パーツにする
     canvas.setActiveObject(railObject);
 
     updateJointIndicators();
@@ -630,11 +537,6 @@ function onGeneralTransform(target) {
         });
         isFirstMoveFrame = false;
     }
-    
-    // ★手動移動・回転時：単体レール移動の場合、スナップ処理を実行
-    if (target.customData && target.customData.isRail) {
-        snapRailToNearbyNodes(target, 25);
-    }
 
     updateJointIndicators();
 }
@@ -648,6 +550,9 @@ function getMovedRailIds(target) {
     return [];
 }
 
+/**
+ * ジョイントインジケーター描画（接続済みは緑、未接続は赤）
+ */
 function updateJointIndicators() {
     if (!canvas) return;
     
@@ -665,8 +570,9 @@ function updateJointIndicators() {
         absoluteNodes.forEach(node => {
             if (!node) return;
             const isOccupied = isNodeOccupied(railId, node.nodeId);
+
             const color = isOccupied ? '#7cd21d' : '#ff3b30';
-            const radius = isOccupied ? 3 : 5;
+            const radius = isOccupied ? 4 : 4;
 
             const dot = new fabric.Circle({
                 left: node.x, top: node.y, radius: radius, fill: color,
@@ -685,5 +591,5 @@ function loadDebugSampleLayout() {
     importLayoutData(INITIAL_SAMPLE_LAYOUT, true);
     canvas.setZoom(0.35);
     canvas.setViewportTransform([0.35, 0, 0, 0.35, 250, 100]);
-    console.log("[%s] サンプル小判型エンドレスを展開しました！", "VER-SNAP-TRANSFORM-U14");
+    console.log("[%s] サンプル小判型エンドレスを展開しました！", "VER-SNAP-MANAGER-INTEGRATED-U16");
 }
