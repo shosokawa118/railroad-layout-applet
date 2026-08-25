@@ -1,9 +1,9 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 基本エンジン
-// バージョン: VER-LAYOUT-AUTOCONNECT-E27
+// バージョン: VER-LAYOUT-AUTOCONNECT-E28
 // (システムライブラリ自動事前ロード＆JSON出力/読込対応版)
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-LAYOUT-AUTOCONNECT-E27");
+console.log("基本エンジン（JS）が読み込まれました: VER-LAYOUT-AUTOCONNECT-E28");
 
 let lastCanvasClickPos = null;
 let isDraggingRail = false;
@@ -17,7 +17,7 @@ function loadSystemLibrary(systemId) {
     if (!railCatalog || !railCatalog.systems) return Promise.reject("railCatalogが定義されていません");
     const system = railCatalog.systems[systemId];
     if (!system) {
-        console.warn(`[VER-LAYOUT-AUTOCONNECT-E27] 未定義のシステムIDです: ${systemId}`);
+        console.warn(`[VER-LAYOUT-AUTOCONNECT-E28] 未定義のシステムIDです: ${systemId}`);
         return Promise.resolve(); // 処理を止めずに続行
     }
 
@@ -33,13 +33,13 @@ function loadSystemLibrary(systemId) {
         script.onload = () => {
             loadedLibraries.add(fileName);
             delete loadingPromises[fileName];
-            console.log(`[VER-LAYOUT-AUTOCONNECT-E27] ライブラリロード完了: ${fileName}`);
+            console.log(`[VER-LAYOUT-AUTOCONNECT-E28] ライブラリロード完了: ${fileName}`);
             resolve();
         };
 
         script.onerror = () => {
             delete loadingPromises[fileName];
-            console.error(`[VER-LAYOUT-AUTOCONNECT-E27] ライブラリ読み込み失敗: ${fileName}`);
+            console.error(`[VER-LAYOUT-AUTOCONNECT-E28] ライブラリ読み込み失敗: ${fileName}`);
             resolve(); // エラー出力の上で展開は続行するためresolve
         };
 
@@ -186,7 +186,7 @@ function addRailToCanvas(partId, options = {}) {
 
     const catalogItem = railCatalog.items[partId];
     if (!catalogItem) {
-        console.error(`[VER-LAYOUT-AUTOCONNECT-E27] 該当パーツが見つかりません (partId: "${partId}")`);
+        console.error(`[VER-LAYOUT-AUTOCONNECT-E28] 該当パーツが見つかりません (partId: "${partId}")`);
         return null;
     }
 
@@ -279,12 +279,13 @@ function exportLayoutData() {
     const systemSet = new Set();
     const railList = [];
 
-    rails.forEach((rail, index) => {
-        const partId = rail.customData.partId;
-        const catalogItem = railCatalog.items[partId];
+    rails.forEach((rail) => {
+        const partId = rail.customData ? rail.customData.partId : null;
+        const catalogItem = (railCatalog && railCatalog.items) ? railCatalog.items[partId] : null;
 
-        if (catalogItem && catalogItem.system) {
-            systemSet.add(catalogItem.system);
+        // 正しいプロパティ名 `systemId` を参照
+        if (catalogItem && catalogItem.systemId) {
+            systemSet.add(catalogItem.systemId);
         }
 
         railList.push({
@@ -297,7 +298,7 @@ function exportLayoutData() {
     });
 
     return {
-        version: "VER-LAYOUT-AUTOCONNECT-E27",
+        version: "VER-LAYOUT-AUTOCONNECT-E28",
         systems: Array.from(systemSet),
         rails: railList,
         joints: globalJoints.map(j => ({
@@ -313,13 +314,13 @@ function exportLayoutData() {
 async function importLayoutData(layoutData, isOverwrite = true) {
     if (!canvas) return;
     if (!layoutData || !Array.isArray(layoutData.rails)) {
-        console.error("[VER-LAYOUT-AUTOCONNECT-E27] 読み込みデータのフォーマットが不正です。", layoutData);
+        console.error("[VER-LAYOUT-AUTOCONNECT-E28] 読み込みデータのフォーマットが不正です。", layoutData);
         return;
     }
 
     // 1. 必要システムの事前ロード
     if (Array.isArray(layoutData.systems) && layoutData.systems.length > 0) {
-        console.log(`[VER-LAYOUT-AUTOCONNECT-E27] 必要ライブラリの事前読み込み中:`, layoutData.systems);
+        console.log(`[VER-LAYOUT-AUTOCONNECT-E28] 必要ライブラリの事前読み込み中:`, layoutData.systems);
         const loadTasks = layoutData.systems.map(sysId => loadSystemLibrary(sysId));
         await Promise.all(loadTasks);
     }
@@ -337,7 +338,7 @@ async function importLayoutData(layoutData, isOverwrite = true) {
     // 2. レールオブジェクトの生成と配置
     layoutData.rails.forEach((r, idx) => {
         if (!r || !r.partId) {
-            console.warn(`[VER-LAYOUT-AUTOCONNECT-E27] レール定義不備 (Index: ${idx})`);
+            console.warn(`[VER-LAYOUT-AUTOCONNECT-E28] レール定義不備 (Index: ${idx})`);
             return;
         }
         
@@ -380,7 +381,7 @@ async function importLayoutData(layoutData, isOverwrite = true) {
             const railObjB = instanceMap[railBId];
 
             if (!railObjA || !railObjB) {
-                console.warn(`[VER-LAYOUT-AUTOCONNECT-E27] ジョイント接続対象のレールが見つかりません (Joint Index: ${idx}, railA: "${j.railA}", railB: "${j.railB}")`);
+                console.warn(`[VER-LAYOUT-AUTOCONNECT-E28] ジョイント接続対象のレールが見つかりません (Joint Index: ${idx}, railA: "${j.railA}", railB: "${j.railB}")`);
                 return;
             }
 
@@ -391,7 +392,7 @@ async function importLayoutData(layoutData, isOverwrite = true) {
             const nodeBData = absoluteNodesB.find(n => n.nodeId === j.nodeB);
 
             if (!nodeAData || !nodeBData) {
-                console.warn(`[VER-LAYOUT-AUTOCONNECT-E27] ジョイント接続対象のノードが存在しません (Joint Index: ${idx}, nodeA: ${j.nodeA}, nodeB: ${j.nodeB})`);
+                console.warn(`[VER-LAYOUT-AUTOCONNECT-E28] ジョイント接続対象のノードが存在しません (Joint Index: ${idx}, nodeA: ${j.nodeA}, nodeB: ${j.nodeB})`);
                 return;
             }
 
@@ -399,7 +400,7 @@ async function importLayoutData(layoutData, isOverwrite = true) {
             const maxAllowedDist = 8;
 
             if (dist > maxAllowedDist) {
-                console.warn(`[VER-LAYOUT-AUTOCONNECT-E27] ジョイント接続対象が離れすぎています (Joint Index: ${idx}, 距離: ${dist.toFixed(2)}px > 許容: ${maxAllowedDist}px)`);
+                console.warn(`[VER-LAYOUT-AUTOCONNECT-E28] ジョイント接続対象が離れすぎています (Joint Index: ${idx}, 距離: ${dist.toFixed(2)}px > 許容: ${maxAllowedDist}px)`);
                 return;
             }
 
@@ -451,7 +452,7 @@ function updateJointIndicators() {
 
 async function loadDebugSampleLayout() {
     if (typeof INITIAL_SAMPLE_LAYOUT === 'undefined') {
-        console.error("[VER-LAYOUT-AUTOCONNECT-E27] INITIAL_SAMPLE_LAYOUT が読み込まれていません。");
+        console.error("[VER-LAYOUT-AUTOCONNECT-E28] INITIAL_SAMPLE_LAYOUT が読み込まれていません。");
         return;
     }
     await importLayoutData(INITIAL_SAMPLE_LAYOUT, true);
