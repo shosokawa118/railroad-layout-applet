@@ -1,8 +1,8 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 基本エンジン
-// バージョン: VER-AUTO-CONNECT-U12
+// バージョン: VER-AUTO-CONNECT-COMMON-U13
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-AUTO-CONNECT-U12");
+console.log("基本エンジン（JS）が読み込まれました: VER-AUTO-CONNECT-COMMON-U13");
 
 let globalJoints = [];
 let railCount = 0;
@@ -272,13 +272,59 @@ function findTargetNodeForAutoConnect(parentRail) {
         }
     }
 
-    return null; // 全ノード埋まり
+    return null;
 }
 
 /**
- * 新パーツのノード0を親パーツの指定ノードへ位置・角度合わせして接続
+ * 共通処理: 全レールの空きノード同士で距離が近いものを自動で接続判定・ジョイント登録する
+ * @param {fabric.Object} [targetRail] - 指定した場合はそのレールの周りだけチェック、未指定なら全チェック
+ * @param {number} [threshold=15] - 接続とみなすノード間距離ピクセル
  */
-function connectRailToParentNode(newRail, parentRail, parentNodeId) {
+function checkAndConnectNearbyNodes(targetRail = null, threshold = 15) {
+    if (!canvas) return;
+    const rails = canvas.getObjects().filter(o => o && o.customData && o.customData.isRail);
+    const checkRails = targetRail ? [targetRail] : rails;
+
+    checkRails.forEach(railA => {
+        const railAId = railA.customData.instanceId;
+        const nodesA = getAbsoluteNodePos(railA);
+
+        nodesA.forEach(nodeA => {
+            // 既にジョイントで埋まっているノードはスキップ
+            if (isNodeOccupied(railAId, nodeA.nodeId)) return;
+
+            rails.forEach(railB => {
+                const railBId = railB.customData.instanceId;
+                if (railAId === railBId) return; // 自分自身はスキップ
+
+                const nodesB = getAbsoluteNodePos(railB);
+                nodesB.forEach(nodeB => {
+                    if (isNodeOccupied(railBId, nodeB.nodeId)) return;
+
+                    // 2ノード間の距離計算
+                    const dx = nodeA.x - nodeB.x;
+                    const dy = nodeA.y - nodeB.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist <= threshold) {
+                        // 重なり検知：ジョイント追加
+                        globalJoints.push({
+                            railA: railAId,
+                            nodeA: nodeA.nodeId,
+                            railB: railBId,
+                            nodeB: nodeB.nodeId
+                        });
+                    }
+                });
+            });
+        });
+    });
+}
+
+/**
+ * 新パーツのノード0を親パーツの指定ノードへ位置・角度合わせ（配置のみ）
+ */
+function alignRailToParentNode(newRail, parentRail, parentNodeId) {
     const parentNodes = getAbsoluteNodePos(parentRail);
     const parentNode = parentNodes.find(n => n.nodeId === parentNodeId);
     if (!parentNode) return;
@@ -286,15 +332,13 @@ function connectRailToParentNode(newRail, parentRail, parentNodeId) {
     const newCatalog = railCatalog.items[newRail.customData.partId];
     if (!newCatalog || !newCatalog.nodes || newCatalog.nodes.length === 0) return;
 
-    const newNode0 = newCatalog.nodes[0]; // 新パーツは常にノード0（入口）を繋ぐ
+    const newNode0 = newCatalog.nodes[0];
     const newCx = newRail.customData.geoCenterX || 0;
     const newCy = newRail.customData.geoCenterY || 0;
 
-    // 対向角度 (親ノードの向いている方向 + 180度 - 新ノード0のローカル角度)
     const targetAngle = (parentNode.angle + 180 - newNode0.facingAngle + 360) % 360;
     newRail.set({ angle: targetAngle });
 
-    // 新パーツのノード0中心からの相対オフセットを算出
     const lx = newNode0.relX - newCx;
     const ly = newNode0.relY - newCy;
     const rad = (targetAngle * Math.PI) / 180;
@@ -307,14 +351,6 @@ function connectRailToParentNode(newRail, parentRail, parentNodeId) {
         top: newTop
     });
     newRail.setCoords();
-
-    // ジョイント登録
-    globalJoints.push({
-        railA: parentRail.customData.instanceId,
-        nodeA: parentNodeId,
-        railB: newRail.customData.instanceId,
-        nodeB: newNode0.id
-    });
 }
 
 function addRailToCanvas(partId) {
@@ -373,7 +409,7 @@ function addRailToCanvas(partId) {
         geoCenterY: geoData.centerY
     };
 
-    // --- 自動接続 or 位置決定ロジック ---
+    // --- 選択状態の親パーツを取得 ---
     const activeObj = canvas.getActiveObject();
     let parentRail = null;
     if (activeObj && activeObj.customData && activeObj.customData.isRail) {
@@ -383,8 +419,8 @@ function addRailToCanvas(partId) {
     const targetNodeId = parentRail ? findTargetNodeForAutoConnect(parentRail) : null;
 
     if (parentRail && targetNodeId !== null) {
-        // パターン1: 自動スナップ接続
-        connectRailToParentNode(railObject, parentRail, targetNodeId);
+        // パターン1: 親パーツのノードに位置合わせ配置
+        alignRailToParentNode(railObject, parentRail, targetNodeId);
     } else if (lastCanvasClickPos) {
         // パターン2: キャンバスの最終タップ位置に配置
         railObject.set({
@@ -428,6 +464,9 @@ function addRailToCanvas(partId) {
         canvas.on('mouse:down', handleSelection);
     }
 
+    // ★共通処理の呼び出し: 新しく追加したレール周辺の全ノードに対して距離判定を行い自動接続
+    checkAndConnectNearbyNodes(railObject, 15);
+
     // 追加した新レールを選択状態（Active）にして次回の親パーツにする
     canvas.setActiveObject(railObject);
 
@@ -445,7 +484,7 @@ function deleteSelectedRails() {
 
     let targetRails = [];
     if (activeObject.type === 'activeSelection') {
-        targetRails = activeObject.getObjects().filter(o => o.customData && o.customData.isRail);
+        targetRails = activeObject.getObjects().filter(o => o && o.customData && o.customData.isRail);
     } else if (activeObject.customData && activeObject.customData.isRail) {
         targetRails = [activeObject];
     }
@@ -561,6 +600,9 @@ function onGeneralTransform(target) {
         });
         isFirstMoveFrame = false;
     }
+    
+    // ドラッグ・回転終了時等にも近傍ノードの接続判定を行う
+    checkAndConnectNearbyNodes(target, 15);
     updateJointIndicators();
 }
 
@@ -610,5 +652,5 @@ function loadDebugSampleLayout() {
     importLayoutData(INITIAL_SAMPLE_LAYOUT, true);
     canvas.setZoom(0.35);
     canvas.setViewportTransform([0.35, 0, 0, 0.35, 250, 100]);
-    console.log("[%s] サンプル小判型エンドレスを展開しました！", "VER-AUTO-CONNECT-U12");
+    console.log("[%s] サンプル小判型エンドレスを展開しました！", "VER-AUTO-CONNECT-COMMON-U13");
 }
