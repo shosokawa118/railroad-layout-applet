@@ -61,7 +61,7 @@
     <canvas id="layoutCanvas" width="800" height="600"></canvas>
 
     <script>
-        const CODE_VERSION = "VER-AUTO-CONNECT-AC1";
+        const CODE_VERSION = "VER-AUTO-CONNECT-AC2";
         console.log("=========================================");
         console.log("ビュー（HTML）バージョン:", CODE_VERSION);
         console.log("=========================================");
@@ -138,11 +138,15 @@
                     allowTouchScrolling: false
                 });
 
+                // ユーザー操作のスナップは layout-engine.js の mouse:up イベント側に一本化しているため、
+                // Fabric の object:modified による直接呼び出しは不要（重複発火・ループ防止のためコメントアウト）
+                /* 
                 canvas.on('object:modified', function(options) {
                     if (options && options.target && typeof applyClusterSnapLogic === 'function') {
                         applyClusterSnapLogic(options.target);
                     }
-                });
+                }); 
+                */
 
                 if (typeof initCameraControls === 'function') initCameraControls();
                 if (typeof initKeyControls === 'function') initKeyControls();
