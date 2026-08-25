@@ -1,12 +1,13 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 基本エンジン
-// バージョン: VER-DYNAMIC-WIDTH-U11
+// バージョン: VER-AUTO-CONNECT-U12
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-DYNAMIC-WIDTH-U11");
+console.log("基本エンジン（JS）が読み込まれました: VER-AUTO-CONNECT-U12");
 
 let globalJoints = [];
 let railCount = 0;
 let isFirstMoveFrame = true;
+let lastCanvasClickPos = null; // キャンバス最終クリック座標
 
 // --- ライブラリ動的ローダー（ロード状態管理＆オンデマンド読み込み） ---
 const loadedLibraries = new Set();
@@ -246,6 +247,76 @@ function generateGenericRailData(catalogItem) {
     };
 }
 
+/**
+ * 空きノード検索ロジック (ノード1 -> 2 -> ... -> 0 の順で探索)
+ */
+function findTargetNodeForAutoConnect(parentRail) {
+    if (!parentRail || !parentRail.customData) return null;
+    const catalog = railCatalog.items[parentRail.customData.partId];
+    if (!catalog || !catalog.nodes || catalog.nodes.length === 0) return null;
+
+    const nodes = catalog.nodes;
+    const nodeCount = nodes.length;
+    
+    // 探索順序: 1, 2, ..., nodeCount-1, 0
+    const searchOrder = [];
+    for (let i = 1; i < nodeCount; i++) {
+        searchOrder.push(nodes[i].id);
+    }
+    searchOrder.push(nodes[0].id);
+
+    const railId = parentRail.customData.instanceId;
+    for (let nodeId of searchOrder) {
+        if (!isNodeOccupied(railId, nodeId)) {
+            return nodeId;
+        }
+    }
+
+    return null; // 全ノード埋まり
+}
+
+/**
+ * 新パーツのノード0を親パーツの指定ノードへ位置・角度合わせして接続
+ */
+function connectRailToParentNode(newRail, parentRail, parentNodeId) {
+    const parentNodes = getAbsoluteNodePos(parentRail);
+    const parentNode = parentNodes.find(n => n.nodeId === parentNodeId);
+    if (!parentNode) return;
+
+    const newCatalog = railCatalog.items[newRail.customData.partId];
+    if (!newCatalog || !newCatalog.nodes || newCatalog.nodes.length === 0) return;
+
+    const newNode0 = newCatalog.nodes[0]; // 新パーツは常にノード0（入口）を繋ぐ
+    const newCx = newRail.customData.geoCenterX || 0;
+    const newCy = newRail.customData.geoCenterY || 0;
+
+    // 対向角度 (親ノードの向いている方向 + 180度 - 新ノード0のローカル角度)
+    const targetAngle = (parentNode.angle + 180 - newNode0.facingAngle + 360) % 360;
+    newRail.set({ angle: targetAngle });
+
+    // 新パーツのノード0中心からの相対オフセットを算出
+    const lx = newNode0.relX - newCx;
+    const ly = newNode0.relY - newCy;
+    const rad = (targetAngle * Math.PI) / 180;
+
+    const newLeft = parentNode.x - (lx * Math.cos(rad) - ly * Math.sin(rad));
+    const newTop  = parentNode.y - (lx * Math.sin(rad) + ly * Math.cos(rad));
+
+    newRail.set({
+        left: newLeft,
+        top: newTop
+    });
+    newRail.setCoords();
+
+    // ジョイント登録
+    globalJoints.push({
+        railA: parentRail.customData.instanceId,
+        nodeA: parentNodeId,
+        railB: newRail.customData.instanceId,
+        nodeB: newNode0.id
+    });
+}
+
 function addRailToCanvas(partId) {
     if (!canvas) return null;
 
@@ -255,8 +326,6 @@ function addRailToCanvas(partId) {
         return null;
     }
 
-    const initialLeft = 250 + (railCount % 5) * 25;
-    const initialTop = 450 + (railCount % 5) * 25;
     const currentId = `rail-${railCount}`;
     railCount++;
 
@@ -286,8 +355,8 @@ function addRailToCanvas(partId) {
 
     // Group オブジェクトとしてまとめる
     let railObject = new fabric.Group([...baseObjects, ...railObjects], {
-        left: initialLeft, 
-        top: initialTop,
+        left: 0, 
+        top: 0,
         originX: 'center', 
         originY: 'center', 
         angle: 0
@@ -303,6 +372,38 @@ function addRailToCanvas(partId) {
         geoCenterX: geoData.centerX,
         geoCenterY: geoData.centerY
     };
+
+    // --- 自動接続 or 位置決定ロジック ---
+    const activeObj = canvas.getActiveObject();
+    let parentRail = null;
+    if (activeObj && activeObj.customData && activeObj.customData.isRail) {
+        parentRail = activeObj;
+    }
+
+    const targetNodeId = parentRail ? findTargetNodeForAutoConnect(parentRail) : null;
+
+    if (parentRail && targetNodeId !== null) {
+        // パターン1: 自動スナップ接続
+        connectRailToParentNode(railObject, parentRail, targetNodeId);
+    } else if (lastCanvasClickPos) {
+        // パターン2: キャンバスの最終タップ位置に配置
+        railObject.set({
+            left: lastCanvasClickPos.x,
+            top: lastCanvasClickPos.y,
+            angle: 0
+        });
+        railObject.setCoords();
+    } else {
+        // パターン3: 初期配置 (従来通り少しずつずらして配置)
+        const initialLeft = 250 + (railCount % 5) * 25;
+        const initialTop = 450 + (railCount % 5) * 25;
+        railObject.set({
+            left: initialLeft,
+            top: initialTop,
+            angle: 0
+        });
+        railObject.setCoords();
+    }
 
     canvas.add(railObject);
     
@@ -326,6 +427,9 @@ function addRailToCanvas(partId) {
         canvas.on('selection:updated', handleSelection);
         canvas.on('mouse:down', handleSelection);
     }
+
+    // 追加した新レールを選択状態（Active）にして次回の親パーツにする
+    canvas.setActiveObject(railObject);
 
     updateJointIndicators();
     canvas.calcOffset();
@@ -506,5 +610,5 @@ function loadDebugSampleLayout() {
     importLayoutData(INITIAL_SAMPLE_LAYOUT, true);
     canvas.setZoom(0.35);
     canvas.setViewportTransform([0.35, 0, 0, 0.35, 250, 100]);
-    console.log("[%s] サンプル小判型エンドレスを展開しました！", "VER-DYNAMIC-WIDTH-U11");
+    console.log("[%s] サンプル小判型エンドレスを展開しました！", "VER-AUTO-CONNECT-U12");
 }
