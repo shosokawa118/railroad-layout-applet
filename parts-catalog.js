@@ -8,6 +8,7 @@ const railCatalog = {
             scale: "N",
             brand: "KATO",
             systemName: "ユニトラック (N)",
+            gauge: 9,
             ballastWidth: 25,
             connectorType: "kato-unijoiner"
         },
@@ -15,6 +16,7 @@ const railCatalog = {
             scale: "N",
             brand: "KATO",
             systemName: "ユニトラックコンパクト (N)",
+            gauge: 9,
             ballastWidth: 25,
             connectorType: "kato-unijoiner"
         },
@@ -22,6 +24,7 @@ const railCatalog = {
             scale: "N",
             brand: "KATO",
             systemName: "ユニトラム (N)",
+            gauge: 9,
             ballastWidth: 37,
             connectorType: "kato-unijoiner"
         },
@@ -29,13 +32,15 @@ const railCatalog = {
             scale: "N",
             brand: "TOMIX",
             systemName: "ファイントラック (N)",
+            gauge: 9,
             ballastWidth: 18.5,
             connectorType: "tomix-clapper"
         },
         "TOMIX-MINICURVE-N": {
             scale: "N",
             brand: "TOMIX",
-            systemName: "ミニカーブ / スーパーミニカーブ (N)",
+            systemName: "ミニカーブ (N)",
+            gauge: 9,
             ballastWidth: 18.5,
             connectorType: "tomix-clapper"
         }
