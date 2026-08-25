@@ -1,10 +1,9 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 幾何・座標計算
+// バージョン: VER-LAYOUT-GEO-G1
 // =============================================================
+console.log("幾何・座標計算（JS）が読み込まれました: VER-LAYOUT-GEO-G1");
 
-/**
- * パーツの形状データ（shapes）からパスデータおよび重心オフセットを生成
- */
 function generateGenericRailData(catalogItem) {
     const basePaths = [];
     const railPaths = [];
@@ -152,9 +151,6 @@ function generateGenericRailData(catalogItem) {
     };
 }
 
-/**
- * レールオブジェクトから各ノードの絶対座標・角度を取得
- */
 function getAbsoluteNodePos(rail) {
     if (!rail || !rail.customData) return [];
     const catalog = railCatalog.items[rail.customData.partId];
@@ -190,9 +186,6 @@ function getAbsoluteNodePos(rail) {
     });
 }
 
-/**
- * 2つのノード間の接続可否（規格の一致）を判定
- */
 function canConnectNodes(railA, nodeAId, railB, nodeBId) {
     const itemA = railCatalog.items[railA.customData.partId];
     const itemB = railCatalog.items[railB.customData.partId];
@@ -208,9 +201,6 @@ function canConnectNodes(railA, nodeAId, railB, nodeBId) {
     return connA === connB;
 }
 
-/**
- * 移動オブジェクトのインスタンスID配列を取得
- */
 function getMovedRailIds(target) {
     if (!target) return [];
     if (target.customData && target.customData.isRail) return [target.customData.instanceId];
