@@ -1,29 +1,11 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - スナップ＆多重結合マネージャー
 // バージョン: VER-SNAP-MOUSEUP-SEPARATE-S8
-// (ユーザー操作専用スナップ / 接続登録ヘルパー共通化・ガード削除版)
 // =============================================================
 console.log("スナップマネージャー（JS）が読み込まれました: VER-SNAP-MOUSEUP-SEPARATE-S8");
 
-function canConnectNodes(railA, nodeAId, railB, nodeBId) {
-    const itemA = railCatalog.items[railA.customData.partId];
-    const itemB = railCatalog.items[railB.customData.partId];
-    if (!itemA || !itemB) return false;
-
-    const sysA = railCatalog.systems[itemA.systemId];
-    const sysB = railCatalog.systems[itemB.systemId];
-    if (!sysA || !sysB) return false;
-
-    const connA = (itemA.nodes[nodeAId] && itemA.nodes[nodeAId].connectorType) || sysA.connectorType;
-    const connB = (itemB.nodes[nodeBId] && itemB.nodes[nodeBId].connectorType) || sysB.connectorType;
-
-    return connA === connB;
-}
-
 function applyClusterSnapLogic(movedRail) {
     if (!movedRail) return;
-
-    isFirstMoveFrame = true;
 
     const allRails = canvas.getObjects().filter(obj => obj.customData && obj.customData.isRail);
     const movedRails = (movedRail.type === 'activeSelection') 
@@ -36,7 +18,7 @@ function applyClusterSnapLogic(movedRail) {
     let bestSnap = null;
     let minDistance = SNAP_THRESHOLD;
 
-    // 1. 最も近い「最初のスナップ候補（1箇所目）」を探索
+    // 1. 最も近い「最初のスナップ候補」を探索
     movedRails.forEach(mRail => {
         const mId = mRail.customData.instanceId;
         const mNodes = getAbsoluteNodePos(mRail);
@@ -52,16 +34,12 @@ function applyClusterSnapLogic(movedRail) {
 
                 otherNodes.forEach(oNode => {
                     if (isNodeOccupied(oId, oNode.nodeId)) return;
-
                     if (!canConnectNodes(mRail, mNode.nodeId, otherRail, oNode.nodeId)) return;
 
                     const dist = Math.sqrt(Math.pow(mNode.x - oNode.x, 2) + Math.pow(mNode.y - oNode.y, 2));
                     if (dist < minDistance) {
                         minDistance = dist;
-                        bestSnap = {
-                            movedRail: mRail, mNode: mNode,
-                            targetRail: otherRail, oNode: oNode
-                        };
+                        bestSnap = { movedRail: mRail, mNode: mNode, targetRail: otherRail, oNode: oNode };
                     }
                 });
             });
@@ -70,8 +48,6 @@ function applyClusterSnapLogic(movedRail) {
 
     // 2. 1箇所目の吸着（位置合わせ・回転）を実行
     if (bestSnap) {
-        console.log("[VER-SNAP-MOUSEUP-SEPARATE-S8] 1箇所目の原点スナップを実行します。");
-
         const mRail = bestSnap.movedRail;
         const mCatalogNode = railCatalog.items[mRail.customData.partId].nodes[bestSnap.mNode.nodeId];
         
@@ -90,12 +66,9 @@ function applyClusterSnapLogic(movedRail) {
             const rotatedNodes = getAbsoluteNodePos(mRail);
             const rotatedMNode = rotatedNodes.find(n => n.nodeId === bestSnap.mNode.nodeId);
             
-            const deltaX = bestSnap.oNode.x - rotatedMNode.x;
-            const deltaY = bestSnap.oNode.y - rotatedMNode.y;
-
             movedRail.set({
-                left: movedRail.left + deltaX,
-                top: movedRail.top + deltaY
+                left: movedRail.left + (bestSnap.oNode.x - rotatedMNode.x),
+                top: movedRail.top + (bestSnap.oNode.y - rotatedMNode.y)
             });
             movedRail.setCoords();
         } else {
@@ -112,13 +85,12 @@ function applyClusterSnapLogic(movedRail) {
             mRail.setCoords();
         }
 
-        // 1箇所目の接続登録（共通ヘルパー使用）
         addGlobalJointIfFree(
             mRail.customData.instanceId, bestSnap.mNode.nodeId,
             bestSnap.targetRail.customData.instanceId, bestSnap.oNode.nodeId
         );
 
-        // 3. 移動・回転を行わず、位置が重なった（届いた）他ノードをそのまま多重ロック
+        // 3. 届いた他ノードを多重ロック
         const postAllRails = canvas.getObjects().filter(obj => obj.customData && obj.customData.isRail);
         
         movedRails.forEach(rRail => {
@@ -136,14 +108,11 @@ function applyClusterSnapLogic(movedRail) {
 
                     oNodes.forEach(oN => {
                         if (isNodeOccupied(oId, oN.nodeId)) return;
-
                         if (!canConnectNodes(rRail, mN.nodeId, oRail, oN.nodeId)) return;
 
                         const dist = Math.sqrt(Math.pow(mN.x - oN.x, 2) + Math.pow(mN.y - oN.y, 2));
                         if (dist < 8) {
-                            if (addGlobalJointIfFree(rId, mN.nodeId, oId, oN.nodeId)) {
-                                console.log("[VER-SNAP-MOUSEUP-SEPARATE-S8] 同位置多重ロック成立:", rId, "->", oId);
-                            }
+                            addGlobalJointIfFree(rId, mN.nodeId, oId, oN.nodeId);
                         }
                     });
                 });
@@ -155,33 +124,19 @@ function applyClusterSnapLogic(movedRail) {
     canvas.requestRenderAll();
 }
 
+/**
+ * UI側から呼ばれる保存用エクスポート関数
+ */
 function exportLayoutJSON() {
-    if (!canvas) return;
-    const objects = canvas.getObjects().filter(obj => obj.customData && obj.customData.isRail);
-    
-    const railsData = objects.map(obj => {
-        return {
-            instanceId: obj.customData.instanceId,
-            partId: obj.customData.partId,
-            x: Math.round(obj.left * 100) / 100,
-            y: Math.round(obj.top * 100) / 100,
-            angle: Math.round(obj.angle * 100) / 100
-        };
-    });
-
-    const completeSaveData = {
-        version: "VER-SNAP-MOUSEUP-SEPARATE-S8",
-        rails: railsData,
-        joints: globalJoints
-    };
+    const completeSaveData = exportLayoutData();
+    if (!completeSaveData) return;
 
     const jsonString = JSON.stringify(completeSaveData, null, 2);
-    console.log("[VER-SNAP-MOUSEUP-SEPARATE-S8] セーブデータ(JSON):", jsonString);
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(jsonString).then(() => {
             alert("レイアウトデータ(JSON)をクリップボードにコピーしました！");
-        }).catch(err => {
+        }).catch(() => {
             alert("コンソール(F12)にJSONを出力しました！");
         });
     } else {
