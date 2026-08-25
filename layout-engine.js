@@ -455,3 +455,58 @@ function loadDebugSampleLayout() {
     canvas.setViewportTransform([0.35, 0, 0, 0.35, 250, 100]);
     console.log("[%s] サンプル小判型エンドレスを展開しました！", "VER-DYNAMIC-WIDTH-U11");
 }
+
+// --- ライブラリ動的ローダー ---
+const loadedLibraries = new Set();
+const loadingPromises = {};
+
+/**
+ * 指定されたシステムIDに対応するカタログJSファイルを動的にロードする
+ */
+function loadSystemLibrary(systemId) {
+    if (!railCatalog || !railCatalog.systems) {
+        return Promise.reject("railCatalogが定義されていません");
+    }
+
+    const system = railCatalog.systems[systemId];
+    if (!system) {
+        return Promise.reject(`未定義のシステムIDです: ${systemId}`);
+    }
+
+    const fileName = system.libraryFile;
+    if (!fileName) {
+        // libraryFile が指定されていない場合はロード済みとみなす（単一ファイル構成時の後方互換）
+        return Promise.resolve();
+    }
+
+    if (loadedLibraries.has(fileName)) {
+        return Promise.resolve();
+    }
+
+    if (loadingPromises[fileName]) {
+        return loadingPromises[fileName];
+    }
+
+    loadingPromises[fileName] = new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = fileName;
+        script.async = true;
+
+        script.onload = () => {
+            loadedLibraries.add(fileName);
+            delete loadingPromises[fileName];
+            console.log(`[DynamicLoader] 正常ロード: ${fileName}`);
+            resolve();
+        };
+
+        script.onerror = () => {
+            delete loadingPromises[fileName];
+            reject(new Error(`[DynamicLoader] 読み込み失敗: ${fileName}`));
+        };
+
+        document.head.appendChild(script);
+    });
+
+    return loadingPromises[fileName];
+}
+
