@@ -1,22 +1,19 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 基本エンジン
-// バージョン: VER-SNAP-MANAGER-INTEGRATED-U16
-// (スナップマネージャー VER-CLEAN-JOINTS-J5 完全連携版)
+// バージョン: VER-SNAP-MANAGER-BRIDGE-E17
+// (スナップマネージャー VER-SINGLE-ORIGIN-SNAP-S6 ブリッジ連携版)
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-SNAP-MANAGER-INTEGRATED-U16");
+console.log("基本エンジン（JS）が読み込まれました: VER-SNAP-MANAGER-BRIDGE-E17");
 
 let globalJoints = [];
 let railCount = 0;
 let isFirstMoveFrame = true;
 let lastCanvasClickPos = null; // キャンバス最終クリック座標
 
-// --- ライブラリ動的ローダー（ロード状態管理＆オンデマンド読み込み） ---
+// --- ライブラリ動的ローダー ---
 const loadedLibraries = new Set();
 const loadingPromises = {};
 
-/**
- * 指定されたシステムIDに対応するカタログJSファイルを動的にロードする関数
- */
 function loadSystemLibrary(systemId) {
     if (!railCatalog || !railCatalog.systems) {
         return Promise.reject("railCatalogが定義されていません");
@@ -63,9 +60,6 @@ function loadSystemLibrary(systemId) {
     return loadingPromises[fileName];
 }
 
-/**
- * コントロール（ハンドル）の可視性と変形ロックを設定する共通関数
- */
 function configureControls(fabricObj) {
     if (!fabricObj) return;
 
@@ -188,17 +182,14 @@ function generateGenericRailData(catalogItem) {
             const y4 = cY + rIn  * Math.sin(startRad);
 
             const largeArcFlag = Math.abs(arcAngle) >= 180 ? 1 : 0;
-            
-            // ★【修正ポイント】sweep-flag の向きを正しく修正
             const sweepOut = arcAngle >= 0 ? 1 : 0;
-            const sweepIn  = arcAngle >= 0 ? 1 : 0; // 反転させず同じ向き（1/0）にする
+            const sweepIn  = arcAngle >= 0 ? 1 : 0;
 
-            // 道床ポリゴン（外側の弧を通って内側の弧で戻る）
-            // ★【修正ポイント】内側の弧に戻る時は sweep-flag を反転させるため (1 - sweepIn) に変更
+            // 円弧描画フラグ修正済み（道床と2本レール）
             basePaths.push(`M ${x1} ${y1} A ${rOut} ${rOut} 0 ${largeArcFlag} ${sweepOut} ${x2} ${y2} L ${x3} ${y3} A ${rIn} ${rIn} 0 ${largeArcFlag} ${1 - sweepIn} ${x4} ${y4} Z`);
             
             updateBounds(x1, y1); updateBounds(x2, y2);
-            updateBounds(x3, y3); updateBounds(y4, y4);
+            updateBounds(x3, y3); updateBounds(x4, y4);
 
             const ccwDistance = (fromDeg, toDeg) => ((toDeg - fromDeg) % 360 + 360) % 360;
             [0, 90, 180, 270].forEach(cardinal => {
@@ -224,7 +215,6 @@ function generateGenericRailData(catalogItem) {
                 const rx4 = cX + rRailIn * Math.cos(endRad);
                 const ry4 = cY + rRailIn * Math.sin(endRad);
 
-                // ★【修正ポイント】2本のレールとも始点から終点へ同じ向き(sweepOut)で円弧を描く
                 railPaths.push(`M ${rx1} ${ry1} A ${rRailOut} ${rRailOut} 0 ${largeArcFlag} ${sweepOut} ${rx2} ${ry2}`);
                 railPaths.push(`M ${rx3} ${ry3} A ${rRailIn} ${rRailIn} 0 ${largeArcFlag} ${sweepOut} ${rx4} ${ry4}`);
             }
@@ -384,7 +374,7 @@ function addRailToCanvas(partId) {
         canvas.on('object:moving', function(options) { if (options && options.target) onGeneralTransform(options.target); });
         canvas.on('object:rotating', function(options) { if (options && options.target) onGeneralTransform(options.target); });
         
-        // ★手で動かして「手を離した瞬間（mouse:up）」にスナップマネージャーを実行
+        // 手を離した瞬間にスナップマネージャーの applyClusterSnapLogic を1回呼び出す
         canvas.on('mouse:up', function() {
             const activeObj = canvas.getActiveObject();
             if (activeObj && typeof applyClusterSnapLogic === 'function') {
@@ -405,7 +395,7 @@ function addRailToCanvas(partId) {
         canvas.on('mouse:down', handleSelection);
     }
 
-    // ★自動追加時もスナップマネージャーを通して吸着判定＆ジョイント接続
+    // パーツ追加時もスナップマネージャー経由で接続判定
     if (typeof applyClusterSnapLogic === 'function') {
         applyClusterSnapLogic(railObject);
     }
@@ -555,9 +545,6 @@ function getMovedRailIds(target) {
     return [];
 }
 
-/**
- * ジョイントインジケーター描画（接続済みは緑、未接続は赤）
- */
 function updateJointIndicators() {
     if (!canvas) return;
     
@@ -596,5 +583,5 @@ function loadDebugSampleLayout() {
     importLayoutData(INITIAL_SAMPLE_LAYOUT, true);
     canvas.setZoom(0.35);
     canvas.setViewportTransform([0.35, 0, 0, 0.35, 250, 100]);
-    console.log("[%s] サンプル小判型エンドレスを展開しました！", "VER-SNAP-MANAGER-INTEGRATED-U16");
+    console.log("[%s] サンプル小判型エンドレスを展開しました！", "VER-SNAP-MANAGER-BRIDGE-E17");
 }
