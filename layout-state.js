@@ -1,13 +1,12 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - データ＆状態マネージャー
+// バージョン: VER-LAYOUT-STATE-S1
 // =============================================================
+console.log("データ＆状態マネージャー（JS）が読み込まれました: VER-LAYOUT-STATE-S1");
 
 let globalJoints = [];
 let railCount = 0;
 
-/**
- * 接続の重複・埋まりチェックを行い globalJoints に追加
- */
 function addGlobalJointIfFree(railAId, nodeAId, railBId, nodeBId) {
     if (!railAId || !railBId || nodeAId === undefined || nodeBId === undefined) return false;
 
@@ -27,18 +26,12 @@ function addGlobalJointIfFree(railAId, nodeAId, railBId, nodeBId) {
     return true;
 }
 
-/**
- * ノードが接続済みかチェック
- */
 function isNodeOccupied(railId, nodeId) {
     return globalJoints.some(j => 
         j && ((j.railA === railId && j.nodeA === nodeId) || (j.railB === railId && j.nodeB === nodeId))
     );
 }
 
-/**
- * 移動対象に含まれるレールと、移動対象外を結ぶ接続のみを削除
- */
 function detachMovedRailJoints(target) {
     if (!target) return;
     const movedIds = getMovedRailIds(target);
@@ -52,9 +45,6 @@ function detachMovedRailJoints(target) {
     });
 }
 
-/**
- * 案3対応: インデックスベースの軽量データ出力
- */
 function exportLayoutData() {
     if (!canvas) return null;
     const objects = canvas.getObjects().filter(obj => obj && obj.customData && obj.customData.isRail);
@@ -89,7 +79,7 @@ function exportLayoutData() {
     });
 
     return {
-        version: "VER-LAYOUT-E22",
+        version: "VER-LAYOUT-STATE-S1",
         rails: railsData,
         joints: mappedJoints
     };
