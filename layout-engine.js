@@ -1,14 +1,10 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 基本エンジン
-// バージョン: VER-LAYOUT-AUTOCONNECT-E22
-// (純粋ドラッグ移動時限定・接続解除クリーン実装版)
+// バージョン: VER-LAYOUT-AUTOCONNECT-E22-REFACTORED
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-LAYOUT-AUTOCONNECT-E22");
+console.log("基本エンジン（JS）が読み込まれました: VER-LAYOUT-AUTOCONNECT-E22-REFACTORED");
 
-let globalJoints = [];
-let railCount = 0;
 let lastCanvasClickPos = null;
-
 let isDraggingRail = false;
 let globalEventsRegistered = false;
 
@@ -17,27 +13,13 @@ const loadedLibraries = new Set();
 const loadingPromises = {};
 
 function loadSystemLibrary(systemId) {
-    if (!railCatalog || !railCatalog.systems) {
-        return Promise.reject("railCatalogが定義されていません");
-    }
-
+    if (!railCatalog || !railCatalog.systems) return Promise.reject("railCatalogが定義されていません");
     const system = railCatalog.systems[systemId];
-    if (!system) {
-        return Promise.reject(`未定義のシステムIDです: ${systemId}`);
-    }
+    if (!system) return Promise.reject(`未定義のシステムIDです: ${systemId}`);
 
     const fileName = system.libraryFile;
-    if (!fileName) {
-        return Promise.resolve();
-    }
-
-    if (loadedLibraries.has(fileName)) {
-        return Promise.resolve();
-    }
-
-    if (loadingPromises[fileName]) {
-        return loadingPromises[fileName];
-    }
+    if (!fileName || loadedLibraries.has(fileName)) return Promise.resolve();
+    if (loadingPromises[fileName]) return loadingPromises[fileName];
 
     loadingPromises[fileName] = new Promise((resolve, reject) => {
         const script = document.createElement("script");
@@ -47,13 +29,12 @@ function loadSystemLibrary(systemId) {
         script.onload = () => {
             loadedLibraries.add(fileName);
             delete loadingPromises[fileName];
-            console.log(`[DynamicLoader] 正常ロード: ${fileName}`);
             resolve();
         };
 
         script.onerror = () => {
             delete loadingPromises[fileName];
-            reject(new Error(`[DynamicLoader] 読み込み失敗: ${fileName}`));
+            reject(new Error(`読み込み失敗: ${fileName}`));
         };
 
         document.head.appendChild(script);
@@ -80,195 +61,8 @@ function configureControls(fabricObj) {
 
     if (fabricObj.type === 'activeSelection') {
         const mtrControl = fabricObj.controls.mtr;
-        fabricObj.controls = {
-            mtr: mtrControl
-        };
+        fabricObj.controls = { mtr: mtrControl };
     }
-}
-
-function generateGenericRailData(catalogItem) {
-    const basePaths = [];
-    const railPaths = [];
-    
-    const sys = catalogItem && catalogItem.systemId ? railCatalog.systems[catalogItem.systemId] : null;
-    const BALLAST_WIDTH = sys ? sys.ballastWidth : 16;
-    const halfW = BALLAST_WIDTH / 2;
-
-    const trackType = (catalogItem && catalogItem.trackType) || (sys && sys.trackType) || 'standard';
-    const gauge = sys ? sys.gauge : null;
-    const shouldRenderRails = (trackType === 'standard') && (typeof gauge === 'number' && gauge > 0);
-    const halfGauge = shouldRenderRails ? gauge / 2 : 0;
-
-    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-
-    function updateBounds(x, y) {
-        if (x < minX) minX = x; if (x > maxX) maxX = x;
-        if (y < minY) minY = y; if (y > maxY) maxY = y;
-    }
-
-    if (!catalogItem || !catalogItem.shapes) {
-        return { basePaths: ["M 0 0 L 10 0"], railPaths: [], centerX: 0, centerY: 0 };
-    }
-
-    catalogItem.shapes.forEach(shape => {
-        if (shape.type === "polygon" && Array.isArray(shape.points) && shape.points.length > 0) {
-            let polyPath = "";
-            shape.points.forEach((pt, idx) => {
-                polyPath += (idx === 0 ? `M ${pt.x} ${pt.y}` : ` L ${pt.x} ${pt.y}`);
-                updateBounds(pt.x, pt.y);
-            });
-            polyPath += " Z";
-            basePaths.push(polyPath);
-        }
-        else if (shape.type === "line") {
-            const len = shape.length;
-            const shapeAngle = shape.angle || 0;
-            const rad = (shapeAngle * Math.PI) / 180;
-            const cos = Math.cos(rad);
-            const sin = Math.sin(rad);
-
-            const offX = shape.offsetX || 0;
-            const offY = shape.offsetY || 0;
-
-            const x1_loc = -len / 2, y1_loc = -halfW;
-            const x2_loc =  len / 2, y2_loc = -halfW;
-            const x3_loc =  len / 2, y3_loc =  halfW;
-            const x4_loc = -len / 2, y4_loc =  halfW;
-
-            const trans = (lx, ly) => ({
-                x: offX + (lx * cos - ly * sin),
-                y: offY + (lx * sin + ly * cos)
-            });
-
-            const p1 = trans(x1_loc, y1_loc);
-            const p2 = trans(x2_loc, y2_loc);
-            const p3 = trans(x3_loc, y3_loc);
-            const p4 = trans(x4_loc, y4_loc);
-
-            basePaths.push(`M ${p1.x} ${p1.y} L ${p2.x} ${p2.y} L ${p3.x} ${p3.y} L ${p4.x} ${p4.y} Z`);
-            
-            updateBounds(p1.x, p1.y); updateBounds(p2.x, p2.y);
-            updateBounds(p3.x, p3.y); updateBounds(p4.x, p4.y);
-
-            if (shouldRenderRails) {
-                const r1_start = trans(-len / 2, -halfGauge);
-                const r1_end   = trans( len / 2, -halfGauge);
-                const r2_start = trans(-len / 2,  halfGauge);
-                const r2_end   = trans( len / 2,  halfGauge);
-
-                railPaths.push(`M ${r1_start.x} ${r1_start.y} L ${r1_end.x} ${r1_end.y}`);
-                railPaths.push(`M ${r2_start.x} ${r2_start.y} L ${r2_end.x} ${r2_end.y}`);
-            }
-        }
-        else if (shape.type === "arc") {
-            const r = shape.radius;
-            const rOut = r + halfW;
-            const rIn = Math.max(0, r - halfW);
-            
-            const startDeg = shape.startAngle;
-            const arcAngle = shape.arcAngle;
-            const endDeg = startDeg + arcAngle;
-            const startRad = (startDeg * Math.PI) / 180;
-            const endRad = (endDeg * Math.PI) / 180;
-            
-            const cX = shape.centerX || 0;
-            const cY = shape.centerY || 0;
-
-            const x1 = cX + rOut * Math.cos(startRad);
-            const y1 = cY + rOut * Math.sin(startRad);
-            const x2 = cX + rOut * Math.cos(endRad);
-            const y2 = cY + rOut * Math.sin(endRad);
-            const x3 = cX + rIn  * Math.cos(endRad);
-            const y3 = cY + rIn  * Math.sin(endRad);
-            const x4 = cX + rIn  * Math.cos(startRad);
-            const y4 = cY + rIn  * Math.sin(startRad);
-
-            const largeArcFlag = Math.abs(arcAngle) >= 180 ? 1 : 0;
-            const sweepOut = arcAngle >= 0 ? 1 : 0;
-            const sweepIn  = arcAngle >= 0 ? 1 : 0;
-
-            basePaths.push(`M ${x1} ${y1} A ${rOut} ${rOut} 0 ${largeArcFlag} ${sweepOut} ${x2} ${y2} L ${x3} ${y3} A ${rIn} ${rIn} 0 ${largeArcFlag} ${1 - sweepIn} ${x4} ${y4} Z`);
-            
-            updateBounds(x1, y1); updateBounds(x2, y2);
-            updateBounds(x3, y3); updateBounds(x4, y4);
-
-            const ccwDistance = (fromDeg, toDeg) => ((toDeg - fromDeg) % 360 + 360) % 360;
-            [0, 90, 180, 270].forEach(cardinal => {
-                let contains = arcAngle >= 0 ? ccwDistance(startDeg, cardinal) <= arcAngle : ccwDistance(cardinal, startDeg) <= -arcAngle;
-                if (contains) {
-                    const rad = (cardinal * Math.PI) / 180;
-                    updateBounds(cX + rOut * Math.cos(rad), cY + rOut * Math.sin(rad));
-                    updateBounds(cX + rIn  * Math.cos(rad), cY + rIn  * Math.sin(rad));
-                }
-            });
-
-            if (shouldRenderRails) {
-                const rRailIn = r - halfGauge;
-                const rRailOut = r + halfGauge;
-
-                const rx1 = cX + rRailOut * Math.cos(startRad);
-                const ry1 = cY + rRailOut * Math.sin(startRad);
-                const rx2 = cX + rRailOut * Math.cos(endRad);
-                const ry2 = cY + rRailOut * Math.sin(endRad);
-
-                const rx3 = cX + rRailIn * Math.cos(startRad);
-                const ry3 = cY + rRailIn * Math.sin(startRad);
-                const rx4 = cX + rRailIn * Math.cos(endRad);
-                const ry4 = cY + rRailIn * Math.sin(endRad);
-
-                railPaths.push(`M ${rx1} ${ry1} A ${rRailOut} ${rRailOut} 0 ${largeArcFlag} ${sweepOut} ${rx2} ${ry2}`);
-                railPaths.push(`M ${rx3} ${ry3} A ${rRailIn} ${rRailIn} 0 ${largeArcFlag} ${sweepOut} ${rx4} ${ry4}`);
-            }
-        }
-    });
-
-    const geoCenterX = (minX !== Infinity && maxX !== -Infinity) ? minX + (maxX - minX) / 2 : 0;
-    const geoCenterY = (minY !== Infinity && maxY !== -Infinity) ? minY + (maxY - minY) / 2 : 0;
-
-    return {
-        basePaths: basePaths,
-        railPaths: railPaths,
-        centerX: geoCenterX,
-        centerY: geoCenterY
-    };
-}
-
-/**
- * 重複がなければ globalJoints に追加
- */
-function addGlobalJointIfFree(railAId, nodeAId, railBId, nodeBId) {
-    if (!railAId || !railBId || nodeAId === undefined || nodeBId === undefined) return false;
-
-    const exists = globalJoints.some(j => 
-        j && (
-            (j.railA === railAId && j.nodeA === nodeAId && j.railB === railBId && j.nodeB === nodeBId) ||
-            (j.railA === railBId && j.nodeA === nodeBId && j.railB === railAId && j.nodeB === nodeAId)
-        )
-    );
-    if (exists) return false;
-
-    if (isNodeOccupied(railAId, nodeAId) || isNodeOccupied(railBId, nodeBId)) return false;
-
-    globalJoints.push({
-        railA: railAId, nodeA: nodeAId, railB: railBId, nodeB: nodeBId
-    });
-    return true;
-}
-
-/**
- * 実際に移動中のパーツと外部を結ぶジョイントのみ削除
- */
-function detachMovedRailJoints(target) {
-    if (!target) return;
-    const movedIds = getMovedRailIds(target);
-    if (movedIds.length === 0) return;
-
-    globalJoints = globalJoints.filter(j => {
-        if (!j) return false;
-        const hasA = movedIds.includes(j.railA);
-        const hasB = movedIds.includes(j.railB);
-        return (hasA && hasB) || (!hasA && !hasB);
-    });
 }
 
 function findTargetNodeForAutoConnect(parentRail) {
@@ -277,19 +71,12 @@ function findTargetNodeForAutoConnect(parentRail) {
     if (!catalog || !catalog.nodes || catalog.nodes.length === 0) return null;
 
     const nodes = catalog.nodes;
-    const nodeCount = nodes.length;
-    
-    const searchOrder = [];
-    for (let i = 1; i < nodeCount; i++) {
-        searchOrder.push(nodes[i].id);
-    }
+    const searchOrder = nodes.slice(1).map(n => n.id);
     searchOrder.push(nodes[0].id);
 
     const railId = parentRail.customData.instanceId;
     for (let nodeId of searchOrder) {
-        if (!isNodeOccupied(railId, nodeId)) {
-            return nodeId;
-        }
+        if (!isNodeOccupied(railId, nodeId)) return nodeId;
     }
 
     return null;
@@ -317,20 +104,14 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
     const newLeft = parentNode.x - (lx * Math.cos(rad) - ly * Math.sin(rad));
     const newTop  = parentNode.y - (lx * Math.sin(rad) + ly * Math.cos(rad));
 
-    newRail.set({
-        left: newLeft,
-        top: newTop
-    });
+    newRail.set({ left: newLeft, top: newTop });
     newRail.setCoords();
 
     addGlobalJointIfFree(
-        parentRail.customData.instanceId,
-        parentNodeId,
-        newRail.customData.instanceId,
-        newNode0.id
+        parentRail.customData.instanceId, parentNodeId,
+        newRail.customData.instanceId, newNode0.id
     );
 
-    // 複線・多重ノード自動接続
     const allRails = canvas.getObjects().filter(obj => obj && obj.customData && obj.customData.isRail);
     const newId = newRail.customData.instanceId;
     const newNodes = getAbsoluteNodePos(newRail);
@@ -347,10 +128,7 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
 
             otherNodes.forEach(oNode => {
                 if (isNodeOccupied(otherId, oNode.nodeId)) return;
-
-                if (typeof canConnectNodes === 'function' && !canConnectNodes(newRail, nNode.nodeId, otherRail, oNode.nodeId)) {
-                    return;
-                }
+                if (!canConnectNodes(newRail, nNode.nodeId, otherRail, oNode.nodeId)) return;
 
                 const dist = Math.sqrt(Math.pow(nNode.x - oNode.x, 2) + Math.pow(nNode.y - oNode.y, 2));
                 if (dist < 8) {
@@ -365,17 +143,17 @@ function registerGlobalCanvasEvents() {
     if (globalEventsRegistered || !canvas) return;
     globalEventsRegistered = true;
 
-    canvas.on('object:moving', function(options) { 
+    canvas.on('object:moving', (options) => { 
         isDraggingRail = true;
         if (options && options.target) onGeneralTransform(options.target); 
     });
 
-    canvas.on('object:rotating', function(options) { 
+    canvas.on('object:rotating', (options) => { 
         isDraggingRail = true;
         if (options && options.target) onGeneralTransform(options.target); 
     });
     
-    canvas.on('mouse:up', function() {
+    canvas.on('mouse:up', () => {
         if (isDraggingRail) {
             isDraggingRail = false;
             const activeObj = canvas.getActiveObject();
@@ -385,7 +163,7 @@ function registerGlobalCanvasEvents() {
         }
     });
 
-    const handleSelection = (e) => {
+    const handleSelection = () => {
         const activeObject = canvas.getActiveObject();
         if (activeObject && activeObject.type === 'activeSelection') {
             configureControls(activeObject);
@@ -401,42 +179,16 @@ function addRailToCanvas(partId) {
     if (!canvas) return null;
 
     const catalogItem = railCatalog.items[partId];
-    if (!catalogItem) {
-        console.error("未定義のパーツです:", partId);
-        return null;
-    }
+    if (!catalogItem) return null;
 
-    const currentId = `rail-${railCount}`;
-    railCount++;
-
+    const currentId = `rail-${railCount++}`;
     const geoData = generateGenericRailData(catalogItem);
 
-    const baseObjects = geoData.basePaths.map(pStr => {
-        return new fabric.Path(pStr, {
-            fill: '#888888',
-            stroke: null,
-            originX: 'center',
-            originY: 'center'
-        });
-    });
+    const baseObjects = geoData.basePaths.map(pStr => new fabric.Path(pStr, { fill: '#888888', stroke: null, originX: 'center', originY: 'center' }));
+    const railObjects = geoData.railPaths.map(pStr => new fabric.Path(pStr, { fill: null, stroke: '#222222', strokeWidth: 1.5, strokeLineCap: 'round', originX: 'center', originY: 'center' }));
 
-    const railObjects = geoData.railPaths.map(pStr => {
-        return new fabric.Path(pStr, {
-            fill: null,
-            stroke: '#222222',
-            strokeWidth: 1.5,
-            strokeLineCap: 'round',
-            originX: 'center',
-            originY: 'center'
-        });
-    });
-
-    let railObject = new fabric.Group([...baseObjects, ...railObjects], {
-        left: 0, 
-        top: 0,
-        originX: 'center', 
-        originY: 'center', 
-        angle: 0
+    const railObject = new fabric.Group([...baseObjects, ...railObjects], {
+        left: 0, top: 0, originX: 'center', originY: 'center', angle: 0
     });
 
     configureControls(railObject);
@@ -450,47 +202,25 @@ function addRailToCanvas(partId) {
     };
 
     const activeObj = canvas.getActiveObject();
-    let parentRail = null;
-    if (activeObj && activeObj.customData && activeObj.customData.isRail) {
-        parentRail = activeObj;
-    }
-
+    const parentRail = (activeObj && activeObj.customData && activeObj.customData.isRail) ? activeObj : null;
     const targetNodeId = parentRail ? findTargetNodeForAutoConnect(parentRail) : null;
 
     if (parentRail && targetNodeId !== null) {
         alignRailToParentNode(railObject, parentRail, targetNodeId);
     } else if (lastCanvasClickPos) {
-        railObject.set({
-            left: lastCanvasClickPos.x,
-            top: lastCanvasClickPos.y,
-            angle: 0
-        });
+        railObject.set({ left: lastCanvasClickPos.x, top: lastCanvasClickPos.y, angle: 0 });
         railObject.setCoords();
     } else {
-        const initialLeft = 250 + (railCount % 5) * 25;
-        const initialTop = 450 + (railCount % 5) * 25;
-        railObject.set({
-            left: initialLeft,
-            top: initialTop,
-            angle: 0
-        });
+        railObject.set({ left: 250 + (railCount % 5) * 25, top: 450 + (railCount % 5) * 25, angle: 0 });
         railObject.setCoords();
     }
 
     canvas.add(railObject);
     
-    // イベントは移動（moving / rotating）時のみ
-    railObject.on('moving', function() { 
-        isDraggingRail = true; 
-        onGeneralTransform(this); 
-    });
-    railObject.on('rotating', function() { 
-        isDraggingRail = true; 
-        onGeneralTransform(this); 
-    });
+    railObject.on('moving', function() { isDraggingRail = true; onGeneralTransform(this); });
+    railObject.on('rotating', function() { isDraggingRail = true; onGeneralTransform(this); });
 
     registerGlobalCanvasEvents();
-
     canvas.setActiveObject(railObject);
 
     updateJointIndicators();
@@ -539,73 +269,35 @@ function importLayoutData(layoutData, isOverwrite = true) {
         railCount = 0;
     }
 
-    const idMap = {};
+    const createdObjects = [];
 
+    // 1. レールを配置順に追加（インデックス順）
     layoutData.rails.forEach(r => {
         if (!r || !r.partId) return;
         const newObj = addRailToCanvas(r.partId);
         if (newObj) {
-            const newId = newObj.customData.instanceId;
-            idMap[r.instanceId] = newId;
-
             newObj.set({ left: r.x, top: r.y, angle: r.angle });
             newObj.setCoords();
+            createdObjects.push(newObj);
         }
     });
 
+    // 2. 案3（配列インデックス）または旧仕様（ID参照）のいずれでもジョイント復元
     if (Array.isArray(layoutData.joints)) {
         layoutData.joints.forEach(j => {
             if (!j) return;
-            const mappedA = idMap[j.railA] || j.railA;
-            const mappedB = idMap[j.railB] || j.railB;
+            
+            let railAId = typeof j.railA === 'number' ? createdObjects[j.railA]?.customData.instanceId : j.railA;
+            let railBId = typeof j.railB === 'number' ? createdObjects[j.railB]?.customData.instanceId : j.railB;
 
-            addGlobalJointIfFree(mappedA, j.nodeA, mappedB, j.nodeB);
+            if (railAId && railBId) {
+                addGlobalJointIfFree(railAId, j.nodeA, railBId, j.nodeB);
+            }
         });
     }
 
     updateJointIndicators();
     canvas.requestRenderAll();
-}
-
-function getAbsoluteNodePos(rail) {
-    if (!rail || !rail.customData) return [];
-    const catalog = railCatalog.items[rail.customData.partId];
-    if (!catalog) return [];
-    
-    const cx = rail.customData.geoCenterX || 0;
-    const cy = rail.customData.geoCenterY || 0;
-    
-    if (rail.group && rail.group.type === 'activeSelection') {
-        const angleRad = (rail.angle * Math.PI) / 180;
-        return catalog.nodes.map(node => {
-            const lx = node.relX - cx;
-            const ly = node.relY - cy;
-
-            const localX = rail.left + (lx * Math.cos(angleRad) - ly * Math.sin(angleRad));
-            const localY = rail.top  + (lx * Math.sin(angleRad) + ly * Math.cos(angleRad));
-            const point = new fabric.Point(localX, localY);
-            const absPoint = fabric.util.transformPoint(point, rail.group.calcTransformMatrix());
-            const absAngle = (rail.group.angle + rail.angle + node.facingAngle) % 360;
-            return { nodeId: node.id, x: absPoint.x, y: absPoint.y, angle: absAngle };
-        });
-    }
-
-    const angleRad = (rail.angle * Math.PI) / 180;
-    return catalog.nodes.map(node => {
-        const lx = node.relX - cx;
-        const ly = node.relY - cy;
-
-        const absX = rail.left + (lx * Math.cos(angleRad) - ly * Math.sin(angleRad));
-        const absY = rail.top  + (lx * Math.sin(angleRad) + ly * Math.cos(angleRad));
-        const absAngle = (rail.angle + node.facingAngle) % 360;
-        return { nodeId: node.id, x: absX, y: absY, angle: absAngle };
-    });
-}
-
-function isNodeOccupied(railId, nodeId) {
-    return globalJoints.some(j => 
-        j && ((j.railA === railId && j.nodeA === nodeId) || (j.railB === railId && j.nodeB === nodeId))
-    );
 }
 
 function onGeneralTransform(target) {
@@ -614,20 +306,11 @@ function onGeneralTransform(target) {
     updateJointIndicators();
 }
 
-function getMovedRailIds(target) {
-    if (!target) return [];
-    if (target.customData && target.customData.isRail) return [target.customData.instanceId];
-    if (target.type === 'activeSelection') {
-        return target.getObjects().filter(o => o && o.customData && o.customData.isRail).map(o => o.customData.instanceId);
-    }
-    return [];
-}
-
 function updateJointIndicators() {
     if (!canvas) return;
     
     const oldIndicators = canvas.getObjects().filter(obj => obj && obj.customData && obj.customData.isIndicator);
-    oldIndicators.forEach(obj => { if (obj) canvas.remove(obj); });
+    oldIndicators.forEach(obj => canvas.remove(obj));
 
     const rails = canvas.getObjects().filter(obj => obj && obj.customData && obj.customData.isRail);
 
@@ -635,17 +318,14 @@ function updateJointIndicators() {
         if (!rail || !rail.customData) return;
         const railId = rail.customData.instanceId;
         const absoluteNodes = getAbsoluteNodePos(rail);
-        if (!absoluteNodes) return;
 
         absoluteNodes.forEach(node => {
             if (!node) return;
             const isOccupied = isNodeOccupied(railId, node.nodeId);
 
-            const color = isOccupied ? '#7cd21d' : '#ff3b30';
-            const radius = 4;
-
             const dot = new fabric.Circle({
-                left: node.x, top: node.y, radius: radius, fill: color,
+                left: node.x, top: node.y, radius: 4,
+                fill: isOccupied ? '#7cd21d' : '#ff3b30',
                 stroke: '#ffffff', strokeWidth: 1, originX: 'center', originY: 'center',
                 selectable: false, evented: false, customData: { isIndicator: true }
             });
@@ -654,12 +334,4 @@ function updateJointIndicators() {
             canvas.bringToFront(dot);
         });
     });
-}
-
-function loadDebugSampleLayout() {
-    if (!canvas || typeof INITIAL_SAMPLE_LAYOUT === 'undefined') return;
-    importLayoutData(INITIAL_SAMPLE_LAYOUT, true);
-    canvas.setZoom(0.35);
-    canvas.setViewportTransform([0.35, 0, 0, 0.35, 250, 100]);
-    console.log("[%s] サンプルレイアウトを展開しました！", "VER-LAYOUT-AUTOCONNECT-E22");
 }
