@@ -1,19 +1,26 @@
 // =============================================================
-// 鉄道模型レイアウトジェネレータ - 基本エンジン (Polygon完全対応版)
-// バージョン: VER-DYNAMIC-WIDTH-U8
+// 鉄道模型レイアウトジェネレータ - 基本エンジン (動的レール描画対応版)
+// バージョン: VER-DYNAMIC-WIDTH-U9
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-DYNAMIC-WIDTH-U8");
+console.log("基本エンジン（JS）が読み込まれました: VER-DYNAMIC-WIDTH-U9");
 
 let globalJoints = [];
 let railCount = 0;
 let isFirstMoveFrame = true;
 
 function generateGenericRailData(catalogItem) {
-    const paths = [];
+    const basePaths = [];
+    const railPaths = [];
     
     const sys = catalogItem && catalogItem.systemId ? railCatalog.systems[catalogItem.systemId] : null;
     const BALLAST_WIDTH = sys ? sys.ballastWidth : 16;
     const halfW = BALLAST_WIDTH / 2;
+
+    // --- システム & トラックタイプの判定 ---
+    const trackType = (catalogItem && catalogItem.trackType) || (sys && sys.trackType) || 'standard';
+    const gauge = sys ? sys.gauge : null;
+    const shouldRenderRails = (trackType === 'standard') && (typeof gauge === 'number' && gauge > 0);
+    const halfGauge = shouldRenderRails ? gauge / 2 : 0;
 
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
 
@@ -23,31 +30,43 @@ function generateGenericRailData(catalogItem) {
     }
 
     if (!catalogItem || !catalogItem.shapes) {
-        return { paths: ["M 0 0 L 10 0"], centerX: 0, centerY: 0 };
+        return { basePaths: ["M 0 0 L 10 0"], railPaths: [], centerX: 0, centerY: 0 };
     }
 
     catalogItem.shapes.forEach(shape => {
+        // --- 1. 多角形（Polygon） ---
         if (shape.type === "polygon" && Array.isArray(shape.points) && shape.points.length > 0) {
-            // ★ 多角形（Polygon）のパス生成
             let polyPath = "";
             shape.points.forEach((pt, idx) => {
                 polyPath += (idx === 0 ? `M ${pt.x} ${pt.y}` : ` L ${pt.x} ${pt.y}`);
                 updateBounds(pt.x, pt.y);
             });
             polyPath += " Z";
-            paths.push(polyPath);
+            basePaths.push(polyPath);
         }
+        // --- 2. 直線（Line） ---
         else if (shape.type === "line") {
             const x1 = (shape.offsetX || 0) - shape.length / 2;
             const x2 = (shape.offsetX || 0) + shape.length / 2;
             const y1 = (shape.offsetY || 0) - halfW;
             const y2 = (shape.offsetY || 0) + halfW;
             
-            paths.push(`M ${x1} ${y1} L ${x2} ${y1} L ${x2} ${y2} L ${x1} ${y2} Z`);
+            // 道床（面）
+            basePaths.push(`M ${x1} ${y1} L ${x2} ${y1} L ${x2} ${y2} L ${x1} ${y2} Z`);
             
             updateBounds(x1, y1); updateBounds(x2, y1);
             updateBounds(x2, y2); updateBounds(x1, y2);
+
+            // 動的レール（線）
+            if (shouldRenderRails) {
+                const centerY = shape.offsetY || 0;
+                const railY1 = centerY - halfGauge;
+                const railY2 = centerY + halfGauge;
+                railPaths.push(`M ${x1} ${railY1} L ${x2} ${railY1}`);
+                railPaths.push(`M ${x1} ${railY2} L ${x2} ${railY2}`);
+            }
         } 
+        // --- 3. 曲線（Arc） ---
         else if (shape.type === "arc") {
             const r = shape.radius;
             const rOut = r + halfW;
@@ -75,7 +94,8 @@ function generateGenericRailData(catalogItem) {
             const sweepOut = arcAngle >= 0 ? 1 : 0;
             const sweepIn  = arcAngle >= 0 ? 0 : 1;
 
-            paths.push(`M ${x1} ${y1} A ${rOut} ${rOut} 0 ${largeArcFlag} ${sweepOut} ${x2} ${y2} L ${x3} ${y3} A ${rIn} ${rIn} 0 ${largeArcFlag} ${sweepIn} ${x4} ${y4} Z`);
+            // 道床（面）
+            basePaths.push(`M ${x1} ${y1} A ${rOut} ${rOut} 0 ${largeArcFlag} ${sweepOut} ${x2} ${y2} L ${x3} ${y3} A ${rIn} ${rIn} 0 ${largeArcFlag} ${sweepIn} ${x4} ${y4} Z`);
             
             updateBounds(x1, y1); updateBounds(x2, y2);
             updateBounds(x3, y3); updateBounds(x4, y4);
@@ -89,6 +109,25 @@ function generateGenericRailData(catalogItem) {
                     updateBounds(cX + rIn  * Math.cos(rad), cY + rIn  * Math.sin(rad));
                 }
             });
+
+            // 動的レール（線）
+            if (shouldRenderRails) {
+                const rRailIn = r - halfGauge;
+                const rRailOut = r + halfGauge;
+
+                const rx1 = cX + rRailOut * Math.cos(startRad);
+                const ry1 = cY + rRailOut * Math.sin(startRad);
+                const rx2 = cX + rRailOut * Math.cos(endRad);
+                const ry2 = cY + rRailOut * Math.sin(endRad);
+
+                const rx3 = cX + rRailIn * Math.cos(startRad);
+                const ry3 = cY + rRailIn * Math.sin(startRad);
+                const rx4 = cX + rRailIn * Math.cos(endRad);
+                const ry4 = cY + rRailIn * Math.sin(endRad);
+
+                railPaths.push(`M ${rx1} ${ry1} A ${rRailOut} ${rRailOut} 0 ${largeArcFlag} ${sweepOut} ${rx2} ${ry2}`);
+                railPaths.push(`M ${rx3} ${ry3} A ${rRailIn} ${rRailIn} 0 ${largeArcFlag} ${sweepOut} ${rx4} ${ry4}`);
+            }
         }
     });
 
@@ -97,7 +136,8 @@ function generateGenericRailData(catalogItem) {
     const geoCenterY = (minY !== Infinity && maxY !== -Infinity) ? minY + (maxY - minY) / 2 : 0;
 
     return {
-        paths: paths,
+        basePaths: basePaths,
+        railPaths: railPaths,
         centerX: geoCenterX,
         centerY: geoCenterY
     };
@@ -119,8 +159,8 @@ function addRailToCanvas(partId) {
 
     const geoData = generateGenericRailData(catalogItem);
 
-    // ★ Pathオブジェクト生成時に明示的に fill/stroke と原点を設定
-    const pathObjects = geoData.paths.map(pStr => {
+    // 1. 道床オブジェクト (グレー塗潰し)
+    const baseObjects = geoData.basePaths.map(pStr => {
         return new fabric.Path(pStr, {
             fill: '#888888',
             stroke: null,
@@ -129,8 +169,20 @@ function addRailToCanvas(partId) {
         });
     });
 
-    // ★ Group オブジェクトとしてまとめる
-    let railObject = new fabric.Group(pathObjects, {
+    // 2. レールオブジェクト (暗色・線の太さ1.5)
+    const railObjects = geoData.railPaths.map(pStr => {
+        return new fabric.Path(pStr, {
+            fill: null,
+            stroke: '#222222',
+            strokeWidth: 1.5,
+            strokeLineCap: 'round',
+            originX: 'center',
+            originY: 'center'
+        });
+    });
+
+    // 道床の上にレールを重ねてグループ化
+    let railObject = new fabric.Group([...baseObjects, ...railObjects], {
         left: initialLeft, 
         top: initialTop,
         originX: 'center', 
