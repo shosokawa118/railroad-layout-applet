@@ -6,7 +6,7 @@
     <title>鉄道模型レイアウトジェネレータ</title>
     
     <script>
-        const CODE_VERSION = "VER-PALETTE-UI-M7";
+        const CODE_VERSION = "VER-PALETTE-UI-M8";
         console.log("=========================================");
         console.log("ビュー（HTML）バージョン:", CODE_VERSION);
         console.log("=========================================");
@@ -37,11 +37,13 @@
 
                 console.log("[%s] Canvas初期化成功。初期配置データをロードします...", CODE_VERSION);
                 
-                setTimeout(() => {
+                loadSystemLibrary(currentSystemId).then(() => {
                     if (typeof loadDebugSampleLayout === 'function') {
                         loadDebugSampleLayout();
                     }
-                }, 300);
+                }).catch(err => {
+                    console.error("初期ライブラリの読み込みに失敗しました:", err);
+                });
             }
         }
 
@@ -92,10 +94,8 @@
             const items = Object.keys(railCatalog.items)
                 .filter(id => {
                     const item = railCatalog.items[id];
-                    // カテゴリが一致しない場合は除外
                     if (item.category !== currentCategory) return false;
 
-                    // compatibleSystems が定義されている場合はそちらを参照し、無ければ systemId で判定
                     if (Array.isArray(item.compatibleSystems)) {
                         return item.compatibleSystems.includes(currentSystemId);
                     }
@@ -112,7 +112,7 @@
                 const btn = document.createElement('button');
                 btn.className = 'part-btn';
                 btn.textContent = item.name;
-                btn.title = item.description || item.name; // ホバー時に日本語説明を表示
+                btn.title = item.description || item.name;
                 btn.onclick = () => addRailToCanvas(partId);
                 paletteContainer.appendChild(btn);
             });
@@ -161,7 +161,7 @@
         })();
     </script>
 
-    <!-- 全件登録版(parts-catalog.js)を廃止し、定義のみのコアファイルに変更 -->
+    <!-- 定義のみのコアファイルおよび基幹スクリプト -->
     <script src="rail-catalog-core.js"></script>
     <script src="layout-engine.js"></script>
     <script src="snap-manager.js"></script>
