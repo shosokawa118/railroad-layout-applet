@@ -410,71 +410,137 @@ const railCatalog = {
             ]
         },
 
-        // --- 曲線軌道プレート (直線+R180-45°カーブ / 45°頂点33mm間隔) ---
+        // =========================================================
+        // KATO ユニトラム (曲線・ポイント・交差点 修正＆追加)
+        // =========================================================
+
+        // --- 曲線軌道プレート L ---
         "KATO-UNITRAM-C-L": {
             systemId: "KATO-UNITRAM-N",
             category: "curve",
             name: "複線交差点/交差角 曲線 L",
             description: "交差点 曲線軌道 (内線25mm+R180 / 外線50mm+R180)",
             nodes: [
-                { "id": 0, "name": "直線側-内軌", "relX": -62, "relY": -12.5, "facingAngle": 180 },
-                { "id": 1, "name": "直線側-外軌", "relX": -62, "relY":  12.5, "facingAngle": 180 },
-                { "id": 2, "name": "45°頂点-内軌", "relX":  40.48, "relY": -50.98, "facingAngle": -45 },
-                { "id": 3, "name": "45°頂点-外軌", "relX":  64.04, "relY": -27.42, "facingAngle": -45 }
+                { "id": 0, "name": "直線側-内軌", "relX": -62.0, "relY": -12.5, "facingAngle": 180 },
+                { "id": 1, "name": "直線側-外軌", "relX": -62.0, "relY":  12.5, "facingAngle": 180 },
+                { "id": 2, "name": "45°頂点-内軌", "relX":  90.28, "relY": -127.28, "facingAngle": -45 },
+                { "id": 3, "name": "45°頂点-外軌", "relX": 113.84, "relY": -103.72, "facingAngle": -45 }
             ],
             shapes: [
-                // 内軌 (直線25mm + R180 45°カーブ)
                 { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": -12.5 },
                 { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -37.0, "centerY": -192.5, "startAngle": 90 },
-                // 外軌 (直線50mm + R180 45°カーブ)
                 { "type": "line", "length": 50, "offsetX": -37.0, "offsetY": 12.5 },
                 { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -12.0, "centerY": -167.5, "startAngle": 90 }
             ]
         },
+
+        // --- 曲線軌道プレート R ---
         "KATO-UNITRAM-C-R": {
             systemId: "KATO-UNITRAM-N",
             category: "curve",
             name: "複線交差点/交差角 曲線 R",
             description: "交差点 曲線軌道 (内線25mm+R180 / 外線50mm+R180)",
             nodes: [
-                { "id": 0, "name": "直線側-内軌", "relX": -62, "relY":  12.5, "facingAngle": 180 },
-                { "id": 1, "name": "直線側-外軌", "relX": -62, "relY": -12.5, "facingAngle": 180 },
-                { "id": 2, "name": "45°頂点-内軌", "relX":  40.48, "relY":  50.98, "facingAngle": 45 },
-                { "id": 3, "name": "45°頂点-外軌", "relX":  64.04, "relY":  27.42, "facingAngle": 45 }
+                { "id": 0, "name": "直線側-内軌", "relX": -62.0, "relY":  12.5, "facingAngle": 180 },
+                { "id": 1, "name": "直線側-外軌", "relX": -62.0, "relY": -12.5, "facingAngle": 180 },
+                { "id": 2, "name": "45°頂点-内軌", "relX":  90.28, "relY":  127.28, "facingAngle": 45 },
+                { "id": 3, "name": "45°頂点-外軌", "relX": 113.84, "relY":  103.72, "facingAngle": 45 }
             ],
             shapes: [
-                // 内軌 (直線25mm + R180 45°カーブ)
                 { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": 12.5 },
                 { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -37.0, "centerY": 192.5, "startAngle": 270 },
-                // 外軌 (直線50mm + R180 45°カーブ)
                 { "type": "line", "length": 50, "offsetX": -37.0, "offsetY": -12.5 },
                 { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -12.0, "centerY": 167.5, "startAngle": 270 }
             ]
         },
 
-        // --- ポイント軌道プレート (複線→複線分岐) ---
+        // --- 複線分岐ポイント L (左) ---
         "KATO-UNITRAM-TURNOUT-L": {
             systemId: "KATO-UNITRAM-N",
             category: "turnout",
             name: "複線分岐ポイント L",
             description: "電動複線分岐ポイント (124mm直進 + C-L曲線分岐)",
             nodes: [
-                { "id": 0, "name": "進入-内軌", "relX": -62, "relY": -12.5, "facingAngle": 180 },
-                { "id": 1, "name": "進入-外軌", "relX": -62, "relY":  12.5, "facingAngle": 180 },
-                { "id": 2, "name": "直進-内軌", "relX":  62, "relY": -12.5, "facingAngle": 0 },
-                { "id": 3, "name": "直進-外軌", "relX":  62, "relY":  12.5, "facingAngle": 0 },
-                { "id": 4, "name": "分岐-内軌", "relX":  40.48, "relY": -50.98, "facingAngle": -45 },
-                { "id": 5, "name": "分岐-外軌", "relX":  64.04, "relY": -27.42, "facingAngle": -45 }
+                { "id": 0, "name": "進入-内軌", "relX": -62.0, "relY": -12.5, "facingAngle": 180 },
+                { "id": 1, "name": "進入-外軌", "relX": -62.0, "relY":  12.5, "facingAngle": 180 },
+                { "id": 2, "name": "直進-内軌", "relX":  62.0, "relY": -12.5, "facingAngle": 0 },
+                { "id": 3, "name": "直進-外軌", "relX":  62.0, "relY":  12.5, "facingAngle": 0 },
+                { "id": 4, "name": "分岐-内軌", "relX":  90.28, "relY": -127.28, "facingAngle": -45 },
+                { "id": 5, "name": "分岐-外軌", "relX": 113.84, "relY": -103.72, "facingAngle": -45 }
             ],
             shapes: [
-                // 直進線 (124mm)
                 { "type": "line", "length": 124, "offsetX": 0, "offsetY": -12.5 },
                 { "type": "line", "length": 124, "offsetX": 0, "offsetY":  12.5 },
-                // 分岐線 (直線+R180)
                 { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": -12.5 },
                 { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -37.0, "centerY": -192.5, "startAngle": 90 },
                 { "type": "line", "length": 50, "offsetX": -37.0, "offsetY": 12.5 },
                 { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -12.0, "centerY": -167.5, "startAngle": 90 }
+            ]
+        },
+
+        // --- 複線分岐ポイント R (右) ---
+        "KATO-UNITRAM-TURNOUT-R": {
+            systemId: "KATO-UNITRAM-N",
+            category: "turnout",
+            name: "複線分岐ポイント R",
+            description: "電動複線分岐ポイント (124mm直進 + C-R曲線分岐)",
+            nodes: [
+                { "id": 0, "name": "進入-内軌", "relX": -62.0, "relY":  12.5, "facingAngle": 180 },
+                { "id": 1, "name": "進入-外軌", "relX": -62.0, "relY": -12.5, "facingAngle": 180 },
+                { "id": 2, "name": "直進-内軌", "relX":  62.0, "relY":  12.5, "facingAngle": 0 },
+                { "id": 3, "name": "直進-外軌", "relX":  62.0, "relY": -12.5, "facingAngle": 0 },
+                { "id": 4, "name": "分岐-内軌", "relX":  90.28, "relY":  127.28, "facingAngle": 45 },
+                { "id": 5, "name": "分岐-外軌", "relX": 113.84, "relY":  103.72, "facingAngle": 45 }
+            ],
+            shapes: [
+                { "type": "line", "length": 124, "offsetX": 0, "offsetY": -12.5 },
+                { "type": "line", "length": 124, "offsetX": 0, "offsetY":  12.5 },
+                { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": 12.5 },
+                { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -37.0, "centerY": 192.5, "startAngle": 270 },
+                { "type": "line", "length": 50, "offsetX": -37.0, "offsetY": -12.5 },
+                { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -12.0, "centerY": 167.5, "startAngle": 270 }
+            ]
+        },
+
+        // --- 十字軌道 62mm (複線) ---
+        "KATO-UNITRAM-CROSS-62D": {
+            systemId: "KATO-UNITRAM-N",
+            category: "special",
+            name: "複線十字軌道 62mm",
+            description: "62mm×62mm 複線十字交差点軌道",
+            nodes: [
+                // 西 (左)
+                { "id": 0, "name": "西-内軌", "relX": -31, "relY": -12.5, "facingAngle": 180 },
+                { "id": 1, "name": "西-外軌", "relX": -31, "relY":  12.5, "facingAngle": 180 },
+                // 東 (右)
+                { "id": 2, "name": "東-内軌", "relX":  31, "relY": -12.5, "facingAngle": 0 },
+                { "id": 3, "name": "東-外軌", "relX":  31, "relY":  12.5, "facingAngle": 0 },
+                // 北 (上)
+                { "id": 4, "name": "北-内軌", "relX":  12.5, "relY": -31, "facingAngle": 270 },
+                { "id": 5, "name": "北-外軌", "relX": -12.5, "relY": -31, "facingAngle": 270 },
+                // 南 (下)
+                { "id": 6, "name": "南-内軌", "relX":  12.5, "relY":  31, "facingAngle": 90 },
+                { "id": 7, "name": "南-外軌", "relX": -12.5, "relY":  31, "facingAngle": 90 }
+            ],
+            shapes: [
+                // 東西 複線
+                { "type": "line", "length": 62, "offsetX": 0, "offsetY": -12.5 },
+                { "type": "line", "length": 62, "offsetX": 0, "offsetY":  12.5 },
+                // 南北 複線 (Polygon表現)
+                {
+                    "type": "polygon",
+                    "points": [
+                        { "x": -12.5, "y": -31 }, { "x": -10.5, "y": -31 },
+                        { "x": -10.5, "y":  31 }, { "x": -12.5, "y":  31 }
+                    ]
+                },
+                {
+                    "type": "polygon",
+                    "points": [
+                        { "x": 10.5, "y": -31 }, { "x": 12.5, "y": -31 },
+                        { "x": 12.5, "y":  31 }, { "x": 10.5, "y":  31 }
+                    ]
+                }
             ]
         },
 
