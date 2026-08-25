@@ -18,6 +18,13 @@ const railCatalog = {
             ballastWidth: 25,
             connectorType: "kato-unijoiner"
         },
+        "KATO-UNITRAM-N": {
+            scale: "N",
+            brand: "KATO",
+            systemName: "ユニトラム (N)",
+            ballastWidth: 50,
+            connectorType: "kato-unijoiner"
+        },
         "TOMIX-FINETRACK-N": {
             scale: "N",
             brand: "TOMIX",
@@ -362,6 +369,88 @@ const railCatalog = {
                 { "type": "arc", "radius": 150, "arcAngle": 45, "centerX": -62.0, "centerY": 150.0, "startAngle": 270 }
             ]
         },
+
+        // =========================================================
+        // KATO ユニトラム (路面軌道 / 併用軌道)
+        // =========================================================
+        "KATO-UNITRAM-S186": {
+            systemId: "KATO-UNITRAM-N",
+            compatibleSystems: ["KATO-UNITRAM-N", "KATO-UNITRACK-N"],
+            category: "straight",
+            name: "S186TR",
+            description: "直線軌道プレート 186mm",
+            nodes: [
+                { "id": 0, "relX": -93, "relY": 0, "facingAngle": 180 },
+                { "id": 1, "relX": 93,  "relY": 0, "facingAngle": 0 }
+            ],
+            shapes: [{ "type": "line", "length": 186, "offsetX": 0, "offsetY": 0 }]
+        },
+        "KATO-UNITRAM-S124": {
+            systemId: "KATO-UNITRAM-N",
+            compatibleSystems: ["KATO-UNITRAM-N", "KATO-UNITRACK-N"],
+            category: "straight",
+            name: "S124TR",
+            description: "直線軌道プレート 124mm",
+            nodes: [
+                { "id": 0, "relX": -62, "relY": 0, "facingAngle": 180 },
+                { "id": 1, "relX": 62,  "relY": 0, "facingAngle": 0 }
+            ],
+            shapes: [{ "type": "line", "length": 124, "offsetX": 0, "offsetY": 0 }]
+        },
+        "KATO-UNITRAM-S62": {
+            systemId: "KATO-UNITRAM-N",
+            compatibleSystems: ["KATO-UNITRAM-N", "KATO-UNITRACK-N"],
+            category: "straight",
+            name: "S62TR",
+            description: "直線軌道プレート 62mm",
+            nodes: [
+                { "id": 0, "relX": -31, "relY": 0, "facingAngle": 180 },
+                { "id": 1, "relX": 31,  "relY": 0, "facingAngle": 0 }
+            ],
+            shapes: [{ "type": "line", "length": 62, "offsetX": 0, "offsetY": 0 }]
+        },
+        "KATO-UNITRAM-C180-45": {
+            systemId: "KATO-UNITRAM-N",
+            category: "curve",
+            name: "R180-45TR",
+            description: "曲線軌道プレート R180-45°",
+            nodes: [
+                { "id": 0, "relX": -68.88, "relY": 0, "facingAngle": 157.5 },
+                { "id": 1, "relX": 68.88,  "relY": 0, "facingAngle": 22.5 }
+            ],
+            shapes: [{ "type": "arc", "radius": 180, "arcAngle": 45, "centerX": 0, "centerY": 166.30, "startAngle": 247.5 }]
+        },
+        "KATO-UNITRAM-C180-90": {
+            systemId: "KATO-UNITRAM-N",
+            category: "curve",
+            name: "R180-90TR",
+            description: "交差点/交差角 曲線軌道 R180-90°",
+            nodes: [
+                { "id": 0, "relX": -127.28, "relY": 0, "facingAngle": 135.0 },
+                { "id": 1, "relX": 127.28,  "relY": 0, "facingAngle": 45.0 }
+            ],
+            shapes: [{ "type": "arc", "radius": 180, "arcAngle": 90, "centerX": 0, "centerY": 127.28, "startAngle": 225.0 }]
+        },
+        "KATO-UNITRAM-CROSS-90": {
+            systemId: "KATO-UNITRAM-N",
+            category: "special",
+            name: "X124TR",
+            description: "十字交差点軌道 124mm",
+            nodes: [
+                { "id": 0, "name": "西", "relX": -62, "relY": 0,   "facingAngle": 180 },
+                { "id": 1, "name": "東", "relX": 62,  "relY": 0,   "facingAngle": 0 },
+                { "id": 2, "name": "北", "relX": 0,   "relY": -62, "facingAngle": 270 },
+                { "id": 3, "name": "南", "relX": 0,   "relY": 62,  "facingAngle": 90 }
+            ],
+            shapes: [
+                { "type": "line", "length": 124, "offsetX": 0, "offsetY": 0 },
+                { "type": "polygon", "points": [
+                    { "x": -12.5, "y": -62 }, { "x": 12.5, "y": -62 },
+                    { "x": 12.5, "y": 62 },   { "x": -12.5, "y": 62 }
+                ]}
+            ]
+        },
+
         // =========================================================
         // TOMIX 直線レール (ファイントラック 兼 ミニカーブ共有)
         // =========================================================
