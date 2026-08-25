@@ -1,12 +1,30 @@
 // =============================================================
-// 鉄道模型レイアウトジェネレータ - 基本エンジン (動的レール描画対応版)
-// バージョン: VER-DYNAMIC-WIDTH-U9
+// 鉄道模型レイアウトジェネレータ - 基本エンジン
+// バージョン: VER-DYNAMIC-WIDTH-U10
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-DYNAMIC-WIDTH-U9");
+console.log("基本エンジン（JS）が読み込まれました: VER-DYNAMIC-WIDTH-U10");
 
 let globalJoints = [];
 let railCount = 0;
 let isFirstMoveFrame = true;
+
+/**
+ * コントロール（ハンドル）の可視性を設定する共通関数
+ * 8箇所のサイズ変更用ハンドルを非表示にし、上部回転ハンドル(mtr)のみ表示する
+ */
+function configureControls(fabricObj) {
+    fabricObj.set({
+        hasControls: true,
+        lockScalingX: true,
+        lockScalingY: true,
+        lockUniScaling: true
+    });
+    fabricObj.setControlsVisibility({
+        tl: false, tr: false, br: false, bl: false,
+        ml: false, mt: false, mr: false, mb: false,
+        mtr: true
+    });
+}
 
 function generateGenericRailData(catalogItem) {
     const basePaths = [];
@@ -181,17 +199,17 @@ function addRailToCanvas(partId) {
         });
     });
 
-    // 道床の上にレールを重ねてグループ化
+    // Group オブジェクトとしてまとめる
     let railObject = new fabric.Group([...baseObjects, ...railObjects], {
         left: initialLeft, 
         top: initialTop,
         originX: 'center', 
         originY: 'center', 
-        angle: 0,
-        hasControls: true, 
-        lockScalingX: true, 
-        lockScalingY: true
+        angle: 0
     });
+
+    // 変形ロック＆スケーリングハンドルの非表示設定適用
+    configureControls(railObject);
 
     railObject.customData = { 
         instanceId: currentId, 
@@ -209,6 +227,17 @@ function addRailToCanvas(partId) {
     if (railCount === 1) {
         canvas.on('object:moving', function(options) { if (options && options.target) onGeneralTransform(options.target); });
         canvas.on('object:rotating', function(options) { if (options && options.target) onGeneralTransform(options.target); });
+        
+        // 範囲選択（複数選択）時のコントロール変形ロックをリスナーに登録
+        const disableSelectionScaling = (e) => {
+            const activeObject = e.target;
+            if (activeObject && activeObject.type === 'activeSelection') {
+                configureControls(activeObject);
+            }
+        };
+
+        canvas.on('selection:created', disableSelectionScaling);
+        canvas.on('selection:updated', disableSelectionScaling);
     }
 
     updateJointIndicators();
@@ -390,5 +419,5 @@ function loadDebugSampleLayout() {
     importLayoutData(INITIAL_SAMPLE_LAYOUT, true);
     canvas.setZoom(0.35);
     canvas.setViewportTransform([0.35, 0, 0, 0.35, 250, 100]);
-    console.log("[%s] サンプル小判型エンドレスをピュア数式自動計算で100%%復元しました！", "VER-DYNAMIC-WIDTH-U8");
+    console.log("[%s] サンプル小判型エンドレスを展開しました！", "VER-DYNAMIC-WIDTH-U10");
 }
