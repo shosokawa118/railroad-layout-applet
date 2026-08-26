@@ -16,7 +16,7 @@ let lastCanvasClickPos = null;
 let isDraggingRail = false;
 let globalEventsRegistered = false;
 
-// --- 汎用接続判定（jointGroup抽象化判定） ---
+// --- 汎用接続判定（jointGroupおよびシステム互換性判定） ---
 function canConnectNodes(railA, nodeIdA, railB, nodeIdB) {
     if (!railA || !railB || !railCatalog || !railCatalog.items) return false;
 
@@ -28,10 +28,26 @@ function canConnectNodes(railA, nodeIdA, railB, nodeIdB) {
     const nodeB = catalogB.nodes.find(n => n.id === nodeIdB);
     if (!nodeA || !nodeB) return false;
 
+    // 1. ジョイントグループ一致判定
     const groupA = nodeA.jointGroup || 'rail-end';
     const groupB = nodeB.jointGroup || 'rail-end';
+    if (groupA !== groupB) return false;
 
-    return groupA === groupB;
+    // 2. システム互換性判定 (追加)
+    const sysA = catalogA.systemId;
+    const sysB = catalogB.systemId;
+
+    // システム指定がどちらにもない場合は通過
+    if (!sysA || !sysB) return true;
+
+    // compatibleSystemsが未定義の場合は自身のsystemIdのみを配列化
+    const compatA = catalogA.compatibleSystems || [sysA];
+    const compatB = catalogB.compatibleSystems || [sysB];
+
+    // お互いの互換システムリストに共通するシステムが含まれているか確認
+    const isCompatible = compatA.some(sys => compatB.includes(sys));
+    
+    return isCompatible;
 }
 
 // --- ライブラリ動的ローダー ---
