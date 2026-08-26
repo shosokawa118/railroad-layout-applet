@@ -1,8 +1,8 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 幾何・座標計算
-// バージョン: VER-LAYOUT-GEO-G1
+// バージョン: VER-LAYOUT-GEO-G2
 // =============================================================
-console.log("幾何・座標計算（JS）が読み込まれました: VER-LAYOUT-GEO-G1");
+console.log("幾何・座標計算（JS）が読み込まれました: VER-LAYOUT-GEO-G2");
 
 function generateGenericRailData(catalogItem) {
     const basePaths = [];
@@ -187,18 +187,44 @@ function getAbsoluteNodePos(rail) {
 }
 
 function canConnectNodes(railA, nodeAId, railB, nodeBId) {
-    const itemA = railCatalog.items[railA.customData.partId];
-    const itemB = railCatalog.items[railB.customData.partId];
-    if (!itemA || !itemB) return false;
+    if (!railA || !railB || !railCatalog || !railCatalog.items) return false;
 
-    const sysA = railCatalog.systems[itemA.systemId];
-    const sysB = railCatalog.systems[itemB.systemId];
-    if (!sysA || !sysB) return false;
+    const catalogA = railCatalog.items[railA.customData.partId];
+    const catalogB = railCatalog.items[railB.customData.partId];
+    if (!catalogA || !catalogB) return false;
 
-    const connA = (itemA.nodes[nodeAId] && itemA.nodes[nodeAId].connectorType) || sysA.connectorType;
-    const connB = (itemB.nodes[nodeBId] && itemB.nodes[nodeBId].connectorType) || sysB.connectorType;
+    const nodeA = catalogA.nodes.find(n => n.id === nodeAId);
+    const nodeB = catalogB.nodes.find(n => n.id === nodeBId);
+    if (!nodeA || !nodeB) return false;
 
-    return connA === connB;
+    // 1. ジョイントグループ一致判定（rail-end / side 等）
+    const groupA = nodeA.jointGroup || 'rail-end';
+    const groupB = nodeB.jointGroup || 'rail-end';
+    if (groupA !== groupB) return false;
+
+    // 2. connectorType（端点ジョイント型）による直接判定
+    const sysA = railCatalog.systems[catalogA.systemId];
+    const sysB = railCatalog.systems[catalogB.systemId];
+
+    const connA = nodeA.connectorType || (sysA ? sysA.connectorType : null);
+    const connB = nodeB.connectorType || (sysB ? sysB.connectorType : null);
+
+    if (connA && connB) {
+        return connA === connB;
+    }
+
+    // 3. connectorType が取れない場合のシステム互換性判定（バックアップ）
+    const compatA = nodeA.compatibleSystems 
+                 || catalogA.compatibleSystems 
+                 || (catalogA.systemId ? [catalogA.systemId] : null);
+
+    const compatB = nodeB.compatibleSystems 
+                 || catalogB.compatibleSystems 
+                 || (catalogB.systemId ? [catalogB.systemId] : null);
+
+    if (!compatA || !compatB) return true;
+
+    return compatA.some(sys => compatB.includes(sys));
 }
 
 function getMovedRailIds(target) {
