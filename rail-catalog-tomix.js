@@ -219,7 +219,7 @@ registerRailParts({
     },
 
     // =========================================================
-    // TOMIX ミニカーブ用 ポイントレール
+    // TOMIX ミニカーブ用 ポイントレール (再計算済み)
     // =========================================================
     "TOMIX-N-PL140-30": {
         systemId: "TOMIX-MINICURVE-N",
@@ -227,9 +227,9 @@ registerRailParts({
         name: "N-PL140-30-F",
         description: "ミニ手動ポイント N-PL140-30 (左)",
         nodes: [
-            { "id": 0, "name": "進入端", "relX": -70.0, "relY": 0,     "facingAngle": 180 },
-            { "id": 1, "name": "直進端", "relX": 70.0,  "relY": 0,     "facingAngle": 0 },
-            { "id": 2, "name": "分岐端", "relX": 51.2,  "relY": -37.5, "facingAngle": -30.0 }
+            { "id": 0, "name": "進入端", "relX": -70.0, "relY": 0,      "facingAngle": 180 },
+            { "id": 1, "name": "直進端", "relX": 70.0,  "relY": 0,      "facingAngle": 0 },
+            { "id": 2, "name": "分岐端", "relX": 0.0,   "relY": -18.76, "facingAngle": -30.0 }
         ],
         shapes: [
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
@@ -242,9 +242,9 @@ registerRailParts({
         name: "N-PR140-30-F",
         description: "ミニ手動ポイント N-PR140-30 (右)",
         nodes: [
-            { "id": 0, "name": "進入端", "relX": -70.0, "relY": 0,    "facingAngle": 180 },
-            { "id": 1, "name": "直進端", "relX": 70.0,  "relY": 0,    "facingAngle": 0 },
-            { "id": 2, "name": "分岐端", "relX": 51.2,  "relY": 37.5, "facingAngle": 30.0 }
+            { "id": 0, "name": "進入端", "relX": -70.0, "relY": 0,     "facingAngle": 180 },
+            { "id": 1, "name": "直進端", "relX": 70.0,  "relY": 0,     "facingAngle": 0 },
+            { "id": 2, "name": "分岐端", "relX": 0.0,   "relY": 18.76, "facingAngle": 30.0 }
         ],
         shapes: [
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
