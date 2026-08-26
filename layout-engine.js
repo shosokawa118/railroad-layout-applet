@@ -1,9 +1,9 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 基本エンジン
-// バージョン: VER-LAYOUT-SIDE-SNAP-E30
-// (自動アライン多重スナップのcanConnectNodes判定共通化版)
+// バージョン: VER-LAYOUT-SIDE-SNAP-E31
+// (自動アラインをrail-endのみに制限＆対向判定の厳密化版)
 // =============================================================
-console.log("基本エンジン（JS）が読み込まれました: VER-LAYOUT-SIDE-SNAP-E30");
+console.log("基本エンジン（JS）が読み込まれました: VER-LAYOUT-SIDE-SNAP-E31");
 
 let lastCanvasClickPos = null;
 let isDraggingRail = false;
@@ -21,11 +21,9 @@ function canConnectNodes(railA, nodeIdA, railB, nodeIdB) {
     const nodeB = catalogB.nodes.find(n => n.id === nodeIdB);
     if (!nodeA || !nodeB) return false;
 
-    // jointGroup が未指定の場合は従来通り "rail-end" 扱い
     const groupA = nodeA.jointGroup || 'rail-end';
     const groupB = nodeB.jointGroup || 'rail-end';
 
-    // グループ識別子の一致のみで判定
     return groupA === groupB;
 }
 
@@ -37,7 +35,7 @@ function loadSystemLibrary(systemId) {
     if (!railCatalog || !railCatalog.systems) return Promise.reject("railCatalogが定義されていません");
     const system = railCatalog.systems[systemId];
     if (!system) {
-        console.warn(`[VER-LAYOUT-SIDE-SNAP-E30] 未定義のシステムIDです: ${systemId}`);
+        console.warn(`[VER-LAYOUT-SIDE-SNAP-E31] 未定義のシステムIDです: ${systemId}`);
         return Promise.resolve();
     }
 
@@ -53,13 +51,13 @@ function loadSystemLibrary(systemId) {
         script.onload = () => {
             loadedLibraries.add(fileName);
             delete loadingPromises[fileName];
-            console.log(`[VER-LAYOUT-SIDE-SNAP-E30] ライブラリロード完了: ${fileName}`);
+            console.log(`[VER-LAYOUT-SIDE-SNAP-E31] ライブラリロード完了: ${fileName}`);
             resolve();
         };
 
         script.onerror = () => {
             delete loadingPromises[fileName];
-            console.error(`[VER-LAYOUT-SIDE-SNAP-E30] ライブラリ読み込み失敗: ${fileName}`);
+            console.error(`[VER-LAYOUT-SIDE-SNAP-E31] ライブラリ読み込み失敗: ${fileName}`);
             resolve();
         };
 
@@ -91,18 +89,18 @@ function configureControls(fabricObj) {
     }
 }
 
+// 【改善】自動接続対象は「rail-end」のみ（側面ジョイントは無視）
 function findTargetNodeForAutoConnect(parentRail) {
     if (!parentRail || !parentRail.customData) return null;
     const catalog = railCatalog.items[parentRail.customData.partId];
     if (!catalog || !catalog.nodes || catalog.nodes.length === 0) return null;
 
-    const nodes = catalog.nodes;
-    const searchOrder = nodes.slice(1).map(n => n.id);
-    searchOrder.push(nodes[0].id);
-
     const railId = parentRail.customData.instanceId;
-    for (let nodeId of searchOrder) {
-        if (!isNodeOccupied(railId, nodeId)) return nodeId;
+    
+    // rail-endかつ未埋まりのノードだけを抽出
+    const endNodes = catalog.nodes.filter(n => (n.jointGroup || 'rail-end') === 'rail-end');
+    for (let node of endNodes) {
+        if (!isNodeOccupied(railId, node.id)) return node.id;
     }
 
     return null;
@@ -116,9 +114,11 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
     const newCatalog = railCatalog.items[newRail.customData.partId];
     if (!newCatalog || !newCatalog.nodes || newCatalog.nodes.length === 0) return;
 
-    // 接続元の親ノードと互換性のある接続先ノードを探索
+    // 接続先も rail-end グループ優先（なければ互換のある最初のノード）
     const newRailNodes = newCatalog.nodes;
-    const targetNewNode = newRailNodes.find(n => canConnectNodes(parentRail, parentNodeId, newRail, n.id)) || newRailNodes[0];
+    const targetNewNode = newRailNodes.find(n => (n.jointGroup || 'rail-end') === 'rail-end' && canConnectNodes(parentRail, parentNodeId, newRail, n.id)) 
+                       || newRailNodes.find(n => canConnectNodes(parentRail, parentNodeId, newRail, n.id)) 
+                       || newRailNodes[0];
 
     const newCx = newRail.customData.geoCenterX || 0;
     const newCy = newRail.customData.geoCenterY || 0;
@@ -141,7 +141,6 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
         newRail.customData.instanceId, targetNewNode.id
     );
 
-    // 追加に伴う他ノードの多重判定（canConnectNodesを適用）
     const allRails = canvas.getObjects().filter(obj => obj && obj.customData && obj.customData.isRail);
     const newId = newRail.customData.instanceId;
     const newNodes = getAbsoluteNodePos(newRail);
@@ -210,7 +209,7 @@ function addRailToCanvas(partId, options = {}) {
 
     const catalogItem = railCatalog.items[partId];
     if (!catalogItem) {
-        console.error(`[VER-LAYOUT-SIDE-SNAP-E30] 該当パーツが見つかりません (partId: "${partId}")`);
+        console.error(`[VER-LAYOUT-SIDE-SNAP-E31] 該当パーツが見つかりません (partId: "${partId}")`);
         return null;
     }
 
@@ -320,7 +319,7 @@ function exportLayoutData() {
     });
 
     return {
-        version: "VER-LAYOUT-SIDE-SNAP-E30",
+        version: "VER-LAYOUT-SIDE-SNAP-E31",
         systems: Array.from(systemSet),
         rails: railList,
         joints: globalJoints.map(j => ({
@@ -335,12 +334,12 @@ function exportLayoutData() {
 async function importLayoutData(layoutData, isOverwrite = true) {
     if (!canvas) return;
     if (!layoutData || !Array.isArray(layoutData.rails)) {
-        console.error("[VER-LAYOUT-SIDE-SNAP-E30] 読み込みデータのフォーマットが不正です。", layoutData);
+        console.error("[VER-LAYOUT-SIDE-SNAP-E31] 読み込みデータのフォーマットが不正です。", layoutData);
         return;
     }
 
     if (Array.isArray(layoutData.systems) && layoutData.systems.length > 0) {
-        console.log(`[VER-LAYOUT-SIDE-SNAP-E30] 必要ライブラリの事前読み込み中:`, layoutData.systems);
+        console.log(`[VER-LAYOUT-SIDE-SNAP-E31] 必要ライブラリの事前読み込み中:`, layoutData.systems);
         const loadTasks = layoutData.systems.map(sysId => loadSystemLibrary(sysId));
         await Promise.all(loadTasks);
     }
@@ -357,7 +356,7 @@ async function importLayoutData(layoutData, isOverwrite = true) {
 
     layoutData.rails.forEach((r, idx) => {
         if (!r || !r.partId) {
-            console.warn(`[VER-LAYOUT-SIDE-SNAP-E30] レール定義不備 (Index: ${idx})`);
+            console.warn(`[VER-LAYOUT-SIDE-SNAP-E31] レール定義不備 (Index: ${idx})`);
             return;
         }
         
@@ -399,7 +398,7 @@ async function importLayoutData(layoutData, isOverwrite = true) {
             const railObjB = instanceMap[railBId];
 
             if (!railObjA || !railObjB) {
-                console.warn(`[VER-LAYOUT-SIDE-SNAP-E30] ジョイント接続対象のレールが見つかりません (Joint Index: ${idx})`);
+                console.warn(`[VER-LAYOUT-SIDE-SNAP-E31] ジョイント接続対象のレールが見つかりません (Joint Index: ${idx})`);
                 return;
             }
 
@@ -410,7 +409,7 @@ async function importLayoutData(layoutData, isOverwrite = true) {
             const nodeBData = absoluteNodesB.find(n => n.nodeId === j.nodeB);
 
             if (!nodeAData || !nodeBData) {
-                console.warn(`[VER-LAYOUT-SIDE-SNAP-E30] ジョイント接続対象のノードが存在しません (Joint Index: ${idx})`);
+                console.warn(`[VER-LAYOUT-SIDE-SNAP-E31] ジョイント接続対象のノードが存在しません (Joint Index: ${idx})`);
                 return;
             }
 
@@ -418,7 +417,7 @@ async function importLayoutData(layoutData, isOverwrite = true) {
             const maxAllowedDist = 8;
 
             if (dist > maxAllowedDist) {
-                console.warn(`[VER-LAYOUT-SIDE-SNAP-E30] ジョイント接続対象が離れすぎています (Joint Index: ${idx}, 距離: ${dist.toFixed(2)}px > 許容: ${maxAllowedDist}px)`);
+                console.warn(`[VER-LAYOUT-SIDE-SNAP-E31] ジョイント接続対象が離れすぎています (Joint Index: ${idx}, 距離: ${dist.toFixed(2)}px > 許容: ${maxAllowedDist}px)`);
                 return;
             }
 
@@ -469,7 +468,7 @@ function updateJointIndicators() {
 
 async function loadDebugSampleLayout() {
     if (typeof INITIAL_SAMPLE_LAYOUT === 'undefined') {
-        console.error("[VER-LAYOUT-SIDE-SNAP-E30] INITIAL_SAMPLE_LAYOUT が読み込まれていません。");
+        console.error("[VER-LAYOUT-SIDE-SNAP-E31] INITIAL_SAMPLE_LAYOUT が読み込まれていません。");
         return;
     }
     await importLayoutData(INITIAL_SAMPLE_LAYOUT, true);
