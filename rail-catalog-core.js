@@ -27,6 +27,11 @@ const railCatalog = {
             scale: "N", brand: "TOMIX", systemName: "ミニカーブ (N)",
             gauge: 9, ballastWidth: 18.5, connectorType: "tomix-clapper",
             libraryFile: "rail-catalog-tomix.js"
+        },
+        "TOMIX-WIDETRAM-N": {
+            scale: "N", brand: "TOMIX", systemName: "ワイドトラムレール (N)",
+            gauge: 9, ballastWidth: 37, connectorType: "tomix-clapper",
+            libraryFile: "rail-catalog-widetram.js"
         }
     },
     items: {}
