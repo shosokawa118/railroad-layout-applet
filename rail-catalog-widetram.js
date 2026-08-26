@@ -103,7 +103,7 @@ registerRailParts({
         ],
         shapes: [
             { "type": "line", "length": 37, "offsetX": 0, "offsetY": 0 },
-            { "type": "line", "length": 37, "offsetX": 0, "offsetY": 0, "rotation": 90 }
+            { "type": "line", "length": 37, "offsetX": 0, "offsetY": 0, "angle": 90 }
         ]
     },
 
