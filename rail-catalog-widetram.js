@@ -173,5 +173,94 @@ registerRailParts({
             { "id": 5, "jointGroup": "widetram-side-R195.5", "relX": 74.82,  "relY": -27.29, "facingAngle": -67.5 }
         ],
         shapes: [{ "type": "arc", "radius": 177, "arcAngle": 60, "centerX": 0, "centerY": 153.29, "startAngle": 240.0 }]
+    },
+
+    // =========================================================
+    // ポイントレール相当品（ミニポイント＋路面パーツ） (追加分)
+    // =========================================================
+    "TOMIX-WT-PL140-30": {
+        systemId: "TOMIX-WIDETRAM-N",
+        compatibleSystems: ["TOMIX-WIDETRAM-N"],
+        category: "turnout",
+        name: "WT-PL140-30",
+        description: "ワイドトラム ミニポイント N-PL140-30(F) 相当品",
+        nodes: [
+            { "id": 0, "jointGroup": "rail-end", "relX": -35,   "relY": 0,      "facingAngle": 180 },
+            { "id": 1, "jointGroup": "rail-end", "relX": 35,    "relY": 0,      "facingAngle": 0 },
+            { "id": 2, "jointGroup": "rail-end", "relX": 14.24, "relY": -18.76, "facingAngle": -30 }
+        ],
+        shapes: [
+            { "type": "line", "length": 70, "offsetX": 0, "offsetY": 0 },
+            { "type": "arc", "radius": 140, "arcAngle": -30, "centerX": -35, "centerY": 140, "startAngle": 90 }
+        ]
+    },
+    "TOMIX-WT-PR140-30": {
+        systemId: "TOMIX-WIDETRAM-N",
+        compatibleSystems: ["TOMIX-WIDETRAM-N"],
+        category: "turnout",
+        name: "WT-PR140-30",
+        description: "ワイドトラム ミニポイント N-PR140-30(F) 相当品",
+        nodes: [
+            { "id": 0, "jointGroup": "rail-end", "relX": -35,   "relY": 0,     "facingAngle": 180 },
+            { "id": 1, "jointGroup": "rail-end", "relX": 35,    "relY": 0,     "facingAngle": 0 },
+            { "id": 2, "jointGroup": "rail-end", "relX": 14.24, "relY": 18.76, "facingAngle": 30 }
+        ],
+        shapes: [
+            { "type": "line", "length": 70, "offsetX": 0, "offsetY": 0 },
+            { "type": "arc", "radius": 140, "arcAngle": 30, "centerX": -35, "centerY": -140, "startAngle": 270 }
+        ]
+    },
+    "TOMIX-WT-SIDING-L": {
+        systemId: "TOMIX-WIDETRAM-N",
+        compatibleSystems: ["TOMIX-WIDETRAM-N"],
+        category: "turnout",
+        name: "WT-SIDING-L",
+        description: "ワイドトラム 待避線分岐ユニット (左 / 全長140mm)",
+        nodes: [
+            { "id": 0, "jointGroup": "rail-end", "relX": -70, "relY": 0,   "facingAngle": 180 },
+            { "id": 1, "jointGroup": "rail-end", "relX": 70,  "relY": 0,   "facingAngle": 0 },
+            { "id": 2, "jointGroup": "rail-end", "relX": 70,  "relY": -37, "facingAngle": 0 }
+        ],
+        shapes: [
+            { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
+            { "type": "arc", "radius": 140, "arcAngle": -30, "centerX": -70,   "centerY": 140,     "startAngle": 90 },
+            { "type": "arc", "radius": 140, "arcAngle": 30,  "centerX": 51.24, "centerY": -102.49, "startAngle": 210 }
+        ]
+    },
+    "TOMIX-WT-SIDING-R": {
+        systemId: "TOMIX-WIDETRAM-N",
+        compatibleSystems: ["TOMIX-WIDETRAM-N"],
+        category: "turnout",
+        name: "WT-SIDING-R",
+        description: "ワイドトラム 待避線分岐ユニット (右 / 全長140mm)",
+        nodes: [
+            { "id": 0, "jointGroup": "rail-end", "relX": -70, "relY": 0,  "facingAngle": 180 },
+            { "id": 1, "jointGroup": "rail-end", "relX": 70,  "relY": 0,  "facingAngle": 0 },
+            { "id": 2, "jointGroup": "rail-end", "relX": 70,  "relY": 37, "facingAngle": 0 }
+        ],
+        shapes: [
+            { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
+            { "type": "arc", "radius": 140, "arcAngle": 30,  "centerX": -70,   "centerY": -140,   "startAngle": 270 },
+            { "type": "arc", "radius": 140, "arcAngle": -30, "centerX": 51.24, "centerY": 102.49, "startAngle": 330 }
+        ]
+    },
+    "TOMIX-WT-CROSSOVER-LH": {
+        systemId: "TOMIX-WIDETRAM-N",
+        compatibleSystems: ["TOMIX-WIDETRAM-N"],
+        category: "turnout",
+        name: "WT-CROSSOVER-LH",
+        description: "ワイドトラム 片渡り線ユニット (左上がり / 全長140mm)",
+        nodes: [
+            { "id": 0, "jointGroup": "rail-end", "relX": -70, "relY": 18.5,  "facingAngle": 180 },
+            { "id": 1, "jointGroup": "rail-end", "relX": 70,  "relY": 18.5,  "facingAngle": 0 },
+            { "id": 2, "jointGroup": "rail-end", "relX": -70, "relY": -18.5, "facingAngle": 180 },
+            { "id": 3, "jointGroup": "rail-end", "relX": 70,  "relY": -18.5, "facingAngle": 0 }
+        ],
+        shapes: [
+            { "type": "line", "length": 140, "offsetX": 0, "offsetY": 18.5 },
+            { "type": "line", "length": 140, "offsetX": 0, "offsetY": -18.5 },
+            { "type": "arc", "radius": 140, "arcAngle": -30, "centerX": -35, "centerY": 158.5,  "startAngle": 90 },
+            { "type": "arc", "radius": 140, "arcAngle": -30, "centerX": 35,  "centerY": -158.5, "startAngle": 270 }
+        ]
     }
 });
