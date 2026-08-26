@@ -116,8 +116,8 @@ registerRailParts({
         name: "C103-30-WT",
         description: "ワイドトラムスーパーミニカーブレール C103-30-WT(F)",
         nodes: [
-            { "id": 0, "jointGroup": "rail-end", "relX": -26.66, "relY": 3.57,  "facingAngle": 165.0 },
-            { "id": 1, "jointGroup": "rail-end", "relX": 26.66,  "relY": -3.57, "facingAngle": 15.0 },
+            { "id": 0, "jointGroup": "rail-end", "relX": -26.66, "relY": 0,  "facingAngle": 165.0 },
+            { "id": 1, "jointGroup": "rail-end", "relX": 26.66,  "relY": 0, "facingAngle": 15.0 },
             { "id": 2, "jointGroup": "widetram-side-R84.5", "relX": -11.03, "relY": 15.72,  "facingAngle": 82.5 },
             { "id": 3, "jointGroup": "widetram-side-R84.5", "relX": 11.03,  "relY": 15.72,  "facingAngle": 97.5 },
             { "id": 4, "jointGroup": "widetram-side-R121.5", "relX": -15.86, "relY": -20.97, "facingAngle": -97.5 },
@@ -301,10 +301,10 @@ registerRailParts({
         name: "WT-CROSSOVER-RH",
         description: "ワイドトラム 片渡り線ユニット (右上がり / 全長140mm)",
         nodes: [
-            { "id": 0, "jointGroup": "rail-end", "relX": -70, "relY": -18.5, "facingAngle": 180 },
-            { "id": 1, "jointGroup": "rail-end", "relX": 70,  "relY": -18.5, "facingAngle": 0 },
-            { "id": 2, "jointGroup": "rail-end", "relX": -70, "relY": 18.5,  "facingAngle": 180 },
-            { "id": 3, "jointGroup": "rail-end", "relX": 70,  "relY": 18.5,  "facingAngle": 0 }
+            { "id": 0, "jointGroup": "rail-end", "relX": -70, "relY": 18.5, "facingAngle": 180 },
+            { "id": 1, "jointGroup": "rail-end", "relX": 70,  "relY": 18.5, "facingAngle": 0 },
+            { "id": 2, "jointGroup": "rail-end", "relX": -70, "relY": -18.5,  "facingAngle": 180 },
+            { "id": 3, "jointGroup": "rail-end", "relX": 70,  "relY": -18.5,  "facingAngle": 0 }
         ],
         shapes: [
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": 18.5 },
