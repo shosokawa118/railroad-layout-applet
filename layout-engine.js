@@ -35,7 +35,7 @@ const ENGINE_VERSION = "VER-LAYOUT-SIDE-SNAP-E32";
 
 // rail-end 以外のジョイント（側面ジョイント等）のインジケータ表示フラグ
 // デバッグ時に true に変更すると全てのジョイントを表示可能
-const SHOW_NON_RAIL_END_INDICATORS = false;
+const SHOW_NON_RAIL_END_INDICATORS = true;
 
 console.log(`基本エンジン（JS）が読み込まれました: ${ENGINE_VERSION}`);
 
