@@ -108,8 +108,40 @@ registerRailParts({
     },
 
     // =========================================================
-    // 曲線レール (C140 / C177)
+    // 曲線レール
     // =========================================================
+    "TOMIX-C103-30-WT": {
+        systemId: "TOMIX-WIDETRAM-N",
+        compatibleSystems: ["TOMIX-WIDETRAM-N"],
+        category: "curve",
+        name: "C103-30-WT",
+        description: "ワイドトラムスーパーミニカーブレール C103-30-WT(F)",
+        nodes: [
+            { "id": 0, "jointGroup": "rail-end", "relX": -26.66, "relY": 0, "facingAngle": 165.0 },
+            { "id": 1, "jointGroup": "rail-end", "relX": 26.66,  "relY": 0, "facingAngle": 15.0 },
+            { "id": 2, "jointGroup": "widetram-side-R84.5", "relX": -11.03, "relY": 15.82, "facingAngle": 82.5 },
+            { "id": 3, "jointGroup": "widetram-side-R84.5", "relX": 11.03,  "relY": 15.82, "facingAngle": 97.5 },
+            { "id": 4, "jointGroup": "widetram-side-R121.5", "relX": -15.86, "relY": -22.79, "facingAngle": -97.5 },
+            { "id": 5, "jointGroup": "widetram-side-R121.5", "relX": 15.86,  "relY": -22.79, "facingAngle": -82.5 }
+        ],
+        shapes: [{ "type": "arc", "radius": 103, "arcAngle": 30, "centerX": 0, "centerY": 99.49, "startAngle": 255.0 }]
+    },
+    "TOMIX-C103-60-WT": {
+        systemId: "TOMIX-WIDETRAM-N",
+        compatibleSystems: ["TOMIX-WIDETRAM-N"],
+        category: "curve",
+        name: "C103-60-WT",
+        description: "ワイドトラムスーパーミニカーブレール C103-60-WT(F)",
+        nodes: [
+            { "id": 0, "jointGroup": "rail-end", "relX": -51.50, "relY": 0, "facingAngle": 150.0 },
+            { "id": 1, "jointGroup": "rail-end", "relX": 51.50,  "relY": 0, "facingAngle": 30.0 },
+            { "id": 2, "jointGroup": "widetram-side-R84.5", "relX": -32.34, "relY": 10.69, "facingAngle": 67.5 },
+            { "id": 3, "jointGroup": "widetram-side-R84.5", "relX": 32.34,  "relY": 10.69, "facingAngle": 112.5 },
+            { "id": 4, "jointGroup": "widetram-side-R121.5", "relX": -46.50, "relY": -22.84, "facingAngle": -112.5 },
+            { "id": 5, "jointGroup": "widetram-side-R121.5", "relX": 46.50,  "relY": -22.84, "facingAngle": -67.5 }
+        ],
+        shapes: [{ "type": "arc", "radius": 103, "arcAngle": 60, "centerX": 0, "centerY": 89.20, "startAngle": 240.0 }]
+    },
     "TOMIX-C140-30-WT": {
         systemId: "TOMIX-WIDETRAM-N",
         compatibleSystems: ["TOMIX-WIDETRAM-N"],
