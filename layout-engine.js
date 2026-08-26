@@ -1,3 +1,30 @@
+// =============================================================================
+// EXTERNAL FUNCTION INDEX & DELEGATION MAP
+// DO NOT RE-IMPLEMENT OR DUPLICATE FUNCTIONS LISTED BELOW IN THIS FILE.
+// =============================================================================
+
+/**
+ * [layout-geometry.js] - Geometry & Coordinate Calculations
+ * - generateGenericRailData(catalogItem)  : Generates SVG paths for rail geometries.
+ * - getAbsoluteNodePos(rail)              : Calculates absolute canvas coordinates for rail connection nodes.
+ * - canConnectNodes(railA, nodeA, railB, nodeB) : Evaluates joint/system compatibility between two nodes.
+ * - getMovedRailIds(target)               : Extracts instance IDs from active selection or single rail.
+ */
+
+/**
+ * [layout-state.js] - Global Layout State & Data Management
+ * - addGlobalJointIfFree(rA, nA, rB, nB) : Registers a connection joint if nodes are open.
+ * - isNodeOccupied(railId, nodeId)        : Checks whether a specific node is already connected.
+ * - detachMovedRailJoints(target)         : Removes joints associated with moved objects.
+ * - exportLayoutData()                    : Serializes current layout state to JSON object.
+ */
+
+/**
+ * [snap-manager.js] - Snap Logic & Cluster Alignment
+ * - applyClusterSnapLogic(movedRail)      : Executes snapping, rotation, and multi-locking.
+ * - exportLayoutJSON()                    : Formats and copies serialized JSON to clipboard.
+ */
+
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 基本エンジン
 // バージョン: VER-LAYOUT-SIDE-SNAP-E32
@@ -16,39 +43,7 @@ let lastCanvasClickPos = null;
 let isDraggingRail = false;
 let globalEventsRegistered = false;
 
-// --- 汎用接続判定（jointGroupおよびシステム互換性判定） ---
-function canConnectNodes(railA, nodeIdA, railB, nodeIdB) {
-    if (!railA || !railB || !railCatalog || !railCatalog.items) return false;
-
-    const catalogA = railCatalog.items[railA.customData.partId];
-    const catalogB = railCatalog.items[railB.customData.partId];
-    if (!catalogA || !catalogB) return false;
-
-    const nodeA = catalogA.nodes.find(n => n.id === nodeIdA);
-    const nodeB = catalogB.nodes.find(n => n.id === nodeIdB);
-    if (!nodeA || !nodeB) return false;
-
-    // 1. ジョイントグループ一致判定
-    const groupA = nodeA.jointGroup || 'rail-end';
-    const groupB = nodeB.jointGroup || 'rail-end';
-    if (groupA !== groupB) return false;
-
-    // 2. システム互換性判定 (追加)
-    const sysA = catalogA.systemId;
-    const sysB = catalogB.systemId;
-
-    // システム指定がどちらにもない場合は通過
-    if (!sysA || !sysB) return true;
-
-    // compatibleSystemsが未定義の場合は自身のsystemIdのみを配列化
-    const compatA = catalogA.compatibleSystems || [sysA];
-    const compatB = catalogB.compatibleSystems || [sysB];
-
-    // お互いの互換システムリストに共通するシステムが含まれているか確認
-    const isCompatible = compatA.some(sys => compatB.includes(sys));
-    
-    return isCompatible;
-}
+// NOTE: canConnectNodes is delegated to layout-geometry.js
 
 // --- ライブラリ動的ローダー ---
 const loadedLibraries = new Set();
