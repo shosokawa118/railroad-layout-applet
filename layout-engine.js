@@ -33,9 +33,21 @@
 // --- 共通設定・フラグ定義 ---
 const ENGINE_VERSION = "VER-LAYOUT-SIDE-SNAP-E32";
 
-// rail-end 以外のジョイント（側面ジョイント等）のインジケータ表示フラグ
-// デバッグ時に true に変更すると全てのジョイントを表示可能
-const SHOW_NON_RAIL_END_INDICATORS = true;
+// ジョイントインジケータの表示モード ('all' | 'rail-end' | 'none')
+// デフォルト: 'rail-end' (レールエンドのみ表示)
+let jointDisplayMode = 'rail-end';
+
+/**
+ * ジョイント表示モードを変更し、キャンバスを再描画する
+ * @param {string} mode - 'all', 'rail-end', 'none'
+ */
+function setJointDisplayMode(mode) {
+    jointDisplayMode = mode;
+    updateJointIndicators();
+    if (canvas) {
+        canvas.requestRenderAll();
+    }
+}
 
 console.log(`基本エンジン（JS）が読み込まれました: ${ENGINE_VERSION}`);
 
@@ -478,8 +490,14 @@ function onGeneralTransform(target) {
 function updateJointIndicators() {
     if (!canvas) return;
     
+    // 既存のインジケータをクリア
     const oldIndicators = canvas.getObjects().filter(obj => obj && obj.customData && obj.customData.isIndicator);
     oldIndicators.forEach(obj => canvas.remove(obj));
+
+    // 全非表示モードの場合は描画処理自体をスキップして終了
+    if (jointDisplayMode === 'none') {
+        return;
+    }
 
     const rails = canvas.getObjects().filter(obj => obj && obj.customData && obj.customData.isRail);
 
@@ -496,8 +514,8 @@ function updateJointIndicators() {
             const catalogNode = catalogItem ? catalogItem.nodes.find(n => n.id === node.nodeId) : null;
             const jointGroup = (catalogNode && catalogNode.jointGroup) ? catalogNode.jointGroup : 'rail-end';
 
-            // 非表示設定かつ rail-end 以外の場合はインジケータ描画をスキップ
-            if (!SHOW_NON_RAIL_END_INDICATORS && jointGroup !== 'rail-end') {
+            // レールエンドのみ表示モードの場合、rail-end 以外の描画をスキップ
+            if (jointDisplayMode === 'rail-end' && jointGroup !== 'rail-end') {
                 return;
             }
 
