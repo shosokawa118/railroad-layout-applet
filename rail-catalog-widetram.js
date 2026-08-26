@@ -1,6 +1,6 @@
 // =============================================================
 // TOMIX ワイドトラムレール パーツライブラリ
-// バージョン: VER-CATALOG-WIDETRAM-SIDE-S13
+// バージョン: VER-CATALOG-WIDETRAM-SIDE-S14
 // =============================================================
 registerRailParts({
     // =========================================================
@@ -207,7 +207,7 @@ registerRailParts({
     },
 
     // =========================================================
-    // ポイントレール相当品
+    // ポイントレール・分岐ユニット
     // =========================================================
     "TOMIX-WT-PL140-30": {
         systemId: "TOMIX-WIDETRAM-N",
@@ -216,13 +216,13 @@ registerRailParts({
         name: "WT-PL140-30",
         description: "ワイドトラム ミニポイント N-PL140-30(F) 相当品 (左分岐)",
         nodes: [
-            { "id": 0, "jointGroup": "rail-end", "relX": -35,   "relY": 0,      "facingAngle": 180 },
-            { "id": 1, "jointGroup": "rail-end", "relX": 35,    "relY": 0,      "facingAngle": 0 },
-            { "id": 2, "jointGroup": "rail-end", "relX": 25.62, "relY": -18.76, "facingAngle": -30 }
+            { "id": 0, "jointGroup": "rail-end", "relX": -35.0, "relY": 0,      "facingAngle": 180 },
+            { "id": 1, "jointGroup": "rail-end", "relX": 35.0,  "relY": 0,      "facingAngle": 0 },
+            { "id": 2, "jointGroup": "rail-end", "relX": 35.0,  "relY": -18.76, "facingAngle": -30.0 }
         ],
         shapes: [
             { "type": "line", "length": 70, "offsetX": 0, "offsetY": 0 },
-            { "type": "arc", "radius": 140, "arcAngle": -30, "centerX": -35, "centerY": -140, "startAngle": 90 }
+            { "type": "arc", "radius": 140, "arcAngle": -30, "centerX": -35.0, "centerY": -140.0, "startAngle": 90 }
         ]
     },
     "TOMIX-WT-PR140-30": {
@@ -232,13 +232,13 @@ registerRailParts({
         name: "WT-PR140-30",
         description: "ワイドトラム ミニポイント N-PR140-30(F) 相当品 (右分岐)",
         nodes: [
-            { "id": 0, "jointGroup": "rail-end", "relX": -35,   "relY": 0,      "facingAngle": 180 },
-            { "id": 1, "jointGroup": "rail-end", "relX": 35,    "relY": 0,      "facingAngle": 0 },
-            { "id": 2, "jointGroup": "rail-end", "relX": 25.62, "relY": 18.76,  "facingAngle": 30 }
+            { "id": 0, "jointGroup": "rail-end", "relX": -35.0, "relY": 0,     "facingAngle": 180 },
+            { "id": 1, "jointGroup": "rail-end", "relX": 35.0,  "relY": 0,     "facingAngle": 0 },
+            { "id": 2, "jointGroup": "rail-end", "relX": 35.0,  "relY": 18.76, "facingAngle": 30.0 }
         ],
         shapes: [
             { "type": "line", "length": 70, "offsetX": 0, "offsetY": 0 },
-            { "type": "arc", "radius": 140, "arcAngle": 30, "centerX": -35, "centerY": 140, "startAngle": 270 }
+            { "type": "arc", "radius": 140, "arcAngle": 30, "centerX": -35.0, "centerY": 140.0, "startAngle": 270 }
         ]
     },
     "TOMIX-WT-SIDING-L": {
@@ -290,8 +290,8 @@ registerRailParts({
         shapes: [
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": 18.5 },
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": -18.5 },
-            { "type": "arc", "radius": 140, "arcAngle": 30,  "centerX": -35, "centerY": -121.5, "startAngle": 120 },
-            { "type": "arc", "radius": 140, "arcAngle": -30, "centerX": 35,  "centerY": 121.5,  "startAngle": 300 }
+            { "type": "arc", "radius": 140, "arcAngle": 30,  "centerX": -70, "centerY": 121.5,  "startAngle": 270 },
+            { "type": "arc", "radius": 140, "arcAngle": -30, "centerX": 70,  "centerY": -121.5, "startAngle": 120 }
         ]
     },
     "TOMIX-WT-CROSSOVER-RH": {
@@ -301,16 +301,16 @@ registerRailParts({
         name: "WT-CROSSOVER-RH",
         description: "ワイドトラム 片渡り線ユニット (右上がり / 全長140mm)",
         nodes: [
-            { "id": 0, "jointGroup": "rail-end", "relX": -70, "relY": 18.5,  "facingAngle": 180 },
-            { "id": 1, "jointGroup": "rail-end", "relX": 70,  "relY": 18.5,  "facingAngle": 0 },
-            { "id": 2, "jointGroup": "rail-end", "relX": -70, "relY": -18.5, "facingAngle": 180 },
-            { "id": 3, "jointGroup": "rail-end", "relX": 70,  "relY": -18.5, "facingAngle": 0 }
+            { "id": 0, "jointGroup": "rail-end", "relX": -70, "relY": -18.5, "facingAngle": 180 },
+            { "id": 1, "jointGroup": "rail-end", "relX": 70,  "relY": -18.5, "facingAngle": 0 },
+            { "id": 2, "jointGroup": "rail-end", "relX": -70, "relY": 18.5,  "facingAngle": 180 },
+            { "id": 3, "jointGroup": "rail-end", "relX": 70,  "relY": 18.5,  "facingAngle": 0 }
         ],
         shapes: [
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": 18.5 },
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": -18.5 },
-            { "type": "arc", "radius": 140, "arcAngle": -30, "centerX": -35, "centerY": 158.5,  "startAngle": 270 },
-            { "type": "arc", "radius": 140, "arcAngle": 30,  "centerX": 35,  "centerY": -158.5, "startAngle": 90 }
+            { "type": "arc", "radius": 140, "arcAngle": -30, "centerX": -70, "centerY": -121.5, "startAngle": 90 },
+            { "type": "arc", "radius": 140, "arcAngle": 30,  "centerX": 70,  "centerY": 121.5,  "startAngle": 240 }
         ]
     }
 });
