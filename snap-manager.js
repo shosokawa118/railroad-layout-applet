@@ -1,8 +1,9 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - スナップ＆多重結合マネージャー
-// バージョン: VER-SNAP-MOUSEUP-SEPARATE-S9
+// バージョン: VER-SNAP-SIDE-SNAP-S10
+// (側面スナップ・canConnectNodes連携強化版)
 // =============================================================
-console.log("スナップマネージャー（JS）が読み込まれました: VER-SNAP-MOUSEUP-SEPARATE-S9");
+console.log("スナップマネージャー（JS）が読み込まれました: VER-SNAP-SIDE-SNAP-S10");
 
 function applyClusterSnapLogic(movedRail) {
     if (!movedRail) return;
