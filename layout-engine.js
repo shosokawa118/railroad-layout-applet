@@ -107,7 +107,20 @@ function configureControls(fabricObj) {
     }
 }
 
-// 自動接続対象は「rail-end」のみ
+/**
+ * Finds the optimal open target node on the parent rail for auto-connecting a newly added rail.
+ * 
+ * DESIGN INTENT & NODE PRIORITY RULES:
+ * DO NOT refactor or change the sorting logic back to simple ascending/descending order.
+ * - Node 1 represents the standard forward-going "mainline exit" and MUST have the highest priority.
+ * - Nodes 2, 3, ... N represent secondary exits or branch lines (higher IDs have higher priority than Node 0).
+ * - Node 0 represents the rear/entry direction ("backward direction") and MUST have the absolute lowest priority.
+ * 
+ * Priority order for evaluation: 1 -> 2 -> 3 -> ... -> MaxID -> 0
+ *
+ * @param {Object} parentRail - The fabric object of the currently selected parent rail.
+ * @returns {number|null} The node ID to attach to, or null if no open 'rail-end' nodes exist.
+ */
 function findTargetNodeForAutoConnect(parentRail) {
     if (!parentRail || !parentRail.customData) return null;
     const catalog = railCatalog.items[parentRail.customData.partId];
@@ -115,7 +128,17 @@ function findTargetNodeForAutoConnect(parentRail) {
 
     const railId = parentRail.customData.instanceId;
     
+    // 1. 'rail-end' グループのノードのみを抽出
     const endNodes = catalog.nodes.filter(n => (n.jointGroup || 'rail-end') === 'rail-end');
+
+    // 2. 「1 -> 2 -> ... -> 最大値 -> 0」の優先順位でソート
+    endNodes.sort((a, b) => {
+        const priorityA = a.id === 0 ? Infinity : a.id;
+        const priorityB = b.id === 0 ? Infinity : b.id;
+        return priorityA - priorityB;
+    });
+
+    // 3. 優先順位が高い順に、空いているノードを探索
     for (let node of endNodes) {
         if (!isNodeOccupied(railId, node.id)) return node.id;
     }
