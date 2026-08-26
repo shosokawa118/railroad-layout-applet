@@ -1,11 +1,11 @@
 // =============================================================
 // TOMIX ワイドトラムレール パーツライブラリ
-// バージョン: VER-CATALOG-WIDETRAM-SIDE-S11
-// (カーブ側面対向角度 法線厳密再計算版)
+// バージョン: VER-CATALOG-WIDETRAM-SIDE-S12
+// (端数レール・交差線路 追加版)
 // =============================================================
 registerRailParts({
     // =========================================================
-    // 直線レール（互換システム修正済）
+    // 直線レール
     // =========================================================
     "TOMIX-S140-WT": {
         systemId: "TOMIX-WIDETRAM-N",
@@ -41,7 +41,74 @@ registerRailParts({
     },
 
     // =========================================================
-    // 曲線レール (C140 / C177) - 互換システム修正済
+    // ワイドトラム 端数直線レール (追加分)
+    // =========================================================
+    "TOMIX-S47.5-WT": {
+        systemId: "TOMIX-WIDETRAM-N",
+        compatibleSystems: ["TOMIX-WIDETRAM-N"],
+        category: "straight",
+        name: "S47.5-WT",
+        description: "ワイドトラムレール S47.5-WT(F)",
+        nodes: [
+            { "id": 0, "jointGroup": "rail-end", "relX": -23.75, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointGroup": "rail-end", "relX": 23.75,  "relY": 0, "facingAngle": 0 },
+            { "id": 2, "jointGroup": "widetram-side-straight", "relX": -14.5, "relY": -18.5, "facingAngle": -90 },
+            { "id": 3, "jointGroup": "widetram-side-straight", "relX": -14.5, "relY": 18.5,  "facingAngle": 90 },
+            { "id": 4, "jointGroup": "widetram-side-straight", "relX": 14.5,  "relY": -18.5, "facingAngle": -90 },
+            { "id": 5, "jointGroup": "widetram-side-straight", "relX": 14.5,  "relY": 18.5,  "facingAngle": 90 }
+        ],
+        shapes: [{ "type": "line", "length": 47.5, "offsetX": 0, "offsetY": 0 }]
+    },
+    "TOMIX-S37-WT": {
+        systemId: "TOMIX-WIDETRAM-N",
+        compatibleSystems: ["TOMIX-WIDETRAM-N"],
+        category: "straight",
+        name: "S37-WT",
+        description: "ワイドトラムレール S37-WT(F) (側面ジョイントなし)",
+        nodes: [
+            { "id": 0, "jointGroup": "rail-end", "relX": -18.5, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointGroup": "rail-end", "relX": 18.5,  "relY": 0, "facingAngle": 0 }
+        ],
+        shapes: [{ "type": "line", "length": 37, "offsetX": 0, "offsetY": 0 }]
+    },
+    "TOMIX-S18.5-WT": {
+        systemId: "TOMIX-WIDETRAM-N",
+        compatibleSystems: ["TOMIX-WIDETRAM-N"],
+        category: "straight",
+        name: "S18.5-WT",
+        description: "ワイドトラムレール S18.5-WT(F)",
+        nodes: [
+            { "id": 0, "jointGroup": "rail-end", "relX": -9.25, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointGroup": "rail-end", "relX": 9.25,  "relY": 0, "facingAngle": 0 },
+            { "id": 2, "jointGroup": "widetram-side-straight", "relX": 0, "relY": -18.5, "facingAngle": -90 },
+            { "id": 3, "jointGroup": "widetram-side-straight", "relX": 0, "relY": 18.5,  "facingAngle": 90 }
+        ],
+        shapes: [{ "type": "line", "length": 18.5, "offsetX": 0, "offsetY": 0 }]
+    },
+
+    // =========================================================
+    // ワイドトラム 交差線路 (追加分)
+    // =========================================================
+    "TOMIX-X37-WT": {
+        systemId: "TOMIX-WIDETRAM-N",
+        compatibleSystems: ["TOMIX-WIDETRAM-N"],
+        category: "turnout",
+        name: "X37-WT",
+        description: "ワイドトラム交差レール X37-WT(F)",
+        nodes: [
+            { "id": 0, "jointGroup": "rail-end", "relX": -18.5, "relY": 0,     "facingAngle": 180 },
+            { "id": 1, "jointGroup": "rail-end", "relX": 18.5,  "relY": 0,     "facingAngle": 0 },
+            { "id": 2, "jointGroup": "rail-end", "relX": 0,     "relY": -18.5, "facingAngle": -90 },
+            { "id": 3, "jointGroup": "rail-end", "relX": 0,     "relY": 18.5,  "facingAngle": 90 }
+        ],
+        shapes: [
+            { "type": "line", "length": 37, "offsetX": 0, "offsetY": 0 },
+            { "type": "line", "length": 37, "offsetX": 0, "offsetY": 0, "rotation": 90 }
+        ]
+    },
+
+    // =========================================================
+    // 曲線レール (C140 / C177)
     // =========================================================
     "TOMIX-C140-30-WT": {
         systemId: "TOMIX-WIDETRAM-N",
