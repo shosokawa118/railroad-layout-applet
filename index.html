@@ -44,6 +44,13 @@
             <select id="systemSelect"></select>
             <span style="border-left: 1px solid #ccc; height: 16px; margin: 0 4px;"></span>
             <button onclick="deleteSelectedRails()" class="btn-danger">選択削除 [Del]</button>
+            <label for="jointDisplaySelect" style="font-size: 12px; font-weight: bold; color: #555; margin-left: 8px;">ジョイント表示:</label>
+            <select id="jointDisplaySelect" onchange="setJointDisplayMode(this.value)">
+                <option value="all">全表示</option>
+                <option value="rail-end" selected>レール端のみ</option>
+                <option value="none">非表示</option>
+            </select>
+
             <button onclick="exportLayoutJSON()" style="background-color: #eceff1;">JSON出力</button>
             <button onclick="promptImportJSON()" style="background-color: #e1f5fe;">JSON読込</button>
             <button onclick="loadDebugSampleLayout()" style="background-color: #ff9500; color: #fff; border: none;">サンプル再読込</button>
