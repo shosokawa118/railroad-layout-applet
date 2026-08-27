@@ -1,37 +1,58 @@
 // =============================================================================
-// EXTERNAL FUNCTION INDEX & DELEGATION MAP
+// EXTERNAL FUNCTION INDEX & DELEGATION MAP (API SPECIFICATION)
 // DO NOT RE-IMPLEMENT OR DUPLICATE FUNCTIONS LISTED BELOW IN THIS FILE.
 // =============================================================================
 
 /**
- * [layout-geometry.js] - Geometry & Coordinate Calculations
- * - generateGenericRailData(catalogItem)  : Generates SVG paths for rail geometries.
- * - getAbsoluteNodePos(rail)              : Calculates absolute canvas coordinates for rail connection nodes.
- * - canConnectNodes(railA, nodeA, railB, nodeB) : Evaluates joint/system compatibility between two nodes.
- * - getMovedRailIds(target)               : Extracts instance IDs from active selection or single rail.
+ * [layout-geometry.js] - 幾何計算・座標系・システム互換性判定
+ * 
+ * - generateGenericRailData(catalogItem: Object): { basePaths: Array, railPaths: Array, centerX: number, centerY: number }
+ *   レール型番のカタログデータからFabric描画用パスデータと幾何中心座標を生成。
+ * 
+ * - getAbsoluteNodePos(rail: fabric.Object): Array<{ nodeId: number, x: number, y: number, angle: number }>
+ *   Fabricオブジェクトの現在位置・回転角から、各接続ノードのキャンバス絶対座標および絶対対向角を算出。
+ * 
+ * - canConnectNodes(railA: fabric.Object, nodeAId: number, railB: fabric.Object, nodeBId: number): boolean
+ *   2つのレールオブジェクトとそのノードIDを受け取り、内部でノードデータとカタログ（`railCatalog.items`）を取り出して
+ *   `isJointCompatible(nodeA, catalogA, nodeB, catalogB)` へ委譲。系統・ジョイナー・システムの互換性を判定する。
+ * 
+ * - getMovedRailIds(target: fabric.Object): Array<string>
+ *   アクティブセレクションまたは単一操作対象のレールインスタンスID配列を取得。
  */
 
 /**
- * [layout-state.js] - Global Layout State & Data Management
- * - addGlobalJointIfFree(rA, nA, rB, nB) : Registers a connection joint if nodes are open.
- * - isNodeOccupied(railId, nodeId)        : Checks whether a specific node is already connected.
- * - detachMovedRailJoints(target)         : Removes joints associated with moved objects.
- * - exportLayoutData()                    : Serializes current layout state to JSON object.
+ * [layout-state.js] - グローバル状態管理・ジョイント接続データ
+ * 
+ * - globalJoints: Array<{ railA: string, nodeA: number, railB: string, nodeB: number }>
+ *   全キャンバス上の接続状態を保持するグローバル配列。
+ * 
+ * - addGlobalJointIfFree(railAId: string, nodeAId: number, railBId: string, nodeBId: number): boolean
+ *   指定ノード間が未接続（空き）であればグローバル接続情報として登録。
+ * 
+ * - isNodeOccupied(railId: string, nodeId: number): boolean
+ *   指定したレールのノードが既に他のレールと接続済みか判定。
+ * 
+ * - detachMovedRailJoints(target: fabric.Object): void
+ *   ドラッグ等の移動操作対象となったレールに紐づくすべてのジョイントを解除。
  */
 
 /**
- * [snap-manager.js] - Snap Logic & Cluster Alignment
- * - applyClusterSnapLogic(movedRail)      : Executes snapping, rotation, and multi-locking.
- * - exportLayoutJSON()                    : Formats and copies serialized JSON to clipboard.
+ * [snap-manager.js] - スナップ吸着 & クラスタ一括移動制御
+ * 
+ * - applyClusterSnapLogic(movedRail: fabric.Object): void
+ *   移動終了時に周辺ノードとの近接判定、角度合わせ、マルチロック（剛体群スナップ）を一括実行。
+ * 
+ * - exportLayoutJSON(): void
+ *   レイアウト構造体をJSON文字列化してクリップボードにコピー。
  */
 
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 基本エンジン
-// バージョン: VER-LAYOUT-SIDE-SNAP-E33
+// バージョン: VER-LAYOUT-SIDE-SNAP-E34
 // =============================================================
 
 // --- 共通設定・フラグ定義 ---
-const ENGINE_VERSION = "VER-LAYOUT-SIDE-SNAP-E33";
+const ENGINE_VERSION = "VER-LAYOUT-SIDE-SNAP-E34";
 
 // ジョイントインジケータの表示モード ('all' | 'rail-end' | 'none')
 // デフォルト: 'rail-end' (レールエンドのみ表示)
@@ -152,13 +173,21 @@ function findTargetNodeForAutoConnect(parentRail) {
     return null;
 }
 
+/**
+ * Align and auto-connect a newly spawned rail to an existing parent rail's node.
+ * 
+ * @param {fabric.Object} newRail 
+ * @param {fabric.Object} parentRail 
+ * @param {number} parentNodeId 
+ * @returns {boolean} True if successfully connected; false if compatibility check failed or nodes missing.
+ */
 function alignRailToParentNode(newRail, parentRail, parentNodeId) {
     const parentNodes = getAbsoluteNodePos(parentRail);
     const parentNode = parentNodes.find(n => n.nodeId === parentNodeId);
-    if (!parentNode) return;
+    if (!parentNode) return false;
 
     const newCatalog = railCatalog.items[newRail.customData.partId];
-    if (!newCatalog || !newCatalog.nodes || newCatalog.nodes.length === 0) return;
+    if (!newCatalog || !newCatalog.nodes || newCatalog.nodes.length === 0) return false;
 
     const newRailNodes = newCatalog.nodes;
     
@@ -166,10 +195,10 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
     const targetNewNode = newRailNodes.find(n => (n.jointType || 'rail-end') === 'rail-end' && canConnectNodes(parentRail, parentNodeId, newRail, n.id)) 
                        || newRailNodes.find(n => canConnectNodes(parentRail, parentNodeId, newRail, n.id));
 
-    // 互換性のあるノードが存在しない（異システム等）場合は接続せずに中断
+    // 互換性のあるノードが存在しない（異システム等）場合は接続せずに失敗を返す
     if (!targetNewNode) {
-        console.warn(`[${ENGINE_VERSION}] 互換性のある接続ノードが見つからないため、オートコネクトをスキップしました。`);
-        return;
+        console.warn(`[${ENGINE_VERSION}] 互換性のある接続ノードが見つからないため、オートコネクトをキャンセルしました。`);
+        return false;
     }
 
     const newCx = newRail.customData.geoCenterX || 0;
@@ -218,6 +247,8 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
             });
         });
     });
+
+    return true;
 }
 
 function registerGlobalCanvasEvents() {
@@ -290,14 +321,28 @@ function addRailToCanvas(partId, options = {}) {
         const parentRail = (activeObj && activeObj.customData && activeObj.customData.isRail) ? activeObj : null;
         const targetNodeId = parentRail ? findTargetNodeForAutoConnect(parentRail) : null;
 
+        let autoConnected = false;
         if (parentRail && targetNodeId !== null) {
-            alignRailToParentNode(railObject, parentRail, targetNodeId);
-        } else if (lastCanvasClickPos) {
-            railObject.set({ left: lastCanvasClickPos.x, top: lastCanvasClickPos.y, angle: 0 });
-            railObject.setCoords();
-        } else {
-            railObject.set({ left: 250 + (railCount % 5) * 25, top: 450 + (railCount % 5) * 25, angle: 0 });
-            railObject.setCoords();
+            autoConnected = alignRailToParentNode(railObject, parentRail, targetNodeId);
+        }
+
+        // オートコネクト未実施または接続不可（異システム等）の場合の配置フォールバック
+        if (!autoConnected) {
+            if (parentRail) {
+                // 接続失敗時：選択中（親）レールの近傍（オフセット位置）に落とす
+                railObject.set({ 
+                    left: parentRail.left + 30, 
+                    top: parentRail.top + 30, 
+                    angle: parentRail.angle 
+                });
+                railObject.setCoords();
+            } else if (lastCanvasClickPos) {
+                railObject.set({ left: lastCanvasClickPos.x, top: lastCanvasClickPos.y, angle: 0 });
+                railObject.setCoords();
+            } else {
+                railObject.set({ left: 250 + (railCount % 5) * 25, top: 450 + (railCount % 5) * 25, angle: 0 });
+                railObject.setCoords();
+            }
         }
     }
 
