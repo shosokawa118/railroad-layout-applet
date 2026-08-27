@@ -197,34 +197,8 @@ function canConnectNodes(railA, nodeAId, railB, nodeBId) {
     const nodeB = catalogB.nodes.find(n => n.id === nodeBId);
     if (!nodeA || !nodeB) return false;
 
-    // 1. ジョイントグループ一致判定（rail-end / side 等）
-    const groupA = nodeA.jointGroup || 'rail-end';
-    const groupB = nodeB.jointGroup || 'rail-end';
-    if (groupA !== groupB) return false;
-
-    // 2. connectorType（端点ジョイント型）による直接判定
-    const sysA = railCatalog.systems[catalogA.systemId];
-    const sysB = railCatalog.systems[catalogB.systemId];
-
-    const connA = nodeA.connectorType || (sysA ? sysA.connectorType : null);
-    const connB = nodeB.connectorType || (sysB ? sysB.connectorType : null);
-
-    if (connA && connB) {
-        return connA === connB;
-    }
-
-    // 3. connectorType が取れない場合のシステム互換性判定（バックアップ）
-    const compatA = nodeA.compatibleSystems 
-                 || catalogA.compatibleSystems 
-                 || (catalogA.systemId ? [catalogA.systemId] : null);
-
-    const compatB = nodeB.compatibleSystems 
-                 || catalogB.compatibleSystems 
-                 || (catalogB.systemId ? [catalogB.systemId] : null);
-
-    if (!compatA || !compatB) return true;
-
-    return compatA.some(sys => compatB.includes(sys));
+    // カタログコアの判定関数を呼び出す（ジオメトリ側に重複ロジックは不要）
+    return isJointCompatible(nodeA, catalogA, nodeB, catalogB);
 }
 
 function getMovedRailIds(target) {
