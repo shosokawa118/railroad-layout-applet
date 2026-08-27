@@ -162,10 +162,15 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
 
     const newRailNodes = newCatalog.nodes;
     
-    // 新規レールの接続側ノード選定時も jointType を参照
+    // 1. 接続互換性のあるノードのみを探索（'rail-end' 優先）
     const targetNewNode = newRailNodes.find(n => (n.jointType || 'rail-end') === 'rail-end' && canConnectNodes(parentRail, parentNodeId, newRail, n.id)) 
-                       || newRailNodes.find(n => canConnectNodes(parentRail, parentNodeId, newRail, n.id)) 
-                       || newRailNodes[0];
+                       || newRailNodes.find(n => canConnectNodes(parentRail, parentNodeId, newRail, n.id));
+
+    // 互換性のあるノードが存在しない（異システム等）場合は接続せずに中断
+    if (!targetNewNode) {
+        console.warn(`[${ENGINE_VERSION}] 互換性のある接続ノードが見つからないため、オートコネクトをスキップしました。`);
+        return;
+    }
 
     const newCx = newRail.customData.geoCenterX || 0;
     const newCy = newRail.customData.geoCenterY || 0;
