@@ -4,40 +4,34 @@
  * =============================================================================
  * 
  * [AUTO-CONNECT NODE EVALUATION ORDER]
- * The auto-connection engine searches for open nodes in the following priority order:
- *   Node 1 -> Node 2 -> ... -> Max Node ID -> Node 0
+ * The auto-connection engine searches for open nodes based on the following algorithm:
+ *   - Parent (Selected Rail): Evaluated in DESCENDING order (Max Node ID -> ... -> Node 0)
+ *   - Child (New Added Rail): Evaluated in ASCENDING order (Node 0 -> ... -> Max Node ID)
  * 
- * [NODE ASSIGNMENT GUIDELINES]
- * 1. Node ID 0 (Primary Entrance / Top-Left / Lowest Priority):
- *    - Main entry node on the TOP-LEFT side of the part.
- *    - Assigned the lowest priority (evaluated last) to prevent reverse auto-connections.
+ * [NODE ID ASSIGNMENT GUIDELINES (HIGHER NUMBERS = HIGHER PRIORITY)]
+ * 1. Highest Node IDs (Primary Exit / Main Extension Target):
+ *    - Main straight / forward exit direction where the user most likely wants to extend next.
+ *    - Assign the MAXIMUM Node ID (e.g., Node 3 for 4-node parts, Node 5 for 6-node parts).
+ *    - For turnouts or junctions, allocate the highest IDs to the primary straight exit route.
  * 
- * 2. Node ID 1 (Primary Exit / Mainline / Highest Priority):
- *    - Main straight/forward exit corresponding to Node 0 on the RIGHT side.
- *    - Chosen first for standard linear auto-connection.
- *    - For turnouts/switches, assign straight/mainline routes FIRST (Node 1, 2...)
- *      before branching routes, overriding strict vertical placement order.
+ * 2. Intermediate Node IDs (Secondary Exits & Branching Routes):
+ *    - Branching curve exits, crossover paths, or secondary outer track exits.
+ *    - Assign sequentially below the maximum ID.
  * 
- * 3. Node ID 1 to K (Right-Side Exits):
- *    - Exits on the RIGHT side, assigned sequentially from TOP to BOTTOM (Node 1, 2, 3...).
+ * 3. Node ID 0 & Lower IDs (Primary Entrances & Backside Nodes):
+ *    - Entry nodes located on the backward/left side of the rail part.
+ *    - Node ID 0 is assigned to the main entry point (lowest evaluation priority for parent).
+ *    - This ensures that parent rails extend FORWARD from their highest exit nodes into 
+ *      the child rail's entry nodes (starting at Node 0), preventing unwanted reverse connections.
  * 
- * 4. Node ID K+1 to Max Node ID (Left-Side Entrances):
- *    - Remaining entrance nodes on the LEFT side (same side as Node 0).
- *    - Assigned sequentially from BOTTOM to TOP.
- *    - This forms a continuous CLOCKWISE evaluation loop:
- *      Top-Left (0) -> Right Exits (Top-to-Bottom) -> Left Entrances (Bottom-to-Top)
- * 
- * [JOINT GROUP & COMPATIBILITY RULES]
- * - `jointGroup` defines physical joint mechanisms and geometric track spacing constraints.
- * - Format: A single string identifier OR an array of supported group strings.
- * - Inheritance fallback order:
- *     Node.jointGroup -> System Catalog Default -> Fallback Default
- * - Two nodes are compatible if they share AT LEAST ONE common group string in their arrays.
+ * [EXCEPTIONS]
+ * Special symmetrical or non-directional geometries (e.g., turntables, balloon loops) 
+ * can assign IDs based on their natural logical flow.
  * =============================================================================
  */
 
 // =============================================================
-// KATO ユニトラム (複線プレート・25mm間隔) パーツライブラリ
+// KATO ユニトラム (複線プレート・25mm/33mm間隔) パーツライブラリ
 // =============================================================
 registerRailParts({
     // --- 複線直線軌道 186mm ---
@@ -47,10 +41,10 @@ registerRailParts({
         name: "複線直線軌道 186mm",
         description: "186mm 複線プレート (軌道間隔25mm)",
         nodes: [
-            { "id": 0, "name": "内軌-左", "relX": -93, "relY": -12.5, "facingAngle": 180 },
-            { "id": 1, "name": "内軌-右", "relX":  93, "relY": -12.5, "facingAngle": 0 },
-            { "id": 2, "name": "外軌-右", "relX":  93, "relY":  12.5, "facingAngle": 0 },
-            { "id": 3, "name": "外軌-左", "relX": -93, "relY":  12.5, "facingAngle": 180 }
+            { "id": 0, "name": "内軌-左(進入)", "relX": -93, "relY": -12.5, "facingAngle": 180 }, // 左上 (進入低優先)
+            { "id": 1, "name": "外軌-左(進入)", "relX": -93, "relY":  12.5, "facingAngle": 180 }, // 左下 (進入)
+            { "id": 2, "name": "外軌-右(出口)", "relX":  93, "relY":  12.5, "facingAngle": 0 },   // 右下 (出口)
+            { "id": 3, "name": "内軌-右(出口)", "relX":  93, "relY": -12.5, "facingAngle": 0 }    // 右上 (主線出口・最優先)
         ],
         shapes: [
             { "type": "line", "length": 186, "offsetX": 0, "offsetY": -12.5 },
@@ -65,10 +59,10 @@ registerRailParts({
         name: "複線直線軌道 124mm",
         description: "124mm 複線プレート (軌道間隔25mm)",
         nodes: [
-            { "id": 0, "name": "内軌-左", "relX": -62, "relY": -12.5, "facingAngle": 180 },
-            { "id": 1, "name": "内軌-右", "relX":  62, "relY": -12.5, "facingAngle": 0 },
-            { "id": 2, "name": "外軌-右", "relX":  62, "relY":  12.5, "facingAngle": 0 },
-            { "id": 3, "name": "外軌-左", "relX": -62, "relY":  12.5, "facingAngle": 180 }
+            { "id": 0, "name": "内軌-左(進入)", "relX": -62, "relY": -12.5, "facingAngle": 180 },
+            { "id": 1, "name": "外軌-左(進入)", "relX": -62, "relY":  12.5, "facingAngle": 180 },
+            { "id": 2, "name": "外軌-右(出口)", "relX":  62, "relY":  12.5, "facingAngle": 0 },
+            { "id": 3, "name": "内軌-右(出口)", "relX":  62, "relY": -12.5, "facingAngle": 0 }
         ],
         shapes: [
             { "type": "line", "length": 124, "offsetX": 0, "offsetY": -12.5 },
@@ -83,10 +77,10 @@ registerRailParts({
         name: "複線直線軌道 62mm",
         description: "62mm 複線プレート (軌道間隔25mm)",
         nodes: [
-            { "id": 0, "name": "内軌-左", "relX": -31, "relY": -12.5, "facingAngle": 180 },
-            { "id": 1, "name": "内軌-右", "relX":  31, "relY": -12.5, "facingAngle": 0 },
-            { "id": 2, "name": "外軌-右", "relX":  31, "relY":  12.5, "facingAngle": 0 },
-            { "id": 3, "name": "外軌-左", "relX": -31, "relY":  12.5, "facingAngle": 180 }
+            { "id": 0, "name": "内軌-左(進入)", "relX": -31, "relY": -12.5, "facingAngle": 180 },
+            { "id": 1, "name": "外軌-左(進入)", "relX": -31, "relY":  12.5, "facingAngle": 180 },
+            { "id": 2, "name": "外軌-右(出口)", "relX":  31, "relY":  12.5, "facingAngle": 0 },
+            { "id": 3, "name": "内軌-右(出口)", "relX":  31, "relY": -12.5, "facingAngle": 0 }
         ],
         shapes: [
             { "type": "line", "length": 62, "offsetX": 0, "offsetY": -12.5 },
@@ -99,22 +93,12 @@ registerRailParts({
         systemId: "KATO-UNITRAM-N",
         category: "curve",
         name: "複線交差点/交差角 曲線 L",
-        description: "交差点 曲線軌道 (内線25mm+R180 / 外線50mm+R180)",
+        description: "交差点 曲線軌道 (進入25mm / 出口33mm+R180)",
         nodes: [
-            { "id": 0, "name": "直線側-内軌", "relX": -62.0, "relY": -12.5, "facingAngle": 180 },
-            { 
-                "id": 1, 
-                "name": "45°頂点-内軌", 
-                "relX": 90.28, "relY": -65.22, "facingAngle": -45,
-                "jointGroup": "unijoiner-33mm" // 33mm間隔で上書き
-            },
-            { 
-                "id": 2, 
-                "name": "45°頂点-外軌", 
-                "relX": 115.28, "relY": -40.22, "facingAngle": -45,
-                "jointGroup": "unijoiner-33mm" // 33mm間隔で上書き
-            },
-            { "id": 3, "name": "直線側-外軌", "relX": -62.0, "relY":  12.5, "facingAngle": 180 }
+            { "id": 0, "name": "直線側-内軌(進入)", "relX": -62.0, "relY": -12.5, "facingAngle": 180 }, // 左上 (進入低優先)
+            { "id": 1, "name": "直線側-外軌(進入)", "relX": -62.0, "relY":  12.5, "facingAngle": 180 }, // 左下 (進入)
+            { "id": 2, "name": "45°頂点-外軌(出口)", "relX": 115.28, "relY": -40.22, "facingAngle": -45 },// 出口・下 (33mm)
+            { "id": 3, "name": "45°頂点-内軌(出口)", "relX":  90.28, "relY": -65.22, "facingAngle": -45 } // 出口・上 (33mm・最優先)
         ],
         shapes: [
             { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": -12.5 },
@@ -129,28 +113,18 @@ registerRailParts({
         systemId: "KATO-UNITRAM-N",
         category: "curve",
         name: "複線交差点/交差角 曲線 R",
-        description: "交差点 曲線軌道 (内線25mm+R180 / 外線50mm+R180)",
+        description: "交差点 曲線軌道 (進入25mm / 出口33mm+R180)",
         nodes: [
-            { "id": 0, "name": "直線側-外軌", "relX": -62.0, "relY": -12.5, "facingAngle": 180 },
-            { 
-                "id": 1, 
-                "name": "45°頂点-外軌", 
-                "relX": 115.28, "relY": 40.22, "facingAngle": 45,
-                "jointGroup": "unijoiner-33mm"
-            },
-            { 
-                "id": 2, 
-                "name": "45°頂点-内軌", 
-                "relX": 90.28, "relY": 65.22, "facingAngle": 45,
-                "jointGroup": "unijoiner-33mm"
-            },
-            { "id": 3, "name": "直線側-内軌", "relX": -62.0, "relY":  12.5, "facingAngle": 180 }
+            { "id": 0, "name": "直線側-外軌(進入)", "relX": -62.0, "relY": -12.5, "facingAngle": 180 }, // 左上 (進入低優先)
+            { "id": 1, "name": "直線側-内軌(進入)", "relX": -62.0, "relY":  12.5, "facingAngle": 180 }, // 左下 (進入)
+            { "id": 2, "name": "45°頂点-内軌(出口)", "relX":  90.28, "relY":  65.22, "facingAngle": 45 }, // 出口・下 (33mm)
+            { "id": 3, "name": "45°頂点-外軌(出口)", "relX": 115.28, "relY":  40.22, "facingAngle": 45 }  // 出口・上 (33mm・最優先)
         ],
         shapes: [
             { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": 12.5 },
             { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -37.0, "centerY": 192.5, "startAngle": 270 },
             { "type": "line", "length": 50, "offsetX": -37.0, "offsetY": -12.5 },
-            { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -43.0, "centerY": 167.5, "startAngle": 270 }
+            { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -12.0, "centerY": 167.5, "startAngle": 270 }
         ]
     },
 
@@ -161,22 +135,12 @@ registerRailParts({
         name: "複線分岐ポイント L",
         description: "電動複線分岐ポイント (186mm直進 + C-L曲線分岐)",
         nodes: [
-            { "id": 0, "name": "進入-内軌", "relX": -93.0, "relY": -12.5, "facingAngle": 180 },
-            { "id": 1, "name": "直進-内軌", "relX":  93.0, "relY": -12.5, "facingAngle": 0 },
-            { "id": 2, "name": "直進-外軌", "relX":  93.0, "relY":  12.5, "facingAngle": 0 },
-            { 
-                "id": 3, 
-                "name": "分岐-内軌", 
-                "relX": 59.28, "relY": -65.22, "facingAngle": -45,
-                "jointGroup": "unijoiner-33mm"
-            },
-            { 
-                "id": 4, 
-                "name": "分岐-外軌", 
-                "relX": 84.28, "relY": -40.22, "facingAngle": -45,
-                "jointGroup": "unijoiner-33mm"
-            },
-            { "id": 5, "name": "進入-外軌", "relX": -93.0, "relY":  12.5, "facingAngle": 180 }
+            { "id": 0, "name": "進入-内軌", "relX": -93.0, "relY": -12.5, "facingAngle": 180 }, // 左上 (進入低優先)
+            { "id": 1, "name": "進入-外軌", "relX": -93.0, "relY":  12.5, "facingAngle": 180 }, // 左下 (進入)
+            { "id": 2, "name": "分岐-外軌", "relX":  84.28, "relY": -40.22, "facingAngle": -45 },// 分岐・下 (33mm)
+            { "id": 3, "name": "分岐-内軌", "relX":  59.28, "relY": -65.22, "facingAngle": -45 },// 分岐・上 (33mm)
+            { "id": 4, "name": "直進-外軌", "relX":  93.0,  "relY":  12.5, "facingAngle": 0 },   // 直進・右下 (25mm)
+            { "id": 5, "name": "直進-内軌", "relX":  93.0,  "relY": -12.5, "facingAngle": 0 }    // 直進・右上 (主線出口・最優先)
         ],
         shapes: [
             { "type": "line", "length": 186, "offsetX": 0, "offsetY": -12.5 },
@@ -195,29 +159,19 @@ registerRailParts({
         name: "複線分岐ポイント R",
         description: "電動複線分岐ポイント (186mm直進 + C-R曲線分岐)",
         nodes: [
-            { "id": 0, "name": "進入-外軌", "relX": -93.0, "relY": -12.5, "facingAngle": 180 },
-            { "id": 1, "name": "直進-内軌", "relX":  93.0, "relY": -12.5, "facingAngle": 0 },
-            { "id": 2, "name": "直進-外軌", "relX":  93.0, "relY":  12.5, "facingAngle": 0 },
-            { 
-                "id": 3, 
-                "name": "分岐-内軌", 
-                "relX": 59.28, "relY": 65.22, "facingAngle": 45,
-                "jointGroup": "unijoiner-33mm"
-            },
-            { 
-                "id": 4, 
-                "name": "分岐-外軌", 
-                "relX": 84.28, "relY": 40.22, "facingAngle": 45,
-                "jointGroup": "unijoiner-33mm"
-            },
-            { "id": 5, "name": "進入-内軌", "relX": -93.0, "relY":  12.5, "facingAngle": 180 }
+            { "id": 0, "name": "進入-外軌", "relX": -93.0, "relY": -12.5, "facingAngle": 180 }, // 左上 (進入低優先)
+            { "id": 1, "name": "進入-内軌", "relX": -93.0, "relY":  12.5, "facingAngle": 180 }, // 左下 (進入)
+            { "id": 2, "name": "分岐-内軌", "relX":  59.28, "relY":  65.22, "facingAngle": 45 }, // 分岐・上 (33mm)
+            { "id": 3, "name": "分岐-外軌", "relX":  84.28, "relY":  40.22, "facingAngle": 45 }, // 分岐・下 (33mm)
+            { "id": 4, "name": "直進-外軌", "relX":  93.0,  "relY":  12.5, "facingAngle": 0 },   // 直進・右下 (25mm)
+            { "id": 5, "name": "直進-内軌", "relX":  93.0,  "relY": -12.5, "facingAngle": 0 }    // 直進・右上 (主線出口・最優先)
         ],
         shapes: [
             { "type": "line", "length": 186, "offsetX": 0, "offsetY": -12.5 },
             { "type": "line", "length": 186, "offsetX": 0, "offsetY":  12.5 },
             { "type": "line", "length": 25, "offsetX": -80.5, "offsetY": 12.5 },
             { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -68.0, "centerY": 192.5, "startAngle": 270 },
-            { "type": "line", "length": 50, "offsetX": -68.0, "offsetY": -12.5 },
+            { "type": "line", "length": 50, "offsetX": -37.0, "offsetY": -12.5 },
             { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -43.0, "centerY": 167.5, "startAngle": 270 }
         ]
     },
@@ -229,14 +183,14 @@ registerRailParts({
         name: "複線十字軌道 62mm",
         description: "62mm×62mm 複線十字交差点軌道",
         nodes: [
-            { "id": 0, "name": "西-内軌", "relX": -31, "relY": -12.5, "facingAngle": 180 },
-            { "id": 1, "name": "東-内軌", "relX":  31, "relY": -12.5, "facingAngle": 0 },
-            { "id": 2, "name": "東-外軌", "relX":  31, "relY":  12.5, "facingAngle": 0 },
-            { "id": 3, "name": "南-内軌", "relX":  12.5, "relY":  31, "facingAngle": 90 },
-            { "id": 4, "name": "南-外軌", "relX": -12.5, "relY":  31, "facingAngle": 90 },
-            { "id": 5, "name": "北-外軌", "relX": -12.5, "relY": -31, "facingAngle": 270 },
-            { "id": 6, "name": "北-内軌", "relX":  12.5, "relY": -31, "facingAngle": 270 },
-            { "id": 7, "name": "西-外軌", "relX": -31, "relY":  12.5, "facingAngle": 180 }
+            { "id": 0, "name": "西-内軌(進入)", "relX": -31, "relY": -12.5, "facingAngle": 180 }, // 西・上 (進入低優先)
+            { "id": 1, "name": "西-外軌(進入)", "relX": -31, "relY":  12.5, "facingAngle": 180 }, // 西・下
+            { "id": 2, "name": "南-外軌(出口)", "relX": -12.5, "relY":  31, "facingAngle": 90 },  // 南・左
+            { "id": 3, "name": "南-内軌(出口)", "relX":  12.5, "relY":  31, "facingAngle": 90 },  // 南・右
+            { "id": 4, "name": "北-外軌(出口)", "relX": -12.5, "relY": -31, "facingAngle": 270 }, // 北・左
+            { "id": 5, "name": "北-内軌(出口)", "relX":  12.5, "relY": -31, "facingAngle": 270 }, // 北・右
+            { "id": 6, "name": "東-外軌(出口)", "relX":  31, "relY":  12.5, "facingAngle": 0 },   // 東・下
+            { "id": 7, "name": "東-内軌(出口)", "relX":  31, "relY": -12.5, "facingAngle": 0 }    // 東・上 (直進最優先)
         ],
         shapes: [
             { "type": "line", "length": 62, "offsetX": 0, "offsetY": -12.5, "angle": 0 },
