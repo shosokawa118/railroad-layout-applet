@@ -128,9 +128,9 @@ registerRailParts({
         description: "ワイドトラム交差レール X37-WT(F)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -18.5, "relY": 0,     "facingAngle": 180 },
-            { "id": 1, "jointType": "rail-end", "relX": 18.5,  "relY": 0,     "facingAngle": 0 },
-            { "id": 2, "jointType": "rail-end", "relX": 0,     "relY": -18.5, "facingAngle": -90 },
-            { "id": 3, "jointType": "rail-end", "relX": 0,     "relY": 18.5,  "facingAngle": 90 }
+            { "id": 1, "jointType": "rail-end", "relX": 0,     "relY": -18.5, "facingAngle": -90 },
+            { "id": 2, "jointType": "rail-end", "relX": 0,     "relY": 18.5,  "facingAngle": 90 },
+            { "id": 3, "jointType": "rail-end", "relX": 18.5,  "relY": 0,     "facingAngle": 0 }
         ],
         shapes: [
             { "type": "line", "length": 37, "offsetX": 0, "offsetY": 0 },
@@ -249,8 +249,8 @@ registerRailParts({
         description: "ワイドトラム ミニポイント N-PL140-30(F) 相当品 (左分岐)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -35.0, "relY": 0,      "facingAngle": 180 },
-            { "id": 1, "jointType": "rail-end", "relX": 35.0,  "relY": 0,      "facingAngle": 0 },
-            { "id": 2, "jointType": "rail-end", "relX": 35.0,  "relY": -18.76, "facingAngle": -30.0 }
+            { "id": 1, "jointType": "rail-end", "relX": 35.0,  "relY": -18.76, "facingAngle": -30.0 },
+            { "id": 2, "jointType": "rail-end", "relX": 35.0,  "relY": 0,      "facingAngle": 0 }
         ],
         shapes: [
             { "type": "line", "length": 70, "offsetX": 0, "offsetY": 0 },
@@ -265,8 +265,8 @@ registerRailParts({
         description: "ワイドトラム ミニポイント N-PR140-30(F) 相当品 (右分岐)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -35.0, "relY": 0,     "facingAngle": 180 },
-            { "id": 1, "jointType": "rail-end", "relX": 35.0,  "relY": 0,     "facingAngle": 0 },
-            { "id": 2, "jointType": "rail-end", "relX": 35.0,  "relY": 18.76, "facingAngle": 30.0 }
+            { "id": 1, "jointType": "rail-end", "relX": 35.0,  "relY": 18.76, "facingAngle": 30.0 },
+            { "id": 2, "jointType": "rail-end", "relX": 35.0,  "relY": 0,     "facingAngle": 0 }
         ],
         shapes: [
             { "type": "line", "length": 70, "offsetX": 0, "offsetY": 0 },
@@ -281,8 +281,8 @@ registerRailParts({
         description: "ワイドトラム 待避線分岐ユニット (左 / 全長140mm)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -70, "relY": 0,   "facingAngle": 180 },
-            { "id": 1, "jointType": "rail-end", "relX": 70,  "relY": 0,   "facingAngle": 0 },
-            { "id": 2, "jointType": "rail-end", "relX": 70,  "relY": -37, "facingAngle": 0 }
+            { "id": 1, "jointType": "rail-end", "relX": 70,  "relY": -37, "facingAngle": 0 },
+            { "id": 2, "jointType": "rail-end", "relX": 70,  "relY": 0,   "facingAngle": 0 }
         ],
         shapes: [
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
@@ -298,8 +298,8 @@ registerRailParts({
         description: "ワイドトラム 待避線分岐ユニット (右 / 全長140mm)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -70, "relY": 0,  "facingAngle": 180 },
-            { "id": 1, "jointType": "rail-end", "relX": 70,  "relY": 0,  "facingAngle": 0 },
-            { "id": 2, "jointType": "rail-end", "relX": 70,  "relY": 37, "facingAngle": 0 }
+            { "id": 1, "jointType": "rail-end", "relX": 70,  "relY": 37, "facingAngle": 0 },
+            { "id": 2, "jointType": "rail-end", "relX": 70,  "relY": 0,  "facingAngle": 0 }
         ],
         shapes: [
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
@@ -315,9 +315,9 @@ registerRailParts({
         description: "ワイドトラム 片渡り線ユニット (左上がり / 全長140mm)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -70, "relY": 18.5,  "facingAngle": 180 },
-            { "id": 1, "jointType": "rail-end", "relX": 70,  "relY": 18.5,  "facingAngle": 0 },
-            { "id": 2, "jointType": "rail-end", "relX": -70, "relY": -18.5, "facingAngle": 180 },
-            { "id": 3, "jointType": "rail-end", "relX": 70,  "relY": -18.5, "facingAngle": 0 }
+            { "id": 1, "jointType": "rail-end", "relX": -70, "relY": -18.5, "facingAngle": 180 },
+            { "id": 2, "jointType": "rail-end", "relX": 70,  "relY": -18.5, "facingAngle": 0 },
+            { "id": 3, "jointType": "rail-end", "relX": 70,  "relY": 18.5,  "facingAngle": 0 }
         ],
         shapes: [
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": 18.5 },
@@ -333,10 +333,10 @@ registerRailParts({
         name: "WT-CROSSOVER-RH",
         description: "ワイドトラム 片渡り線ユニット (右上がり / 全長140mm)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "relX": -70, "relY": 18.5, "facingAngle": 180 },
-            { "id": 1, "jointType": "rail-end", "relX": 70,  "relY": 18.5, "facingAngle": 0 },
-            { "id": 2, "jointType": "rail-end", "relX": -70, "relY": -18.5,  "facingAngle": 180 },
-            { "id": 3, "jointType": "rail-end", "relX": 70,  "relY": -18.5,  "facingAngle": 0 }
+            { "id": 0, "jointType": "rail-end", "relX": -70, "relY": 18.5,  "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "relX": -70, "relY": -18.5, "facingAngle": 180 },
+            { "id": 2, "jointType": "rail-end", "relX": 70,  "relY": -18.5, "facingAngle": 0 },
+            { "id": 3, "jointType": "rail-end", "relX": 70,  "relY": 18.5,  "facingAngle": 0 }
         ],
         shapes: [
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": 18.5 },
