@@ -27,11 +27,11 @@
 
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 基本エンジン
-// バージョン: VER-LAYOUT-SIDE-SNAP-E32
+// バージョン: VER-LAYOUT-SIDE-SNAP-E33
 // =============================================================
 
 // --- 共通設定・フラグ定義 ---
-const ENGINE_VERSION = "VER-LAYOUT-SIDE-SNAP-E32";
+const ENGINE_VERSION = "VER-LAYOUT-SIDE-SNAP-E33";
 
 // ジョイントインジケータの表示モード ('all' | 'rail-end' | 'none')
 // デフォルト: 'rail-end' (レールエンドのみ表示)
@@ -123,6 +123,7 @@ function configureControls(fabricObj) {
  * Finds the optimal open target node on the parent rail for auto-connecting a newly added rail.
  * 
  * DESIGN INTENT & NODE PRIORITY RULES:
+ * - Filter by `jointType === 'rail-end'` to ensure side/accessory joiners are ignored.
  * - Parent node evaluation: DESCENDING order (Max Node ID -> ... -> Node 0).
  * - Highest Node ID represents the primary exit (highest priority).
  * - Node 0 represents the entry side (lowest priority).
@@ -137,8 +138,8 @@ function findTargetNodeForAutoConnect(parentRail) {
 
     const railId = parentRail.customData.instanceId;
     
-    // 1. 'rail-end' グループのノードのみを抽出
-    const endNodes = [...catalog.nodes].filter(n => (n.jointGroup || 'rail-end') === 'rail-end');
+    // 1. 'rail-end' タイプのノード（標準端点）のみを抽出
+    const endNodes = catalog.nodes.filter(n => (n.jointType || 'rail-end') === 'rail-end');
 
     // 2. 親ノードの探索順序：降順（最大値 -> ... -> 0）にソート
     endNodes.sort((a, b) => b.id - a.id);
@@ -160,7 +161,9 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
     if (!newCatalog || !newCatalog.nodes || newCatalog.nodes.length === 0) return;
 
     const newRailNodes = newCatalog.nodes;
-    const targetNewNode = newRailNodes.find(n => (n.jointGroup || 'rail-end') === 'rail-end' && canConnectNodes(parentRail, parentNodeId, newRail, n.id)) 
+    
+    // 新規レールの接続側ノード選定時も jointType を参照
+    const targetNewNode = newRailNodes.find(n => (n.jointType || 'rail-end') === 'rail-end' && canConnectNodes(parentRail, parentNodeId, newRail, n.id)) 
                        || newRailNodes.find(n => canConnectNodes(parentRail, parentNodeId, newRail, n.id)) 
                        || newRailNodes[0];
 
@@ -503,12 +506,12 @@ function updateJointIndicators() {
         absoluteNodes.forEach(node => {
             if (!node) return;
 
-            // ジョイントグループの取得
+            // ジョイントタイプの取得 (デフォルト: 'rail-end')
             const catalogNode = catalogItem ? catalogItem.nodes.find(n => n.id === node.nodeId) : null;
-            const jointGroup = (catalogNode && catalogNode.jointGroup) ? catalogNode.jointGroup : 'rail-end';
+            const jointType = (catalogNode && catalogNode.jointType) ? catalogNode.jointType : 'rail-end';
 
-            // レールエンドのみ表示モードの場合、rail-end 以外の描画をスキップ
-            if (jointDisplayMode === 'rail-end' && jointGroup !== 'rail-end') {
+            // レールエンドのみ表示モードの場合、'rail-end' 以外の描画をスキップ
+            if (jointDisplayMode === 'rail-end' && jointType !== 'rail-end') {
                 return;
             }
 
