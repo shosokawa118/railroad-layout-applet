@@ -1,3 +1,39 @@
+/**
+ * =============================================================================
+ * RAIL PARTS CATALOG - DEFINITION GUIDE & NODE DESIGN RULES FOR AI / DEVELOPERS
+ * =============================================================================
+ * 
+ * [AUTO-CONNECT NODE EVALUATION ORDER]
+ * The auto-connection engine searches for open nodes in the following priority order:
+ *   Node 1 -> Node 2 -> ... -> Max Node ID -> Node 0
+ * 
+ * [NODE ASSIGNMENT GUIDELINES]
+ * 1. Node ID 0 (Primary Entrance / Facing Left / Lowest Priority):
+ *    - Main entry node on the LEFT side of the part.
+ *    - Assigned the lowest priority (evaluated last) to prevent reverse auto-connections.
+ * 
+ * 2. Node ID 1 (Primary Exit / Mainline / Highest Priority):
+ *    - Main straight/forward exit corresponding to Node 0.
+ *    - Chosen first for standard linear auto-connection.
+ *    - For curved turnouts lacking a pure straight track, designate the main route
+ *      (e.g., larger curve radius) as Node 1 based on editor discretion.
+ * 
+ * 3. Node ID 2 to N (Secondary Exits & Right-Side Nodes):
+ *    - Branching exits or additional nodes on the RIGHT side (same side as Node 1).
+ *    - Assign sequentially from TOP to BOTTOM (Node 2, 3, 4...).
+ * 
+ * 4. Highest Node IDs (Secondary Entrances & Left-Side Nodes):
+ *    - Additional entry nodes on the LEFT side (same side as Node 0, e.g., double tracks/crossovers).
+ *    - Assign sequentially from BOTTOM to TOP.
+ *    - This ensures that after evaluating all right-side exits, the engine falls back
+ *      to the remaining left-side entrances from bottom to top, finishing at Node 0.
+ * 
+ * [EXCEPTIONS]
+ * Special geometries like turntables or balloon loops do not strictly require this rule.
+ * Assign node priorities based on their primary intended usage flow.
+ * =============================================================================
+ */
+
 // =============================================================
 // KATO ユニトラム (複線プレート・25mm間隔) パーツライブラリ
 // =============================================================
