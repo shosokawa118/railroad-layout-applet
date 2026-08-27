@@ -4,33 +4,29 @@
  * =============================================================================
  * 
  * [AUTO-CONNECT NODE EVALUATION ORDER]
- * The auto-connection engine searches for open nodes in the following priority order:
- *   Node 1 -> Node 2 -> ... -> Max Node ID -> Node 0
+ * The auto-connection engine searches for open nodes based on the following algorithm:
+ *   - Parent (Selected Rail): Evaluated in DESCENDING order (Max Node ID -> ... -> Node 0)
+ *   - Child (New Added Rail): Evaluated in ASCENDING order (Node 0 -> ... -> Max Node ID)
  * 
- * [NODE ASSIGNMENT GUIDELINES]
- * 1. Node ID 0 (Primary Entrance / Facing Left / Lowest Priority):
- *    - Main entry node on the LEFT side of the part.
- *    - Assigned the lowest priority (evaluated last) to prevent reverse auto-connections.
+ * [NODE ID ASSIGNMENT GUIDELINES (HIGHER NUMBERS = HIGHER PRIORITY)]
+ * 1. Highest Node IDs (Primary Exit / Main Extension Target):
+ *    - Main straight / forward exit direction where the user most likely wants to extend next.
+ *    - Assign the MAXIMUM Node ID (e.g., Node 3 for 4-node parts, Node 5 for 6-node parts).
+ *    - For turnouts or junctions, allocate the highest IDs to the primary straight exit route.
  * 
- * 2. Node ID 1 (Primary Exit / Mainline / Highest Priority):
- *    - Main straight/forward exit corresponding to Node 0.
- *    - Chosen first for standard linear auto-connection.
- *    - For curved turnouts lacking a pure straight track, designate the main route
- *      (e.g., larger curve radius) as Node 1 based on editor discretion.
+ * 2. Intermediate Node IDs (Secondary Exits & Branching Routes):
+ *    - Branching curve exits, crossover paths, or secondary outer track exits.
+ *    - Assign sequentially below the maximum ID.
  * 
- * 3. Node ID 2 to N (Secondary Exits & Right-Side Nodes):
- *    - Branching exits or additional nodes on the RIGHT side (same side as Node 1).
- *    - Assign sequentially from TOP to BOTTOM (Node 2, 3, 4...).
- * 
- * 4. Highest Node IDs (Secondary Entrances & Left-Side Nodes):
- *    - Additional entry nodes on the LEFT side (same side as Node 0, e.g., double tracks/crossovers).
- *    - Assign sequentially from BOTTOM to TOP.
- *    - This ensures that after evaluating all right-side exits, the engine falls back
- *      to the remaining left-side entrances from bottom to top, finishing at Node 0.
+ * 3. Node ID 0 & Lower IDs (Primary Entrances & Backside Nodes):
+ *    - Entry nodes located on the backward/left side of the rail part.
+ *    - Node ID 0 is assigned to the main entry point (lowest evaluation priority for parent).
+ *    - This ensures that parent rails extend FORWARD from their highest exit nodes into 
+ *      the child rail's entry nodes (starting at Node 0), preventing unwanted reverse connections.
  * 
  * [EXCEPTIONS]
- * Special geometries like turntables or balloon loops do not strictly require this rule.
- * Assign node priorities based on their primary intended usage flow.
+ * Special symmetrical or non-directional geometries (e.g., turntables, balloon loops) 
+ * can assign IDs based on their natural logical flow.
  * =============================================================================
  */
 
