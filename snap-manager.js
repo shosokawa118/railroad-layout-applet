@@ -1,8 +1,14 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - スナップ＆多重結合マネージャー
-// バージョン: VER-SNAP-SIDE-SNAP-S10
-// (側面スナップ・canConnectNodes連携強化版)
+// バージョン: VER-SNAP-SIDE-SNAP-S11
+// 
+// [ノード探索・接続優先順位ルール]
+// - 被スナップ（親）ノード: Node Max -> ... -> Node 0 (降順評価)
+// - 移動側（子）ノード    : Node 0 -> ... -> Node Max (昇順評価)
+// - ジョイント互換性      : jointGroup による判定 (isJointCompatible)
+// - ノードタイプ区分      : jointType ('rail-end' | 'side-joiner')
 // =============================================================
+
 console.log("スナップマネージャー（JS）が読み込まれました: VER-SNAP-SIDE-SNAP-S10");
 
 function applyClusterSnapLogic(movedRail) {
