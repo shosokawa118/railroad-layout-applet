@@ -314,10 +314,10 @@ registerRailParts({
         name: "WT-CROSSOVER-LH",
         description: "ワイドトラム 片渡り線ユニット (左上がり / 全長140mm)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "relX": -70, "relY": 18.5,  "facingAngle": 180 },
-            { "id": 1, "jointType": "rail-end", "relX": -70, "relY": -18.5, "facingAngle": 180 },
-            { "id": 2, "jointType": "rail-end", "relX": 70,  "relY": -18.5, "facingAngle": 0 },
-            { "id": 3, "jointType": "rail-end", "relX": 70,  "relY": 18.5,  "facingAngle": 0 }
+            { "id": 0, "jointType": "rail-end", "relX": -70, "relY": -18.5, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "relX": -70, "relY": 18.5,  "facingAngle": 180 },
+            { "id": 2, "jointType": "rail-end", "relX": 70,  "relY": 18.5,  "facingAngle": 0 },
+            { "id": 3, "jointType": "rail-end", "relX": 70,  "relY": -18.5, "facingAngle": 0 }
         ],
         shapes: [
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": 18.5 },
@@ -333,10 +333,10 @@ registerRailParts({
         name: "WT-CROSSOVER-RH",
         description: "ワイドトラム 片渡り線ユニット (右上がり / 全長140mm)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "relX": -70, "relY": 18.5,  "facingAngle": 180 },
-            { "id": 1, "jointType": "rail-end", "relX": -70, "relY": -18.5, "facingAngle": 180 },
-            { "id": 2, "jointType": "rail-end", "relX": 70,  "relY": -18.5, "facingAngle": 0 },
-            { "id": 3, "jointType": "rail-end", "relX": 70,  "relY": 18.5,  "facingAngle": 0 }
+            { "id": 0, "jointType": "rail-end", "relX": -70, "relY": -18.5, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "relX": -70, "relY": 18.5,  "facingAngle": 180 },
+            { "id": 2, "jointType": "rail-end", "relX": 70,  "relY": 18.5,  "facingAngle": 0 },
+            { "id": 3, "jointType": "rail-end", "relX": 70,  "relY": -18.5, "facingAngle": 0 }
         ],
         shapes: [
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": 18.5 },
