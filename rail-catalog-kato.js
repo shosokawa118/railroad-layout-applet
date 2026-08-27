@@ -48,8 +48,8 @@ registerRailParts({
         name: "S248",
         description: "直線線路 248mm",
         nodes: [
-            { "id": 0, "relX": -124, "relY": 0, "facingAngle": 180 },
-            { "id": 1, "relX": 124,  "relY": 0, "facingAngle": 0 }
+            { "id": 0, "jointType": "rail-end", "relX": -124, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "relX": 124,  "relY": 0, "facingAngle": 0 }
         ],
         shapes: [{ "type": "line", "length": 248, "offsetX": 0, "offsetY": 0 }]
     },
@@ -60,8 +60,8 @@ registerRailParts({
         name: "S186",
         description: "直線線路 186mm (3/4)",
         nodes: [
-            { "id": 0, "relX": -93, "relY": 0, "facingAngle": 180 },
-            { "id": 1, "relX": 93,  "relY": 0, "facingAngle": 0 }
+            { "id": 0, "jointType": "rail-end", "relX": -93, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "relX": 93,  "relY": 0, "facingAngle": 0 }
         ],
         shapes: [{ "type": "line", "length": 186, "offsetX": 0, "offsetY": 0 }]
     },
@@ -72,8 +72,8 @@ registerRailParts({
         name: "S124",
         description: "直線線路 124mm (1/2)",
         nodes: [
-            { "id": 0, "relX": -62, "relY": 0, "facingAngle": 180 },
-            { "id": 1, "relX": 62,  "relY": 0, "facingAngle": 0 }
+            { "id": 0, "jointType": "rail-end", "relX": -62, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "relX": 62,  "relY": 0, "facingAngle": 0 }
         ],
         shapes: [{ "type": "line", "length": 124, "offsetX": 0, "offsetY": 0 }]
     },
@@ -84,8 +84,8 @@ registerRailParts({
         name: "S62",
         description: "直線線路 62mm (1/4)",
         nodes: [
-            { "id": 0, "relX": -31, "relY": 0, "facingAngle": 180 },
-            { "id": 1, "relX": 31,  "relY": 0, "facingAngle": 0 }
+            { "id": 0, "jointType": "rail-end", "relX": -31, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "relX": 31,  "relY": 0, "facingAngle": 0 }
         ],
         shapes: [{ "type": "line", "length": 62, "offsetX": 0, "offsetY": 0 }]
     },
@@ -99,8 +99,8 @@ registerRailParts({
         name: "S64",
         description: "直線線路 64mm",
         nodes: [
-            { "id": 0, "relX": -32, "relY": 0, "facingAngle": 180 },
-            { "id": 1, "relX": 32,  "relY": 0, "facingAngle": 0 }
+            { "id": 0, "jointType": "rail-end", "relX": -32, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "relX": 32,  "relY": 0, "facingAngle": 0 }
         ],
         shapes: [{ "type": "line", "length": 64, "offsetX": 0, "offsetY": 0 }]
     },
@@ -110,8 +110,8 @@ registerRailParts({
         name: "S60",
         description: "端数線路 60mm",
         nodes: [
-            { "id": 0, "relX": -30, "relY": 0, "facingAngle": 180 },
-            { "id": 1, "relX": 30,  "relY": 0, "facingAngle": 0 }
+            { "id": 0, "jointType": "rail-end", "relX": -30, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "relX": 30,  "relY": 0, "facingAngle": 0 }
         ],
         shapes: [{ "type": "line", "length": 60, "offsetX": 0, "offsetY": 0 }]
     },
@@ -121,8 +121,8 @@ registerRailParts({
         name: "S29",
         description: "端数線路 29mm",
         nodes: [
-            { "id": 0, "relX": -14.5, "relY": 0, "facingAngle": 180 },
-            { "id": 1, "relX": 14.5,  "relY": 0, "facingAngle": 0 }
+            { "id": 0, "jointType": "rail-end", "relX": -14.5, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "relX": 14.5,  "relY": 0, "facingAngle": 0 }
         ],
         shapes: [{ "type": "line", "length": 29, "offsetX": 0, "offsetY": 0 }]
     },
@@ -132,8 +132,10 @@ registerRailParts({
         name: "S62J",
         description: "ジョイントレール 62mm (+10mm)",
         nodes: [
-            { "id": 0, "name": "KATO端",  "relX": -31.0, "relY": 0, "facingAngle": 180, "connectorType": "kato-unijoiner" },
-            { "id": 1, "name": "TOMIX端", "relX":  31.0, "relY": 0, "facingAngle": 0,   "connectorType": "tomix-clapper" }
+            // Node 0 (KATO端): カタログコアのdefaultJointGroupを自動継承
+            { "id": 0, "jointType": "rail-end", "name": "KATO端",  "relX": -31.0, "relY": 0, "facingAngle": 180 },
+            // Node 1 (TOMIX端): TOMIX規格のjointGroupを明示指定
+            { "id": 1, "jointType": "rail-end", "name": "TOMIX端", "relX":  31.0, "relY": 0, "facingAngle": 0, "jointGroup": "tomix-clapper" }
         ],
         shapes: [
             { "type": "line", "length": 62, "offsetX": 0, "offsetY": 0 },
@@ -158,7 +160,7 @@ registerRailParts({
         name: "S64B",
         description: "車止め線路 64mm",
         nodes: [
-            { "id": 0, "relX": -32, "relY": 0, "facingAngle": 180 }
+            { "id": 0, "jointType": "rail-end", "relX": -32, "relY": 0, "facingAngle": 180 }
         ],
         shapes: [{ "type": "line", "length": 64, "offsetX": 0, "offsetY": 0 }]
     },
@@ -172,8 +174,8 @@ registerRailParts({
         name: "R249-45",
         description: "曲線線路",
         nodes: [
-            { "id": 0, "relX": -95.29, "relY": 0, "facingAngle": 157.5 },
-            { "id": 1, "relX": 95.29,  "relY": 0, "facingAngle": 22.5 }
+            { "id": 0, "jointType": "rail-end", "relX": -95.29, "relY": 0, "facingAngle": 157.5 },
+            { "id": 1, "jointType": "rail-end", "relX": 95.29,  "relY": 0, "facingAngle": 22.5 }
         ],
         shapes: [{ "type": "arc", "radius": 249, "arcAngle": 45, "centerX": 0, "centerY": 230.05, "startAngle": 247.5 }]
     },
@@ -183,8 +185,8 @@ registerRailParts({
         name: "R282-45",
         description: "曲線線路",
         nodes: [
-            { "id": 0, "relX": -107.92, "relY": 0, "facingAngle": 157.5 },
-            { "id": 1, "relX": 107.92,  "relY": 0, "facingAngle": 22.5 }
+            { "id": 0, "jointType": "rail-end", "relX": -107.92, "relY": 0, "facingAngle": 157.5 },
+            { "id": 1, "jointType": "rail-end", "relX": 107.92,  "relY": 0, "facingAngle": 22.5 }
         ],
         shapes: [{ "type": "arc", "radius": 282, "arcAngle": 45, "centerX": 0, "centerY": 260.53, "startAngle": 247.5 }]
     },
@@ -194,8 +196,8 @@ registerRailParts({
         name: "R315-45",
         description: "曲線線路",
         nodes: [
-            { "id": 0, "relX": -120.55, "relY": 0, "facingAngle": 157.5 },
-            { "id": 1, "relX": 120.55,  "relY": 0, "facingAngle": 22.5 }
+            { "id": 0, "jointType": "rail-end", "relX": -120.55, "relY": 0, "facingAngle": 157.5 },
+            { "id": 1, "jointType": "rail-end", "relX": 120.55,  "relY": 0, "facingAngle": 22.5 }
         ],
         shapes: [{ "type": "arc", "radius": 315, "arcAngle": 45, "centerX": 0, "centerY": 291.01, "startAngle": 247.5 }]
     },
@@ -205,8 +207,8 @@ registerRailParts({
         name: "R348-45",
         description: "曲線線路",
         nodes: [
-            { "id": 0, "relX": -133.17, "relY": 0, "facingAngle": 157.5 },
-            { "id": 1, "relX": 133.17,  "relY": 0, "facingAngle": 22.5 }
+            { "id": 0, "jointType": "rail-end", "relX": -133.17, "relY": 0, "facingAngle": 157.5 },
+            { "id": 1, "jointType": "rail-end", "relX": 133.17,  "relY": 0, "facingAngle": 22.5 }
         ],
         shapes: [{ "type": "arc", "radius": 348, "arcAngle": 45, "centerX": 0, "centerY": 321.50, "startAngle": 247.5 }]
     },
@@ -216,8 +218,8 @@ registerRailParts({
         name: "R481-15",
         description: "曲線線路",
         nodes: [
-            { "id": 0, "relX": -62.78, "relY": 0, "facingAngle": 172.5 },
-            { "id": 1, "relX": 62.78,  "relY": 0, "facingAngle": 7.5 }
+            { "id": 0, "jointType": "rail-end", "relX": -62.78, "relY": 0, "facingAngle": 172.5 },
+            { "id": 1, "jointType": "rail-end", "relX": 62.78,  "relY": 0, "facingAngle": 7.5 }
         ],
         shapes: [{ "type": "arc", "radius": 481, "arcAngle": 15, "centerX": 0, "centerY": 476.87, "startAngle": 262.5 }]
     },
@@ -227,8 +229,8 @@ registerRailParts({
         name: "R718-15",
         description: "曲線線路",
         nodes: [
-            { "id": 0, "relX": -93.75, "relY": 0, "facingAngle": 172.5 },
-            { "id": 1, "relX": 93.75,  "relY": 0, "facingAngle": 7.5 }
+            { "id": 0, "jointType": "rail-end", "relX": -93.75, "relY": 0, "facingAngle": 172.5 },
+            { "id": 1, "jointType": "rail-end", "relX": 93.75,  "relY": 0, "facingAngle": 7.5 }
         ],
         shapes: [{ "type": "arc", "radius": 718, "arcAngle": 15, "centerX": 0, "centerY": 711.83, "startAngle": 262.5 }]
     },
@@ -242,9 +244,9 @@ registerRailParts({
         name: "EP481-15L",
         description: "電動ポイント4番 (左)",
         nodes: [
-            { "id": 0, "name": "進入端", "relX": -63.0, "relY": 0,     "facingAngle": 180 },
-            { "id": 1, "name": "直進端", "relX": 63.0,  "relY": 0,     "facingAngle": 0 },
-            { "id": 2, "name": "分岐端", "relX": 61.9,  "relY": -16.5, "facingAngle": -15.0 }
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -63.0, "relY": 0,     "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "直進端", "relX": 63.0,  "relY": 0,     "facingAngle": 0 },
+            { "id": 2, "jointType": "rail-end", "name": "分岐端", "relX": 61.9,  "relY": -16.5, "facingAngle": -15.0 }
         ],
         shapes: [
             { "type": "line", "length": 126, "offsetX": 0, "offsetY": 0 },
@@ -257,9 +259,9 @@ registerRailParts({
         name: "EP481-15R",
         description: "電動ポイント4番 (右)",
         nodes: [
-            { "id": 0, "name": "進入端", "relX": -63.0, "relY": 0,    "facingAngle": 180 },
-            { "id": 1, "name": "直進端", "relX": 63.0,  "relY": 0,    "facingAngle": 0 },
-            { "id": 2, "name": "分岐端", "relX": 61.9,  "relY": 16.5, "facingAngle": 15.0 }
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -63.0, "relY": 0,    "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "直進端", "relX": 63.0,  "relY": 0,    "facingAngle": 0 },
+            { "id": 2, "jointType": "rail-end", "name": "分岐端", "relX": 61.9,  "relY": 16.5, "facingAngle": 15.0 }
         ],
         shapes: [
             { "type": "line", "length": 126, "offsetX": 0, "offsetY": 0 },
@@ -272,9 +274,9 @@ registerRailParts({
         name: "EP718-15L",
         description: "電動ポイント6番 (左)",
         nodes: [
-            { "id": 0, "name": "進入端", "relX": -93.0, "relY": 0,     "facingAngle": 180 },
-            { "id": 1, "name": "直進端", "relX": 93.0,  "relY": 0,     "facingAngle": 0 },
-            { "id": 2, "name": "分岐端", "relX": 91.4,  "relY": -24.5, "facingAngle": -15.0 }
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -93.0, "relY": 0,     "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "直進端", "relX": 93.0,  "relY": 0,     "facingAngle": 0 },
+            { "id": 2, "jointType": "rail-end", "name": "分岐端", "relX": 91.4,  "relY": -24.5, "facingAngle": -15.0 }
         ],
         shapes: [
             { "type": "line", "length": 186, "offsetX": 0, "offsetY": 0 },
@@ -287,9 +289,9 @@ registerRailParts({
         name: "EP718-15R",
         description: "電動ポイント6番 (右)",
         nodes: [
-            { "id": 0, "name": "進入端", "relX": -93.0, "relY": 0,    "facingAngle": 180 },
-            { "id": 1, "name": "直進端", "relX": 93.0,  "relY": 0,    "facingAngle": 0 },
-            { "id": 2, "name": "分岐端", "relX": 91.4,  "relY": 24.5, "facingAngle": 15.0 }
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -93.0, "relY": 0,    "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "直進端", "relX": 93.0,  "relY": 0,    "facingAngle": 0 },
+            { "id": 2, "jointType": "rail-end", "name": "分岐端", "relX": 91.4,  "relY": 24.5, "facingAngle": 15.0 }
         ],
         shapes: [
             { "type": "line", "length": 186, "offsetX": 0, "offsetY": 0 },
@@ -306,8 +308,8 @@ registerRailParts({
         name: "CV117-45",
         description: "コンパクト曲線線路",
         nodes: [
-            { "id": 0, "relX": -44.77, "relY": 0, "facingAngle": 157.5 },
-            { "id": 1, "relX": 44.77,  "relY": 0, "facingAngle": 22.5 }
+            { "id": 0, "jointType": "rail-end", "relX": -44.77, "relY": 0, "facingAngle": 157.5 },
+            { "id": 1, "jointType": "rail-end", "relX": 44.77,  "relY": 0, "facingAngle": 22.5 }
         ],
         shapes: [{ "type": "arc", "radius": 117, "arcAngle": 45, "centerX": 0, "centerY": 108.09, "startAngle": 247.5 }]
     },
@@ -317,8 +319,8 @@ registerRailParts({
         name: "CV150-45",
         description: "コンパクト曲線線路",
         nodes: [
-            { "id": 0, "relX": -57.40, "relY": 0, "facingAngle": 157.5 },
-            { "id": 1, "relX": 57.40,  "relY": 0, "facingAngle": 22.5 }
+            { "id": 0, "jointType": "rail-end", "relX": -57.40, "relY": 0, "facingAngle": 157.5 },
+            { "id": 1, "jointType": "rail-end", "relX": 57.40,  "relY": 0, "facingAngle": 22.5 }
         ],
         shapes: [{ "type": "arc", "radius": 150, "arcAngle": 45, "centerX": 0, "centerY": 138.58, "startAngle": 247.5 }]
     },
@@ -328,8 +330,8 @@ registerRailParts({
         name: "CV183-45",
         description: "コンパクト曲線線路",
         nodes: [
-            { "id": 0, "relX": -70.03, "relY": 0, "facingAngle": 157.5 },
-            { "id": 1, "relX": 70.03,  "relY": 0, "facingAngle": 22.5 }
+            { "id": 0, "jointType": "rail-end", "relX": -70.03, "relY": 0, "facingAngle": 157.5 },
+            { "id": 1, "jointType": "rail-end", "relX": 70.03,  "relY": 0, "facingAngle": 22.5 }
         ],
         shapes: [{ "type": "arc", "radius": 183, "arcAngle": 45, "centerX": 0, "centerY": 169.07, "startAngle": 247.5 }]
     },
@@ -343,9 +345,9 @@ registerRailParts({
         name: "EP150-45L",
         description: "電動ポイント150mm (左)",
         nodes: [
-            { "id": 0, "name": "進入端", "relX": -62.0, "relY": 0,     "facingAngle": 180 },
-            { "id": 1, "name": "直進端", "relX": 62.0,  "relY": 0,     "facingAngle": 0 },
-            { "id": 2, "name": "分岐端", "relX": 43.9,  "relY": -43.9, "facingAngle": -45.0 }
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -62.0, "relY": 0,     "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "直進端", "relX": 62.0,  "relY": 0,     "facingAngle": 0 },
+            { "id": 2, "jointType": "rail-end", "name": "分岐端", "relX": 43.9,  "relY": -43.9, "facingAngle": -45.0 }
         ],
         shapes: [
             { "type": "line", "length": 124, "offsetX": 0, "offsetY": 0 },
@@ -358,9 +360,9 @@ registerRailParts({
         name: "EP150-45R",
         description: "電動ポイント150mm (右)",
         nodes: [
-            { "id": 0, "name": "進入端", "relX": -62.0, "relY": 0,    "facingAngle": 180 },
-            { "id": 1, "name": "直進端", "relX": 62.0,  "relY": 0,    "facingAngle": 0 },
-            { "id": 2, "name": "分岐端", "relX": 43.9,  "relY": 43.9, "facingAngle": 45.0 }
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -62.0, "relY": 0,    "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "直進端", "relX": 62.0,  "relY": 0,    "facingAngle": 0 },
+            { "id": 2, "jointType": "rail-end", "name": "分岐端", "relX": 43.9,  "relY": 43.9, "facingAngle": 45.0 }
         ],
         shapes: [
             { "type": "line", "length": 124, "offsetX": 0, "offsetY": 0 },
