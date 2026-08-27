@@ -28,11 +28,11 @@
  *      Top-Left (0) -> Right Exits (Top-to-Bottom) -> Left Entrances (Bottom-to-Top)
  * 
  * [JOINT GROUP & COMPATIBILITY RULES]
- * - `jointGroup` defines physical/geometric connection compatibility.
- * - Nodes can accept a single string OR an array of supported group strings.
+ * - `jointGroup` defines physical joint mechanisms and geometric track spacing constraints.
+ * - Format: A single string identifier OR an array of supported group strings.
  * - Inheritance fallback order:
- *     Node.jointGroup -> System Catalog Default -> "kato-unijoiner"
- * - Two nodes are compatible if they share AT LEAST ONE common group string.
+ *     Node.jointGroup -> System Catalog Default -> Fallback Default
+ * - Two nodes are compatible if they share AT LEAST ONE common group string in their arrays.
  * =============================================================================
  */
 
@@ -106,13 +106,13 @@ registerRailParts({
                 "id": 1, 
                 "name": "45°頂点-内軌", 
                 "relX": 90.28, "relY": -65.22, "facingAngle": -45,
-                "jointGroup": ["kato-unijoiner", "unitram-33mm"]
+                "jointGroup": "unijoiner-33mm" // 33mm間隔で上書き
             },
             { 
                 "id": 2, 
                 "name": "45°頂点-外軌", 
                 "relX": 115.28, "relY": -40.22, "facingAngle": -45,
-                "jointGroup": ["kato-unijoiner", "unitram-33mm"]
+                "jointGroup": "unijoiner-33mm" // 33mm間隔で上書き
             },
             { "id": 3, "name": "直線側-外軌", "relX": -62.0, "relY":  12.5, "facingAngle": 180 }
         ],
@@ -136,13 +136,13 @@ registerRailParts({
                 "id": 1, 
                 "name": "45°頂点-外軌", 
                 "relX": 115.28, "relY": 40.22, "facingAngle": 45,
-                "jointGroup": ["kato-unijoiner", "unitram-33mm"]
+                "jointGroup": "unijoiner-33mm"
             },
             { 
                 "id": 2, 
                 "name": "45°頂点-内軌", 
                 "relX": 90.28, "relY": 65.22, "facingAngle": 45,
-                "jointGroup": ["kato-unijoiner", "unitram-33mm"]
+                "jointGroup": "unijoiner-33mm"
             },
             { "id": 3, "name": "直線側-内軌", "relX": -62.0, "relY":  12.5, "facingAngle": 180 }
         ],
@@ -168,13 +168,13 @@ registerRailParts({
                 "id": 3, 
                 "name": "分岐-内軌", 
                 "relX": 59.28, "relY": -65.22, "facingAngle": -45,
-                "jointGroup": ["kato-unijoiner", "unitram-33mm"]
+                "jointGroup": "unijoiner-33mm"
             },
             { 
                 "id": 4, 
                 "name": "分岐-外軌", 
                 "relX": 84.28, "relY": -40.22, "facingAngle": -45,
-                "jointGroup": ["kato-unijoiner", "unitram-33mm"]
+                "jointGroup": "unijoiner-33mm"
             },
             { "id": 5, "name": "進入-外軌", "relX": -93.0, "relY":  12.5, "facingAngle": 180 }
         ],
@@ -202,13 +202,13 @@ registerRailParts({
                 "id": 3, 
                 "name": "分岐-内軌", 
                 "relX": 59.28, "relY": 65.22, "facingAngle": 45,
-                "jointGroup": ["kato-unijoiner", "unitram-33mm"]
+                "jointGroup": "unijoiner-33mm"
             },
             { 
                 "id": 4, 
                 "name": "分岐-外軌", 
                 "relX": 84.28, "relY": 40.22, "facingAngle": 45,
-                "jointGroup": ["kato-unijoiner", "unitram-33mm"]
+                "jointGroup": "unijoiner-33mm"
             },
             { "id": 5, "name": "進入-内軌", "relX": -93.0, "relY":  12.5, "facingAngle": 180 }
         ],
