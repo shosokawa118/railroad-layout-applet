@@ -191,11 +191,12 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
 
     const newRailNodes = newCatalog.nodes;
     
-    // 1. 接続互換性のあるノードのみを探索（'rail-end' 優先）
-    const targetNewNode = newRailNodes.find(n => (n.jointType || 'rail-end') === 'rail-end' && canConnectNodes(parentRail, parentNodeId, newRail, n.id)) 
-                       || newRailNodes.find(n => canConnectNodes(parentRail, parentNodeId, newRail, n.id));
+    // 1. 接続互換性のあるノードのみを昇順（Node 0優先）で探索（'rail-end' 優先）
+    const sortedNewNodes = [...newRailNodes].sort((a, b) => a.id - b.id);
+    const targetNewNode = sortedNewNodes.find(n => (n.jointType || 'rail-end') === 'rail-end' && canConnectNodes(parentRail, parentNodeId, newRail, n.id)) 
+                       || sortedNewNodes.find(n => canConnectNodes(parentRail, parentNodeId, newRail, n.id));
 
-    // 互換性のあるノードが存在しない（異システム等）場合は接続せずに失敗を返す
+    // 互換性のあるノードが存在しない（異システムやカント逆相接続等）場合は接続せずに失敗を返す
     if (!targetNewNode) {
         console.warn(`[${ENGINE_VERSION}] 互換性のある接続ノードが見つからないため、オートコネクトをキャンセルしました。`);
         return false;
@@ -217,14 +218,16 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
     newRail.set({ left: newLeft, top: newTop });
     newRail.setCoords();
 
+    // 主接続ノードを結合登録
     addGlobalJointIfFree(
         parentRail.customData.instanceId, parentNodeId,
         newRail.customData.instanceId, targetNewNode.id
     );
 
+    // 複線等の場合、同時にピッタリ合わさる全ノードペアを一括ロック
     const allRails = canvas.getObjects().filter(obj => obj && obj.customData && obj.customData.isRail);
     const newId = newRail.customData.instanceId;
-    const newNodes = getAbsoluteNodePos(newRail);
+    const updatedNewNodes = getAbsoluteNodePos(newRail);
 
     allRails.forEach(otherRail => {
         if (!otherRail || !otherRail.customData) return;
@@ -233,7 +236,7 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
 
         const otherNodes = getAbsoluteNodePos(otherRail);
 
-        newNodes.forEach(nNode => {
+        updatedNewNodes.forEach(nNode => {
             if (isNodeOccupied(newId, nNode.nodeId)) return;
 
             otherNodes.forEach(oNode => {
