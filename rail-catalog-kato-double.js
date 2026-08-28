@@ -266,7 +266,7 @@ registerRailParts({
     },
 
     // =========================================================
-    // KATO 複線両渡りポイント (両渡り渡り線 310mm)
+    // KATO 複線両渡りポイント (WX310 端点開始カーブ版)
     // =========================================================
     "KATO-WX310": {
         systemId: "KATO-DOUBLETRACK-N",
@@ -280,18 +280,22 @@ registerRailParts({
             { "id": 3, "jointType": "rail-end", "name": "退出端-主線(上)", "relX":  155.0, "relY": -16.5, "facingAngle": 0 }
         ],
         shapes: [
-            // 直線主線・副線
+            // 1. 直線主線・副線
             { "type": "line", "length": 310, "offsetX": 0, "offsetY": -16.5 },
             { "type": "line", "length": 310, "offsetX": 0, "offsetY":  16.5 },
-            // 渡り線 (R718 / 6.0° の4方向円弧アプローチ)
-            // 左上 -> 中心 (0,0)
-            { "type": "arc", "radius": 718, "arcAngle": 6.0, "centerX": -73.32, "centerY": -734.5, "startAngle": 84.0 },
-            // 左下 -> 中心 (0,0)
-            { "type": "arc", "radius": 718, "arcAngle": 6.0, "centerX": -73.32, "centerY":  734.5, "startAngle": 270.0 },
-            // 右上 -> 中心 (0,0)
-            { "type": "arc", "radius": 718, "arcAngle": 6.0, "centerX":  73.32, "centerY": -734.5, "startAngle": 90.0 },
-            // 右下 -> 中心 (0,0)
-            { "type": "arc", "radius": 718, "arcAngle": 6.0, "centerX":  73.32, "centerY":  734.5, "startAngle": 204.0 }
+
+            // 2. 渡り線（端点 X=±155 から直接始まる R718 / 12.47° アーク）
+            // 左上 (-155, -16.5) -> 中心へ
+            { "type": "arc", "radius": 718, "arcAngle": -12.47, "centerX": -155.0, "centerY": -734.5, "startAngle": 90 },
+            
+            // 左下 (-155, +16.5) -> 中心へ
+            { "type": "arc", "radius": 718, "arcAngle": 12.47, "centerX": -155.0, "centerY": 734.5, "startAngle": 270 },
+
+            // 右上 (+155, -16.5) -> 中心へ
+            { "type": "arc", "radius": 718, "arcAngle": 12.47, "centerX": 155.0, "centerY": -734.5, "startAngle": 90 },
+
+            // 右下 (+155, +16.5) -> 中心へ
+            { "type": "arc", "radius": 718, "arcAngle": -12.47, "centerX": 155.0, "centerY": 734.5, "startAngle": 270 }
         ]
     }
 });
