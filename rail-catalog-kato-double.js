@@ -299,7 +299,7 @@ registerRailParts({
         ]
     },
     // =========================================================
-    // KATO 複線片渡りポイント 左 (X248-L) 全長248mm
+    // KATO 複線片渡りポイント (X248-L / X248-R) 全長248mm
     // =========================================================
     "KATO-X248-L": {
         systemId: "KATO-DOUBLETRACK-N",
@@ -318,15 +318,12 @@ registerRailParts({
             { "type": "line", "length": 248, "offsetX": 0, "offsetY":  16.5 },
 
             // 渡り線 (左下 -> 右上 / R474.19 / 15.16°)
-            // 左下 (-124, +16.5) -> 中心 (0,0)
-            { "type": "arc", "radius": 474.19, "arcAngle": 15.16, "centerX": -124.0, "centerY": 457.69, "startAngle": 270 },
-            // 中心 (0,0) -> 右上 (+124, -16.5)
-            { "type": "arc", "radius": 474.19, "arcAngle": -15.16, "centerX": 124.0, "centerY": -457.69, "startAngle": 270 }
+            // 1. 左下 (-124, +16.5) -> 中心 (0,0) : 上向きカーブ（中心は上側 Y = -457.69）
+            { "type": "arc", "radius": 474.19, "arcAngle": 15.16, "centerX": -124.0, "centerY": -457.69, "startAngle": 90 },
+            // 2. 中心 (0,0) -> 右上 (+124, -16.5) : 反転上向きカーブ（中心は下側 Y = +457.69）
+            { "type": "arc", "radius": 474.19, "arcAngle": -15.16, "centerX": 124.0, "centerY": 457.69, "startAngle": 270 }
         ]
     },
-    // =========================================================
-    // KATO 複線片渡りポイント 右 (X248-R) 全長248mm
-    // =========================================================
     "KATO-X248-R": {
         systemId: "KATO-DOUBLETRACK-N",
         category: "turnout",
@@ -344,10 +341,10 @@ registerRailParts({
             { "type": "line", "length": 248, "offsetX": 0, "offsetY":  16.5 },
 
             // 渡り線 (左上 -> 右下 / R474.19 / 15.16°)
-            // 左上 (-124, -16.5) -> 中心 (0,0)
-            { "type": "arc", "radius": 474.19, "arcAngle": -15.16, "centerX": -124.0, "centerY": -457.69, "startAngle": 90 },
-            // 中心 (0,0) -> 右下 (+124, +16.5)
-            { "type": "arc", "radius": 474.19, "arcAngle": 15.16, "centerX": 124.0, "centerY": 457.69, "startAngle": 90 }
+            // 1. 左上 (-124, -16.5) -> 中心 (0,0) : 下向きカーブ（中心は下側 Y = +457.69）
+            { "type": "arc", "radius": 474.19, "arcAngle": -15.16, "centerX": -124.0, "centerY": 457.69, "startAngle": 270 },
+            // 2. 中心 (0,0) -> 右下 (+124, +16.5) : 反転下向きカーブ（中心は上側 Y = -457.69）
+            { "type": "arc", "radius": 474.19, "arcAngle": 15.16, "centerX": 124.0, "centerY": -457.69, "startAngle": 90 }
         ]
-    }
+    },
 });
