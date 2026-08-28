@@ -135,6 +135,7 @@ registerRailParts({
 
     // =========================================================
     // KATO 複線カント付き曲線線路 (45°)
+    // 円弧中心を (0,0) とした基準定義
     // =========================================================
     "KATO-CWR315-282-45": {
         systemId: "KATO-DOUBLETRACK-N",
@@ -142,16 +143,17 @@ registerRailParts({
         name: "WR315/282-45C",
         description: "複線カント付き曲線線路 45° (WR315/282)",
         nodes: [
-            // 進入端 (facingAngle: 157.5)
-            { "id": 0, "jointType": "rail-end", "name": "進入端-内線", "jointGroup": "kato-cant", "polarity": 1, "relX": -101.61, "relY": -15.24, "facingAngle": 157.5 },
-            { "id": 1, "jointType": "rail-end", "name": "進入端-外線", "jointGroup": "kato-cant", "polarity": 1, "relX": -114.24, "relY": -15.24, "facingAngle": 157.5 },
-            // 退出端 (facingAngle: 22.5)
-            { "id": 2, "jointType": "rail-end", "name": "退出端-外線", "jointGroup": "kato-cant", "polarity": -1, "relX":  114.24, "relY":  15.24, "facingAngle": 22.5 },
-            { "id": 3, "jointType": "rail-end", "name": "退出端-内線", "jointGroup": "kato-cant", "polarity": -1, "relX":  101.61, "relY":  15.24, "facingAngle": 22.5 }
+            // --- 左端 (角度: 247.5° / facingAngle: 157.5) ---
+            { "id": 0, "jointType": "rail-end", "name": "進入端-内線", "jointGroup": "kato-cant", "polarity": 1, "relX": -107.92, "relY": -260.53, "facingAngle": 157.5 },
+            { "id": 1, "jointType": "rail-end", "name": "進入端-外線", "jointGroup": "kato-cant", "polarity": 1, "relX": -120.55, "relY": -291.01, "facingAngle": 157.5 },
+            // --- 右端 (角度: 292.5° / facingAngle: 22.5) ---
+            { "id": 2, "jointType": "rail-end", "name": "退出端-外線", "jointGroup": "kato-cant", "polarity": -1, "relX":  120.55, "relY": -291.01, "facingAngle": 22.5 },
+            { "id": 3, "jointType": "rail-end", "name": "退出端-内線", "jointGroup": "kato-cant", "polarity": -1, "relX":  107.92, "relY": -260.53, "facingAngle": 22.5 }
         ],
         shapes: [
-            { "type": "arc", "radius": 282, "arcAngle": 45, "centerX": 0, "centerY": 260.53, "startAngle": 247.5 },
-            { "type": "arc", "radius": 315, "arcAngle": 45, "centerX": 0, "centerY": 291.01, "startAngle": 247.5 }
+            // 円弧中心はどちらも (0, 0)
+            { "type": "arc", "radius": 282, "arcAngle": 45, "centerX": 0, "centerY": 0, "startAngle": 247.5 },
+            { "type": "arc", "radius": 315, "arcAngle": 45, "centerX": 0, "centerY": 0, "startAngle": 247.5 }
         ]
     },
 
