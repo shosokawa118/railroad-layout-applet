@@ -297,5 +297,57 @@ registerRailParts({
             // 右下 (+155, +16.5) -> 中心 (0,0)
             { "type": "arc", "radius": 736.28, "arcAngle": -12.15, "centerX": 155.0, "centerY": 719.78, "startAngle": 270 }
         ]
+    },
+    // =========================================================
+    // KATO 複線片渡りポイント 左 (X248-L) 全長248mm
+    // =========================================================
+    "KATO-X248-L": {
+        systemId: "KATO-DOUBLETRACK-N",
+        category: "turnout",
+        name: "X248-L",
+        description: "複線片渡りポイント 248mm (左)",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端-主線(上)", "relX": -124.0, "relY": -16.5, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "進入端-副線(下)", "relX": -124.0, "relY":  16.5, "facingAngle": 180 },
+            { "id": 2, "jointType": "rail-end", "name": "退出端-副線(下)", "relX":  124.0, "relY":  16.5, "facingAngle": 0 },
+            { "id": 3, "jointType": "rail-end", "name": "退出端-主線(上)", "relX":  124.0, "relY": -16.5, "facingAngle": 0 }
+        ],
+        shapes: [
+            // 直線主線・副線 (248mm)
+            { "type": "line", "length": 248, "offsetX": 0, "offsetY": -16.5 },
+            { "type": "line", "length": 248, "offsetX": 0, "offsetY":  16.5 },
+
+            // 渡り線 (左下 -> 右上 / R474.19 / 15.16°)
+            // 左下 (-124, +16.5) -> 中心 (0,0)
+            { "type": "arc", "radius": 474.19, "arcAngle": 15.16, "centerX": -124.0, "centerY": 457.69, "startAngle": 270 },
+            // 中心 (0,0) -> 右上 (+124, -16.5)
+            { "type": "arc", "radius": 474.19, "arcAngle": -15.16, "centerX": 124.0, "centerY": -457.69, "startAngle": 270 }
+        ]
+    },
+    // =========================================================
+    // KATO 複線片渡りポイント 右 (X248-R) 全長248mm
+    // =========================================================
+    "KATO-X248-R": {
+        systemId: "KATO-DOUBLETRACK-N",
+        category: "turnout",
+        name: "X248-R",
+        description: "複線片渡りポイント 248mm (右)",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端-主線(上)", "relX": -124.0, "relY": -16.5, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "進入端-副線(下)", "relX": -124.0, "relY":  16.5, "facingAngle": 180 },
+            { "id": 2, "jointType": "rail-end", "name": "退出端-副線(下)", "relX":  124.0, "relY":  16.5, "facingAngle": 0 },
+            { "id": 3, "jointType": "rail-end", "name": "退出端-主線(上)", "relX":  124.0, "relY": -16.5, "facingAngle": 0 }
+        ],
+        shapes: [
+            // 直線主線・副線 (248mm)
+            { "type": "line", "length": 248, "offsetX": 0, "offsetY": -16.5 },
+            { "type": "line", "length": 248, "offsetX": 0, "offsetY":  16.5 },
+
+            // 渡り線 (左上 -> 右下 / R474.19 / 15.16°)
+            // 左上 (-124, -16.5) -> 中心 (0,0)
+            { "type": "arc", "radius": 474.19, "arcAngle": -15.16, "centerX": -124.0, "centerY": -457.69, "startAngle": 90 },
+            // 中心 (0,0) -> 右下 (+124, +16.5)
+            { "type": "arc", "radius": 474.19, "arcAngle": 15.16, "centerX": 124.0, "centerY": 457.69, "startAngle": 90 }
+        ]
     }
 });
