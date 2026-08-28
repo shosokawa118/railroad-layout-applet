@@ -280,9 +280,18 @@ registerRailParts({
             { "id": 3, "jointType": "rail-end", "name": "退出端-主線(上)", "relX":  155.0, "relY": -16.5, "facingAngle": 0 }
         ],
         shapes: [
+            // 直線主線・副線
             { "type": "line", "length": 310, "offsetX": 0, "offsetY": -16.5 },
             { "type": "line", "length": 310, "offsetX": 0, "offsetY":  16.5 },
-            { "type": "line", "length": 46.67, "offsetX": 0, "offsetY": 0 }
+            // 渡り線 (R718 / 6.0° の4方向円弧アプローチ)
+            // 左上 -> 中心 (0,0)
+            { "type": "arc", "radius": 718, "arcAngle": 6.0, "centerX": -73.32, "centerY": -734.5, "startAngle": 84.0 },
+            // 左下 -> 中心 (0,0)
+            { "type": "arc", "radius": 718, "arcAngle": 6.0, "centerX": -73.32, "centerY":  734.5, "startAngle": 270.0 },
+            // 右上 -> 中心 (0,0)
+            { "type": "arc", "radius": 718, "arcAngle": 6.0, "centerX":  73.32, "centerY": -734.5, "startAngle": 90.0 },
+            // 右下 -> 中心 (0,0)
+            { "type": "arc", "radius": 718, "arcAngle": 6.0, "centerX":  73.32, "centerY":  734.5, "startAngle": 204.0 }
         ]
     }
 });
