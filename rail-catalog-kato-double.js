@@ -266,7 +266,7 @@ registerRailParts({
     },
 
     // =========================================================
-    // KATO 複線両渡りポイント (WX310 端点開始カーブ版)
+    // KATO 複線両渡りポイント (WX310)
     // =========================================================
     "KATO-WX310": {
         systemId: "KATO-DOUBLETRACK-N",
@@ -284,18 +284,18 @@ registerRailParts({
             { "type": "line", "length": 310, "offsetX": 0, "offsetY": -16.5 },
             { "type": "line", "length": 310, "offsetX": 0, "offsetY":  16.5 },
 
-            // 2. 渡り線（端点 X=±155 から直接始まる R718 / 12.47° アーク）
-            // 左上 (-155, -16.5) -> 中心へ
-            { "type": "arc", "radius": 718, "arcAngle": -12.47, "centerX": -155.0, "centerY": -734.5, "startAngle": 90 },
+            // 2. 渡り線（内側に向かって正しく曲がる 4方向 R718 アーク）
+            // 左上 (-155, -16.5) -> 下向き（中心へ）
+            { "type": "arc", "radius": 718, "arcAngle": -12.47, "centerX": -155.0, "centerY": -701.5, "startAngle": 90 },
             
-            // 左下 (-155, +16.5) -> 中心へ
-            { "type": "arc", "radius": 718, "arcAngle": 12.47, "centerX": -155.0, "centerY": 734.5, "startAngle": 270 },
+            // 左下 (-155, +16.5) -> 上向き（中心へ）
+            { "type": "arc", "radius": 718, "arcAngle": 12.47, "centerX": -155.0, "centerY": 701.5, "startAngle": 270 },
 
-            // 右上 (+155, -16.5) -> 中心へ
-            { "type": "arc", "radius": 718, "arcAngle": 12.47, "centerX": 155.0, "centerY": -734.5, "startAngle": 90 },
+            // 右上 (+155, -16.5) -> 下向き（中心へ）
+            { "type": "arc", "radius": 718, "arcAngle": 12.47, "centerX": 155.0, "centerY": -701.5, "startAngle": 90 },
 
-            // 右下 (+155, +16.5) -> 中心へ
-            { "type": "arc", "radius": 718, "arcAngle": -12.47, "centerX": 155.0, "centerY": 734.5, "startAngle": 270 }
+            // 右下 (+155, +16.5) -> 上向き（中心へ）
+            { "type": "arc", "radius": 718, "arcAngle": -12.47, "centerX": 155.0, "centerY": 701.5, "startAngle": 270 }
         ]
     }
 });
