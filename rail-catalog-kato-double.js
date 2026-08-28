@@ -100,47 +100,82 @@ registerRailParts({
     },
 
     // =========================================================
-    // KATO 複線カントアプローチ曲線線路 (22.5°)
-    // ※ 1つのパーツ定義で 180°回転により L/R 両対応可能
+    // KATO 複線カントアプローチ曲線線路 (22.5°: 直線 ⇔ カント)
     // =========================================================
+    // --- 進入アプローチ (平坦 -> カント) ---
     "KATO-CWR315-282-22.5A": {
         systemId: "KATO-DOUBLETRACK-N",
         category: "curve",
         name: "WR315/282-22.5A",
-        description: "複線カントアプローチ線路 22.5° (WR315/282)",
+        description: "複線カントアプローチ線路 22.5° 進入 (WR315/282)",
         nodes: [
-            // 水平側 (進入端: unijoiner-33mm、極性判定はワイルドカード/0扱い)
-            { "id": 0, "jointType": "rail-end", "name": "水平側-内線", "jointGroup": "unijoiner-33mm", "relX": -55.02, "relY": -16.23, "facingAngle": 168.75 },
-            { "id": 1, "jointType": "rail-end", "name": "水平側-外線", "jointGroup": "unijoiner-33mm", "relX": -61.46, "relY": -16.77, "facingAngle": 168.75 },
-            // カント側 (退出端: kato-cant, 極性 -1)
-            { "id": 2, "jointType": "rail-end", "name": "カント側-外線", "jointGroup": "kato-cant", "polarity": -1, "relX":  61.46, "relY":  16.77, "facingAngle": 11.25 },
-            { "id": 3, "jointType": "rail-end", "name": "カント側-内線", "jointGroup": "kato-cant", "polarity": -1, "relX":  55.02, "relY":  16.23, "facingAngle": 11.25 }
+            // 平坦端 (左側: unijoiner-33mm)
+            { "id": 0, "jointType": "rail-end", "name": "平坦端-内線", "jointGroup": "unijoiner-33mm", "relX": -57.88, "relY": -11.51, "facingAngle": 191.25 },
+            { "id": 1, "jointType": "rail-end", "name": "平坦端-外線", "jointGroup": "unijoiner-33mm", "relX": -64.65, "relY": -17.96, "facingAngle": 191.25 },
+            // カント端 (右側: kato-cant, polarity: -1)
+            { "id": 2, "jointType": "rail-end", "name": "カント端-外線", "jointGroup": "kato-cant", "polarity": -1, "relX":  64.65, "relY":  17.96, "facingAngle": 11.25 },
+            { "id": 3, "jointType": "rail-end", "name": "カント端-内線", "jointGroup": "kato-cant", "polarity": -1, "relX":  57.88, "relY":  11.51, "facingAngle": 11.25 }
         ],
         shapes: [
-            { "type": "arc", "radius": 282, "arcAngle": 22.5, "centerX": 0, "centerY": 276.58, "startAngle": 258.75 },
-            { "type": "arc", "radius": 315, "arcAngle": 22.5, "centerX": 0, "centerY": 308.95, "startAngle": 258.75 }
+            { "type": "arc", "radius": 282, "arcAngle": 22.5, "centerX": 0, "centerY": 298.5, "startAngle": 258.75 },
+            { "type": "arc", "radius": 315, "arcAngle": 22.5, "centerX": 0, "centerY": 298.5, "startAngle": 258.75 }
         ]
     },
+    // --- 脱出アプローチ (カント -> 平坦) ---
+    "KATO-CWR315-282-22.5E": {
+        systemId: "KATO-DOUBLETRACK-N",
+        category: "curve",
+        name: "WR315/282-22.5E",
+        description: "複線カントアプローチ線路 22.5° 脱出 (WR315/282)",
+        nodes: [
+            // カント端 (左側: kato-cant, polarity: +1)
+            { "id": 0, "jointType": "rail-end", "name": "カント端-内線", "jointGroup": "kato-cant", "polarity": 1, "relX": -57.88, "relY": -11.51, "facingAngle": 191.25 },
+            { "id": 1, "jointType": "rail-end", "name": "カント端-外線", "jointGroup": "kato-cant", "polarity": 1, "relX": -64.65, "relY": -17.96, "facingAngle": 191.25 },
+            // 平坦端 (右側: unijoiner-33mm)
+            { "id": 2, "jointType": "rail-end", "name": "平坦端-外線", "jointGroup": "unijoiner-33mm", "relX":  64.65, "relY":  17.96, "facingAngle": 11.25 },
+            { "id": 3, "jointType": "rail-end", "name": "平坦端-内線", "jointGroup": "unijoiner-33mm", "relX":  57.88, "relY":  11.51, "facingAngle": 11.25 }
+        ],
+        shapes: [
+            { "type": "arc", "radius": 282, "arcAngle": 22.5, "centerX": 0, "centerY": 298.5, "startAngle": 258.75 },
+            { "type": "arc", "radius": 315, "arcAngle": 22.5, "centerX": 0, "centerY": 298.5, "startAngle": 258.75 }
+        ]
+    },
+
     "KATO-CWR414-381-22.5A": {
         systemId: "KATO-DOUBLETRACK-N",
         category: "curve",
         name: "WR414/381-22.5A",
-        description: "複線カントアプローチ線路 22.5° (WR414/381)",
+        description: "複線カントアプローチ線路 22.5° 進入 (WR414/381)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "水平側-内線", "jointGroup": "unijoiner-33mm", "relX": -74.34, "relY": -16.23, "facingAngle": 168.75 },
-            { "id": 1, "jointType": "rail-end", "name": "水平側-外線", "jointGroup": "unijoiner-33mm", "relX": -80.78, "relY": -16.77, "facingAngle": 168.75 },
-            { "id": 2, "jointType": "rail-end", "name": "カント側-外線", "jointGroup": "kato-cant", "polarity": -1, "relX":  80.78, "relY":  16.77, "facingAngle": 11.25 },
-            { "id": 3, "jointType": "rail-end", "name": "カント側-内線", "jointGroup": "kato-cant", "polarity": -1, "relX":  74.34, "relY":  16.23, "facingAngle": 11.25 }
+            { "id": 0, "jointType": "rail-end", "name": "平坦端-内線", "jointGroup": "unijoiner-33mm", "relX": -77.21, "relY": -15.35, "facingAngle": 191.25 },
+            { "id": 1, "jointType": "rail-end", "name": "平坦端-外線", "jointGroup": "unijoiner-33mm", "relX": -83.98, "relY": -21.80, "facingAngle": 191.25 },
+            { "id": 2, "jointType": "rail-end", "name": "カント端-外線", "jointGroup": "kato-cant", "polarity": -1, "relX":  83.98, "relY":  21.80, "facingAngle": 11.25 },
+            { "id": 3, "jointType": "rail-end", "name": "カント端-内線", "jointGroup": "kato-cant", "polarity": -1, "relX":  77.21, "relY":  15.35, "facingAngle": 11.25 }
         ],
         shapes: [
-            { "type": "arc", "radius": 381, "arcAngle": 22.5, "centerX": 0, "centerY": 373.68, "startAngle": 258.75 },
-            { "type": "arc", "radius": 414, "arcAngle": 22.5, "centerX": 0, "centerY": 406.05, "startAngle": 258.75 }
+            { "type": "arc", "radius": 381, "arcAngle": 22.5, "centerX": 0, "centerY": 397.5, "startAngle": 258.75 },
+            { "type": "arc", "radius": 414, "arcAngle": 22.5, "centerX": 0, "centerY": 397.5, "startAngle": 258.75 }
+        ]
+    },
+    "KATO-CWR414-381-22.5E": {
+        systemId: "KATO-DOUBLETRACK-N",
+        category: "curve",
+        name: "WR414/381-22.5E",
+        description: "複線カントアプローチ線路 22.5° 脱出 (WR414/381)",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "カント端-内線", "jointGroup": "kato-cant", "polarity": 1, "relX": -77.21, "relY": -15.35, "facingAngle": 191.25 },
+            { "id": 1, "jointType": "rail-end", "name": "カント端-外線", "jointGroup": "kato-cant", "polarity": 1, "relX": -83.98, "relY": -21.80, "facingAngle": 191.25 },
+            { "id": 2, "jointType": "rail-end", "name": "平坦端-外線", "jointGroup": "unijoiner-33mm", "relX":  83.98, "relY":  21.80, "facingAngle": 11.25 },
+            { "id": 3, "jointType": "rail-end", "name": "平坦端-内線", "jointGroup": "unijoiner-33mm", "relX":  77.21, "relY":  15.35, "facingAngle": 11.25 }
+        ],
+        shapes: [
+            { "type": "arc", "radius": 381, "arcAngle": 22.5, "centerX": 0, "centerY": 397.5, "startAngle": 258.75 },
+            { "type": "arc", "radius": 414, "arcAngle": 22.5, "centerX": 0, "centerY": 397.5, "startAngle": 258.75 }
         ]
     },
 
     // =========================================================
-    // KATO 複線カント付き曲線線路 (45°)
-    // ※ 極性 (+1 ⇔ -1) により同方向は自動結合・S字は物理ガード
+    // KATO 複線カント付き曲線線路 (45°: カント ⇔ カント)
     // =========================================================
     "KATO-CWR315-282-45": {
         systemId: "KATO-DOUBLETRACK-N",
@@ -149,15 +184,15 @@ registerRailParts({
         description: "複線カント付き曲線線路 45° (WR315/282)",
         nodes: [
             // 進入端 (左傾斜受け: polarity: +1)
-            { "id": 0, "jointType": "rail-end", "name": "進入端-内線", "jointGroup": "kato-cant", "polarity": 1, "relX": -107.22, "relY": -31.57, "facingAngle": 157.5 },
-            { "id": 1, "jointType": "rail-end", "name": "進入端-外線", "jointGroup": "kato-cant", "polarity": 1, "relX": -119.78, "relY": -35.26, "facingAngle": 157.5 },
+            { "id": 0, "jointType": "rail-end", "name": "進入端-内線", "jointGroup": "kato-cant", "polarity": 1, "relX": -107.92, "relY": -21.47, "facingAngle": 202.5 },
+            { "id": 1, "jointType": "rail-end", "name": "進入端-外線", "jointGroup": "kato-cant", "polarity": 1, "relX": -120.55, "relY": -23.98, "facingAngle": 202.5 },
             // 退出端 (右傾斜送り: polarity: -1)
-            { "id": 2, "jointType": "rail-end", "name": "退出端-外線", "jointGroup": "kato-cant", "polarity": -1, "relX":  119.78, "relY":  35.26, "facingAngle": 22.5 },
-            { "id": 3, "jointType": "rail-end", "name": "退出端-内線", "jointGroup": "kato-cant", "polarity": -1, "relX":  107.22, "relY":  31.57, "facingAngle": 22.5 }
+            { "id": 2, "jointType": "rail-end", "name": "退出端-外線", "jointGroup": "kato-cant", "polarity": -1, "relX":  120.55, "relY":  23.98, "facingAngle": 22.5 },
+            { "id": 3, "jointType": "rail-end", "name": "退出端-内線", "jointGroup": "kato-cant", "polarity": -1, "relX":  107.92, "relY":  21.47, "facingAngle": 22.5 }
         ],
         shapes: [
-            { "type": "arc", "radius": 282, "arcAngle": 45, "centerX": 0, "centerY": 260.53, "startAngle": 247.5 },
-            { "type": "arc", "radius": 315, "arcAngle": 45, "centerX": 0, "centerY": 291.01, "startAngle": 247.5 }
+            { "type": "arc", "radius": 282, "arcAngle": 45, "centerX": 0, "centerY": 275.76, "startAngle": 247.5 },
+            { "type": "arc", "radius": 315, "arcAngle": 45, "centerX": 0, "centerY": 275.76, "startAngle": 247.5 }
         ]
     },
     "KATO-CWR414-381-45": {
@@ -166,14 +201,14 @@ registerRailParts({
         name: "WR414/381-45C",
         description: "複線カント付き曲線線路 45° (WR414/381)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "進入端-内線", "jointGroup": "kato-cant", "polarity": 1, "relX": -144.91, "relY": -42.66, "facingAngle": 157.5 },
-            { "id": 1, "jointType": "rail-end", "name": "進入端-外線", "jointGroup": "kato-cant", "polarity": 1, "relX": -157.47, "relY": -46.35, "facingAngle": 157.5 },
-            { "id": 2, "jointType": "rail-end", "name": "退出端-外線", "jointGroup": "kato-cant", "polarity": -1, "relX":  157.47, "relY":  46.35, "facingAngle": 22.5 },
-            { "id": 3, "jointType": "rail-end", "name": "退出端-内線", "jointGroup": "kato-cant", "polarity": -1, "relX":  144.91, "relY":  42.66, "facingAngle": 22.5 }
+            { "id": 0, "jointType": "rail-end", "name": "進入端-内線", "jointGroup": "kato-cant", "polarity": 1, "relX": -145.81, "relY": -29.00, "facingAngle": 202.5 },
+            { "id": 1, "jointType": "rail-end", "name": "進入端-外線", "jointGroup": "kato-cant", "polarity": 1, "relX": -158.44, "relY": -31.51, "facingAngle": 202.5 },
+            { "id": 2, "jointType": "rail-end", "name": "退出端-外線", "jointGroup": "kato-cant", "polarity": -1, "relX":  158.44, "relY":  31.51, "facingAngle": 22.5 },
+            { "id": 3, "jointType": "rail-end", "name": "退出端-内線", "jointGroup": "kato-cant", "polarity": -1, "relX":  145.81, "relY":  29.00, "facingAngle": 22.5 }
         ],
         shapes: [
-            { "type": "arc", "radius": 381, "arcAngle": 45, "centerX": 0, "centerY": 352.01, "startAngle": 247.5 },
-            { "type": "arc", "radius": 414, "arcAngle": 45, "centerX": 0, "centerY": 382.49, "startAngle": 247.5 }
+            { "type": "arc", "radius": 381, "arcAngle": 45, "centerX": 0, "centerY": 367.24, "startAngle": 247.5 },
+            { "type": "arc", "radius": 414, "arcAngle": 45, "centerX": 0, "centerY": 367.24, "startAngle": 247.5 }
         ]
     },
 
@@ -196,7 +231,7 @@ registerRailParts({
         shapes: [
             { "type": "line", "length": 310, "offsetX": 0, "offsetY": -16.5 },
             { "type": "line", "length": 310, "offsetX": 0, "offsetY":  16.5 },
-            { "type": "line", "length": 46.67, "offsetX": 0, "offsetY": 0 } // クロス渡り線の視覚表現用
+            { "type": "line", "length": 46.67, "offsetX": 0, "offsetY": 0 }
         ]
     }
 });
