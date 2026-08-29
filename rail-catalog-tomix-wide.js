@@ -35,7 +35,7 @@
 // =============================================================
 registerRailParts({
     // =========================================================
-    // ワイドPC直線レール (S280-WP / S140-WP)
+    // ワイドPC直線レール
     // =========================================================
     "TOMIX-W280": {
         systemId: "TOMIX-WIDE-N",
@@ -49,6 +49,18 @@ registerRailParts({
         ],
         shapes: [{ "type": "line", "length": 280, "offsetX": 0, "offsetY": 0 }]
     },
+    "TOMIX-W158.5": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N", "TOMIX-WIDETRAM-N"],
+        category: "straight",
+        name: "S158.5-WP-F",
+        description: "ワイドPCレール S158.5-WP",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -79.25, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "延伸端", "relX": 79.25,  "relY": 0, "facingAngle": 0 }
+        ],
+        shapes: [{ "type": "line", "length": 158.5, "offsetX": 0, "offsetY": 0 }]
+    },
     "TOMIX-W140": {
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N", "TOMIX-WIDETRAM-N"],
@@ -61,38 +73,262 @@ registerRailParts({
         ],
         shapes: [{ "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 }]
     },
+    "TOMIX-W99": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
+        category: "straight",
+        name: "S99-WP-F",
+        description: "ワイドPCレール S99-WP",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -49.5, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "延伸端", "relX": 49.5,  "relY": 0, "facingAngle": 0 }
+        ],
+        shapes: [{ "type": "line", "length": 99, "offsetX": 0, "offsetY": 0 }]
+    },
+    "TOMIX-W72.5": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
+        category: "straight",
+        name: "S72.5-WP-F",
+        description: "ワイドPCレール S72.5-WP",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -36.25, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "延伸端", "relX": 36.25,  "relY": 0, "facingAngle": 0 }
+        ],
+        shapes: [{ "type": "line", "length": 72.5, "offsetX": 0, "offsetY": 0 }]
+    },
+    "TOMIX-W70": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
+        category: "straight",
+        name: "S70-WP-F",
+        description: "ワイドPCレール S70-WP",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -35, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "延伸端", "relX": 35,  "relY": 0, "facingAngle": 0 }
+        ],
+        shapes: [{ "type": "line", "length": 70, "offsetX": 0, "offsetY": 0 }]
+    },
+    "TOMIX-W33": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
+        category: "straight",
+        name: "S33-WP-F",
+        description: "ワイドPC端数レール S33-WP",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -16.5, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "延伸端", "relX": 16.5,  "relY": 0, "facingAngle": 0 }
+        ],
+        shapes: [{ "type": "line", "length": 33, "offsetX": 0, "offsetY": 0 }]
+    },
+    "TOMIX-W18.5": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
+        category: "straight",
+        name: "S18.5-WP-F",
+        description: "ワイドPC端数レール S18.5-WP",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -9.25, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "延伸端", "relX": 9.25,  "relY": 0, "facingAngle": 0 }
+        ],
+        shapes: [{ "type": "line", "length": 18.5, "offsetX": 0, "offsetY": 0 }]
+    },
 
     // =========================================================
-    // ワイドPCアプローチレール (水平 ↔ カント 傾斜変化用)
+    // ワイドPC平坦曲線レール
     // =========================================================
+    "TOMIX-C280-45-WP": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
+        category: "curve",
+        name: "C280-45-WP-F",
+        description: "ワイドPCカーブレール C280-45-WP",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "relX": -107.15, "relY": 0, "facingAngle": 157.5 },
+            { "id": 1, "jointType": "rail-end", "relX": 107.15,  "relY": 0, "facingAngle": 22.5 }
+        ],
+        shapes: [{ "type": "arc", "radius": 280, "arcAngle": 45, "centerX": 0, "centerY": 258.68, "startAngle": 247.5 }]
+    },
+    "TOMIX-C317-45-WP": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
+        category: "curve",
+        name: "C317-45-WP-F",
+        description: "ワイドPCカーブレール C317-45-WP",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "relX": -121.32, "relY": 0, "facingAngle": 157.5 },
+            { "id": 1, "jointType": "rail-end", "relX": 121.32,  "relY": 0, "facingAngle": 22.5 }
+        ],
+        shapes: [{ "type": "arc", "radius": 317, "arcAngle": 45, "centerX": 0, "centerY": 292.86, "startAngle": 247.5 }]
+    },
+    "TOMIX-C354-45-WP": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
+        category: "curve",
+        name: "C354-45-WP-F",
+        description: "ワイドPCカーブレール C354-45-WP",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "relX": -135.47, "relY": 0, "facingAngle": 157.5 },
+            { "id": 1, "jointType": "rail-end", "relX": 135.47,  "relY": 0, "facingAngle": 22.5 }
+        ],
+        shapes: [{ "type": "arc", "radius": 354, "arcAngle": 45, "centerX": 0, "centerY": 327.05, "startAngle": 247.5 }]
+    },
+    "TOMIX-C391-45-WP": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
+        category: "curve",
+        name: "C391-45-WP-F",
+        description: "ワイドPCカーブレール C391-45-WP",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "relX": -149.63, "relY": 0, "facingAngle": 157.5 },
+            { "id": 1, "jointType": "rail-end", "relX": 149.63,  "relY": 0, "facingAngle": 22.5 }
+        ],
+        shapes: [{ "type": "arc", "radius": 391, "arcAngle": 45, "centerX": 0, "centerY": 361.23, "startAngle": 247.5 }]
+    },
+    "TOMIX-C541-15-WP": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
+        category: "curve",
+        name: "C541-15-WP-F",
+        description: "ワイドPCカーブレール C541-15-WP",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "relX": -70.61, "relY": 0, "facingAngle": 172.5 },
+            { "id": 1, "jointType": "rail-end", "relX": 70.61,  "relY": 0, "facingAngle": 7.5 }
+        ],
+        shapes: [{ "type": "arc", "radius": 541, "arcAngle": 15, "centerX": 0, "centerY": 536.36, "startAngle": 262.5 }]
+    },
+    "TOMIX-C605-10-WP": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
+        category: "curve",
+        name: "C605-10-WP-F",
+        description: "ワイドPCカーブレール C605-10-WP",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "relX": -52.68, "relY": 0, "facingAngle": 175.0 },
+            { "id": 1, "jointType": "rail-end", "relX": 52.68,  "relY": 0, "facingAngle": 5.0 }
+        ],
+        shapes: [{ "type": "arc", "radius": 605, "arcAngle": 10, "centerX": 0, "centerY": 602.69, "startAngle": 265.0 }]
+    },
+
+    // =========================================================
+    // ワイドPCアプローチレール (水平 ↔ カント)
+    // =========================================================
+    // C280 22.5°
+    "TOMIX-CR280-22.5-V-L": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
+        category: "curve",
+        name: "CR280-22.5-WP-F(L)",
+        description: "アプローチレール CR280-22.5-WP (左カント)",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -52.57, "relY": 0, "facingAngle": 168.75, "polarity": "*" },
+            { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 52.57, "relY": 0, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": 1 }
+        ],
+        shapes: [{ "type": "arc", "radius": 280, "arcAngle": 22.5, "centerX": 0, "centerY": 274.52, "startAngle": 258.75 }]
+    },
+    "TOMIX-CR280-22.5-V-R": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
+        category: "curve",
+        name: "CR280-22.5-WP-F(R)",
+        description: "アプローチレール CR280-22.5-WP (右カント)",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -52.57, "relY": 0, "facingAngle": 168.75, "polarity": "*" },
+            { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 52.57, "relY": 0, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": -1 }
+        ],
+        shapes: [{ "type": "arc", "radius": 280, "arcAngle": 22.5, "centerX": 0, "centerY": 274.52, "startAngle": 258.75 }]
+    },
+    // C317 22.5°
     "TOMIX-CR317-22.5-V-L": {
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
         category: "curve",
         name: "CR317-22.5-WP-F(L)",
-        description: "ワイドPCアプローチレール CR317-22.5-WP (左カント入り口)",
+        description: "アプローチレール CR317-22.5-WP (左カント)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -59.5, "relY": 0, "facingAngle": 168.75, "polarity": "*" },
-            { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 59.5, "relY": 0, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": 1 }
+            { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -59.51, "relY": 0, "facingAngle": 168.75, "polarity": "*" },
+            { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 59.51, "relY": 0, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": 1 }
         ],
-        shapes: [{ "type": "arc", "radius": 317, "arcAngle": 22.5, "centerX": 0, "centerY": 310.8, "startAngle": 258.75 }]
+        shapes: [{ "type": "arc", "radius": 317, "arcAngle": 22.5, "centerX": 0, "centerY": 310.81, "startAngle": 258.75 }]
     },
     "TOMIX-CR317-22.5-V-R": {
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
         category: "curve",
         name: "CR317-22.5-WP-F(R)",
-        description: "ワイドPCアプローチレール CR317-22.5-WP (右カント入り口)",
+        description: "アプローチレール CR317-22.5-WP (右カント)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -59.5, "relY": 0, "facingAngle": 168.75, "polarity": "*" },
-            { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 59.5, "relY": 0, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": -1 }
+            { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -59.51, "relY": 0, "facingAngle": 168.75, "polarity": "*" },
+            { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 59.51, "relY": 0, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": -1 }
         ],
-        shapes: [{ "type": "arc", "radius": 317, "arcAngle": 22.5, "centerX": 0, "centerY": 310.8, "startAngle": 258.75 }]
+        shapes: [{ "type": "arc", "radius": 317, "arcAngle": 22.5, "centerX": 0, "centerY": 310.81, "startAngle": 258.75 }]
+    },
+    // C354 22.5°
+    "TOMIX-CR354-22.5-V-L": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
+        category: "curve",
+        name: "CR354-22.5-WP-F(L)",
+        description: "アプローチレール CR354-22.5-WP (左カント)",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -66.45, "relY": 0, "facingAngle": 168.75, "polarity": "*" },
+            { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 66.45, "relY": 0, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": 1 }
+        ],
+        shapes: [{ "type": "arc", "radius": 354, "arcAngle": 22.5, "centerX": 0, "centerY": 347.09, "startAngle": 258.75 }]
+    },
+    "TOMIX-CR354-22.5-V-R": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
+        category: "curve",
+        name: "CR354-22.5-WP-F(R)",
+        description: "アプローチレール CR354-22.5-WP (右カント)",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -66.45, "relY": 0, "facingAngle": 168.75, "polarity": "*" },
+            { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 66.45, "relY": 0, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": -1 }
+        ],
+        shapes: [{ "type": "arc", "radius": 354, "arcAngle": 22.5, "centerX": 0, "centerY": 347.09, "startAngle": 258.75 }]
+    },
+    // C391 22.5°
+    "TOMIX-CR391-22.5-V-L": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
+        category: "curve",
+        name: "CR391-22.5-WP-F(L)",
+        description: "アプローチレール CR391-22.5-WP (左カント)",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -73.39, "relY": 0, "facingAngle": 168.75, "polarity": "*" },
+            { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 73.39, "relY": 0, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": 1 }
+        ],
+        shapes: [{ "type": "arc", "radius": 391, "arcAngle": 22.5, "centerX": 0, "centerY": 383.38, "startAngle": 258.75 }]
+    },
+    "TOMIX-CR391-22.5-V-R": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
+        category: "curve",
+        name: "CR391-22.5-WP-F(R)",
+        description: "アプローチレール CR391-22.5-WP (右カント)",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -73.39, "relY": 0, "facingAngle": 168.75, "polarity": "*" },
+            { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 73.39, "relY": 0, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": -1 }
+        ],
+        shapes: [{ "type": "arc", "radius": 391, "arcAngle": 22.5, "centerX": 0, "centerY": 383.38, "startAngle": 258.75 }]
     },
 
     // =========================================================
     // ワイドPCカント曲線レール (固定傾斜角)
     // =========================================================
+    "TOMIX-C280-22.5-V": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-WIDE-N"],
+        category: "curve",
+        name: "C280-22.5-WP-F",
+        description: "ワイドPCカント曲線レール C280-22.5-WP",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "カント流入端", "relX": -52.57, "relY": 0, "facingAngle": 168.75, "jointGroup": "tomix-cant", "polarity": -1 },
+            { "id": 1, "jointType": "rail-end", "name": "カント流出端", "relX": 52.57,  "relY": 0, "facingAngle": 11.25,  "jointGroup": "tomix-cant", "polarity": 1 }
+        ],
+        shapes: [{ "type": "arc", "radius": 280, "arcAngle": 22.5, "centerX": 0, "centerY": 274.52, "startAngle": 258.75 }]
+    },
     "TOMIX-C317-22.5-V": {
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
@@ -100,9 +336,48 @@ registerRailParts({
         name: "C317-22.5-WP-F",
         description: "ワイドPCカント曲線レール C317-22.5-WP",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "カント流入端", "relX": -59.5, "relY": 0, "facingAngle": 168.75, "jointGroup": "tomix-cant", "polarity": -1 },
-            { "id": 1, "jointType": "rail-end", "name": "カント流出端", "relX": 59.5, "relY": 0, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": 1 }
+            { "id": 0, "jointType": "rail-end", "name": "カント流入端", "relX": -59.51, "relY": 0, "facingAngle": 168.75, "jointGroup": "tomix-cant", "polarity": -1 },
+            { "id": 1, "jointType": "rail-end", "name": "カント流出端", "relX": 59.51,  "relY": 0, "facingAngle": 11.25,  "jointGroup": "tomix-cant", "polarity": 1 }
         ],
-        shapes: [{ "type": "arc", "radius": 317, "arcAngle": 22.5, "centerX": 0, "centerY": 310.8, "startAngle": 258.75 }]
+        shapes: [{ "type": "arc", "radius": 317, "arcAngle": 22.5, "centerX": 0, "centerY": 310.81, "startAngle": 258.75 }]
+    },
+    "TOMIX-C354-22.5-V": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-WIDE-N"],
+        category: "curve",
+        name: "C354-22.5-WP-F",
+        description: "ワイドPCカント曲線レール C354-22.5-WP",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "カント流入端", "relX": -66.45, "relY": 0, "facingAngle": 168.75, "jointGroup": "tomix-cant", "polarity": -1 },
+            { "id": 1, "jointType": "rail-end", "name": "カント流出端", "relX": 66.45,  "relY": 0, "facingAngle": 11.25,  "jointGroup": "tomix-cant", "polarity": 1 }
+        ],
+        shapes: [{ "type": "arc", "radius": 354, "arcAngle": 22.5, "centerX": 0, "centerY": 347.09, "startAngle": 258.75 }]
+    },
+    "TOMIX-C391-22.5-V": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-WIDE-N"],
+        category: "curve",
+        name: "C391-22.5-WP-F",
+        description: "ワイドPCカント曲線レール C391-22.5-WP",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "カント流入端", "relX": -73.39, "relY": 0, "facingAngle": 168.75, "jointGroup": "tomix-cant", "polarity": -1 },
+            { "id": 1, "jointType": "rail-end", "name": "カント流出端", "relX": 73.39,  "relY": 0, "facingAngle": 11.25,  "jointGroup": "tomix-cant", "polarity": 1 }
+        ],
+        shapes: [{ "type": "arc", "radius": 391, "arcAngle": 22.5, "centerX": 0, "centerY": 383.38, "startAngle": 258.75 }]
+    },
+
+    // =========================================================
+    // 車止めレール
+    // =========================================================
+    "TOMIX-E-WI": {
+        systemId: "TOMIX-WIDE-N",
+        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
+        category: "straight",
+        name: "E-WI-WP-F",
+        description: "ワイドエンドレール E-WI-WP",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -35, "relY": 0, "facingAngle": 180 }
+        ],
+        shapes: [{ "type": "line", "length": 70, "offsetX": 0, "offsetY": 0 }]
     }
 });
