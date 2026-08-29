@@ -194,7 +194,7 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
     // 1. 接続互換性のあるノードのみを昇順（Node 0優先）で探索（'rail-end' 優先）
     const sortedNewNodes = [...newRailNodes].sort((a, b) => a.id - b.id);
     const targetNewNode = sortedNewNodes.find(n => (n.jointType || 'rail-end') === 'rail-end' && canConnectNodes(parentRail, parentNodeId, newRail, n.id)) 
-                       || sortedNewNodes.find(n => canConnectNodes(parentRail, parentNodeId, newRail, n.id));
+                        || sortedNewNodes.find(n => canConnectNodes(parentRail, parentNodeId, newRail, n.id));
 
     // 互換性のあるノードが存在しない（異システムやカント逆相接続等）場合は接続せずに失敗を返す
     if (!targetNewNode) {
@@ -244,7 +244,13 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
                 if (!canConnectNodes(newRail, nNode.nodeId, otherRail, oNode.nodeId)) return;
 
                 const dist = Math.sqrt(Math.pow(nNode.x - oNode.x, 2) + Math.pow(nNode.y - oNode.y, 2));
-                if (dist < 8) {
+                
+                // 角度差（対向チェック: 180度反転差がほぼ0か）を計算
+                let angleDiff = Math.abs((nNode.angle - oNode.angle + 540) % 360 - 180);
+                if (angleDiff > 180) angleDiff = 360 - angleDiff;
+
+                // 距離判定だけでなく facingAngle（対向角）も適合しているか検証
+                if (dist < 8 && angleDiff < 5) {
                     addGlobalJointIfFree(newId, nNode.nodeId, otherId, oNode.nodeId);
                 }
             });
@@ -577,8 +583,26 @@ function updateJointIndicators() {
                 selectable: false, evented: false, customData: { isIndicator: true }
             });
 
+            // facingAngleの向きを示す視覚化ライン（長距離12pxの細い赤/緑の線）
+            const lineLen = 12;
+            const rad = (node.angle * Math.PI) / 180;
+            const line = new fabric.Line([
+                node.x, 
+                node.y, 
+                node.x + lineLen * Math.cos(rad), 
+                node.y + lineLen * Math.sin(rad)
+            ], {
+                stroke: isOccupied ? '#7cd21d' : '#ff3b30',
+                strokeWidth: 1.5,
+                selectable: false,
+                evented: false,
+                customData: { isIndicator: true }
+            });
+
             canvas.add(dot);
+            canvas.add(line);
             canvas.bringToFront(dot);
+            canvas.bringToFront(line);
         });
     });
 }
