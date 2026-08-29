@@ -160,9 +160,9 @@ registerRailParts({
     },
 
     // =========================================================
-    // 曲線レール (カント付きセット：小半径順)
+    // 曲線レール (円弧中心 (0,0) 基準再計算版)
     // =========================================================
-    
+
     // --- R280 シリーズ ---
     "TOMIX-CR280-22.5-FLAT-CANT": {
         systemId: "TOMIX-WIDE-N",
@@ -171,14 +171,14 @@ registerRailParts({
         name: "CR280-22.5-WP(F)",
         description: "アプローチPCレール CR280-22.5-WP-F (水平→カント-)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -52.57, "relY": 0, "facingAngle": 168.75, "polarity": "*" },
-            { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 52.57, "relY": 0, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": -1 },
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": -24.87, "relY": 17.06,  "facingAngle": 78.75 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": 24.87,  "relY": 17.06,  "facingAngle": 101.25 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -28.39, "relY": -19.47, "facingAngle": -101.25 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 28.39,  "relY": -19.47, "facingAngle": -78.75 }
+            { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -54.62, "relY": 274.62, "facingAngle": 168.75, "polarity": "*" },
+            { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 54.62, "relY": 274.62, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": -1 },
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": -25.52, "relY": 260.25, "facingAngle": 84.375 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": 25.52,  "relY": 260.25, "facingAngle": 95.625 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -29.13, "relY": 297.07, "facingAngle": -95.625 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 29.13,  "relY": 297.07, "facingAngle": -84.375 }
         ],
-        shapes: [{ "type": "arc", "radius": 280, "arcAngle": 22.5, "centerX": 0, "centerY": 274.52, "startAngle": 258.75 }]
+        shapes: [{ "type": "arc", "radius": 280, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 101.25 }]
     },
     "TOMIX-C280-45-V": {
         systemId: "TOMIX-WIDE-N",
@@ -187,14 +187,14 @@ registerRailParts({
         name: "C280-45-WP(F)",
         description: "ワイドPCカーブレール C280-45-WP(F)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "カント流入端", "relX": -107.15, "relY": 0, "facingAngle": 157.5, "jointGroup": "tomix-cant", "polarity": 1 },
-            { "id": 1, "jointType": "rail-end", "name": "カント流出端", "relX": 107.15,  "relY": 0, "facingAngle": 22.5,  "jointGroup": "tomix-cant", "polarity": -1 },
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": -67.27, "relY": 16.08, "facingAngle": 56.25 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": 67.27,  "relY": 16.08, "facingAngle": 123.75 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -76.78, "relY": -18.35, "facingAngle": -123.75 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 76.78,  "relY": -18.35, "facingAngle": -56.25 }
+            { "id": 0, "jointType": "rail-end", "name": "カント流入端", "relX": -107.15, "relY": 258.68, "facingAngle": 157.5, "jointGroup": "tomix-cant", "polarity": 1 },
+            { "id": 1, "jointType": "rail-end", "name": "カント流出端", "relX": 107.15,  "relY": 258.68, "facingAngle": 22.5,  "jointGroup": "tomix-cant", "polarity": -1 },
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": -51.02, "relY": 256.48, "facingAngle": 78.75 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": 51.02,  "relY": 256.48, "facingAngle": 101.25 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -58.24, "relY": 292.76, "facingAngle": -101.25 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 58.24,  "relY": 292.76, "facingAngle": -78.75 }
         ],
-        shapes: [{ "type": "arc", "radius": 280, "arcAngle": 45, "centerX": 0, "centerY": 258.68, "startAngle": 247.5 }]
+        shapes: [{ "type": "arc", "radius": 280, "arcAngle": 45, "centerX": 0, "centerY": 0, "startAngle": 112.5 }]
     },
     "TOMIX-CR280-22.5-CANT-FLAT": {
         systemId: "TOMIX-WIDE-N",
@@ -203,14 +203,14 @@ registerRailParts({
         name: "CL280-22.5-WP(F)",
         description: "アプローチPCレール CL280-22.5-WP-F (カント+→水平)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "カント端", "relX": -52.57, "relY": 0, "facingAngle": 168.75, "jointGroup": "tomix-cant", "polarity": 1 },
-            { "id": 1, "jointType": "rail-end", "name": "水平端", "relX": 52.57, "relY": 0, "facingAngle": 11.25, "polarity": "*" },
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": -24.87, "relY": 17.06,  "facingAngle": 78.75 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": 24.87,  "relY": 17.06,  "facingAngle": 101.25 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -28.39, "relY": -19.47, "facingAngle": -101.25 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 28.39,  "relY": -19.47, "facingAngle": -78.75 }
+            { "id": 0, "jointType": "rail-end", "name": "カント端", "relX": -54.62, "relY": 274.62, "facingAngle": 168.75, "jointGroup": "tomix-cant", "polarity": 1 },
+            { "id": 1, "jointType": "rail-end", "name": "水平端", "relX": 54.62, "relY": 274.62, "facingAngle": 11.25, "polarity": "*" },
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": -25.52, "relY": 260.25, "facingAngle": 84.375 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": 25.52,  "relY": 260.25, "facingAngle": 95.625 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -29.13, "relY": 297.07, "facingAngle": -95.625 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 29.13,  "relY": 297.07, "facingAngle": -84.375 }
         ],
-        shapes: [{ "type": "arc", "radius": 280, "arcAngle": 22.5, "centerX": 0, "centerY": 274.52, "startAngle": 258.75 }]
+        shapes: [{ "type": "arc", "radius": 280, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 101.25 }]
     },
 
     // --- R317 シリーズ ---
@@ -221,14 +221,14 @@ registerRailParts({
         name: "CR317-22.5-WP(F)",
         description: "アプローチPCレール CR317-22.5-WP-F (水平→カント-)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -59.51, "relY": 0, "facingAngle": 168.75, "polarity": "*" },
-            { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 59.51, "relY": 0, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": -1 },
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -28.39, "relY": 16.27,  "facingAngle": 78.75 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 28.39,  "relY": 16.27,  "facingAngle": 101.25 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -31.91, "relY": -18.28, "facingAngle": -101.25 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 31.91,  "relY": -18.28, "facingAngle": -78.75 }
+            { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -61.85, "relY": 310.91, "facingAngle": 168.75, "polarity": "*" },
+            { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 61.85, "relY": 310.91, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": -1 },
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -29.13, "relY": 297.07, "facingAngle": 84.375 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 29.13,  "relY": 297.07, "facingAngle": 95.625 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -32.74, "relY": 333.90, "facingAngle": -95.625 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 32.74,  "relY": 333.90, "facingAngle": -84.375 }
         ],
-        shapes: [{ "type": "arc", "radius": 317, "arcAngle": 22.5, "centerX": 0, "centerY": 310.81, "startAngle": 258.75 }]
+        shapes: [{ "type": "arc", "radius": 317, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 101.25 }]
     },
     "TOMIX-C317-45-V": {
         systemId: "TOMIX-WIDE-N",
@@ -237,14 +237,14 @@ registerRailParts({
         name: "C317-45-WP(F)",
         description: "ワイドPCカーブレール C317-45-WP(F)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "カント流入端", "relX": -121.32, "relY": 0, "facingAngle": 157.5, "jointGroup": "tomix-cant", "polarity": 1 },
-            { "id": 1, "jointType": "rail-end", "name": "カント流出端", "relX": 121.32,  "relY": 0, "facingAngle": 22.5,  "jointGroup": "tomix-cant", "polarity": -1 },
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -76.78, "relY": 15.34, "facingAngle": 56.25 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 76.78,  "relY": 15.34, "facingAngle": 123.75 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -86.29, "relY": -17.24, "facingAngle": -123.75 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 86.29,  "relY": -17.24, "facingAngle": -56.25 }
+            { "id": 0, "jointType": "rail-end", "name": "カント流入端", "relX": -121.32, "relY": 292.86, "facingAngle": 157.5, "jointGroup": "tomix-cant", "polarity": 1 },
+            { "id": 1, "jointType": "rail-end", "name": "カント流出端", "relX": 121.32,  "relY": 292.86, "facingAngle": 22.5,  "jointGroup": "tomix-cant", "polarity": -1 },
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -58.24, "relY": 292.76, "facingAngle": 78.75 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 58.24,  "relY": 292.76, "facingAngle": 101.25 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -65.46, "relY": 329.05, "facingAngle": -101.25 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 65.46,  "relY": 329.05, "facingAngle": -78.75 }
         ],
-        shapes: [{ "type": "arc", "radius": 317, "arcAngle": 45, "centerX": 0, "centerY": 292.86, "startAngle": 247.5 }]
+        shapes: [{ "type": "arc", "radius": 317, "arcAngle": 45, "centerX": 0, "centerY": 0, "startAngle": 112.5 }]
     },
     "TOMIX-CR317-22.5-CANT-FLAT": {
         systemId: "TOMIX-WIDE-N",
@@ -253,14 +253,14 @@ registerRailParts({
         name: "CL317-22.5-WP(F)",
         description: "アプローチPCレール CL317-22.5-WP-F (カント+→水平)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "カント端", "relX": -59.51, "relY": 0, "facingAngle": 168.75, "jointGroup": "tomix-cant", "polarity": 1 },
-            { "id": 1, "jointType": "rail-end", "name": "水平端", "relX": 59.51, "relY": 0, "facingAngle": 11.25, "polarity": "*" },
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -28.39, "relY": 16.27,  "facingAngle": 78.75 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 28.39,  "relY": 16.27,  "facingAngle": 101.25 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -31.91, "relY": -18.28, "facingAngle": -101.25 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 31.91,  "relY": -18.28, "facingAngle": -78.75 }
+            { "id": 0, "jointType": "rail-end", "name": "カント端", "relX": -61.85, "relY": 310.91, "facingAngle": 168.75, "jointGroup": "tomix-cant", "polarity": 1 },
+            { "id": 1, "jointType": "rail-end", "name": "水平端", "relX": 61.85, "relY": 310.91, "facingAngle": 11.25, "polarity": "*" },
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -29.13, "relY": 297.07, "facingAngle": 84.375 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 29.13,  "relY": 297.07, "facingAngle": 95.625 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -32.74, "relY": 333.90, "facingAngle": -95.625 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 32.74,  "relY": 333.90, "facingAngle": -84.375 }
         ],
-        shapes: [{ "type": "arc", "radius": 317, "arcAngle": 22.5, "centerX": 0, "centerY": 310.81, "startAngle": 258.75 }]
+        shapes: [{ "type": "arc", "radius": 317, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 101.25 }]
     },
 
     // --- R354 シリーズ ---
@@ -271,14 +271,14 @@ registerRailParts({
         name: "CR354-22.5-WP(F)",
         description: "アプローチPCレール CR354-22.5-WP-F (水平→カント-)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -66.45, "relY": 0, "facingAngle": 168.75, "polarity": "*" },
-            { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 66.45, "relY": 0, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": -1 },
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -31.91, "relY": 15.61,  "facingAngle": 78.75 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 31.91,  "relY": 15.61,  "facingAngle": 101.25 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -35.43, "relY": -17.33, "facingAngle": -101.25 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 35.43,  "relY": -17.33, "facingAngle": -78.75 }
+            { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -69.07, "relY": 347.20, "facingAngle": 168.75, "polarity": "*" },
+            { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 69.07, "relY": 347.20, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": -1 },
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -32.74, "relY": 333.90, "facingAngle": 84.375 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 32.74,  "relY": 333.90, "facingAngle": 95.625 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -36.35, "relY": 370.72, "facingAngle": -95.625 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 36.35,  "relY": 370.72, "facingAngle": -84.375 }
         ],
-        shapes: [{ "type": "arc", "radius": 354, "arcAngle": 22.5, "centerX": 0, "centerY": 347.09, "startAngle": 258.75 }]
+        shapes: [{ "type": "arc", "radius": 354, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 101.25 }]
     },
     "TOMIX-C354-45-V": {
         systemId: "TOMIX-WIDE-N",
@@ -287,14 +287,14 @@ registerRailParts({
         name: "C354-45-WP(F)",
         description: "ワイドPCカーブレール C354-45-WP(F)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "カント流入端", "relX": -135.47, "relY": 0, "facingAngle": 157.5, "jointGroup": "tomix-cant", "polarity": 1 },
-            { "id": 1, "jointType": "rail-end", "name": "カント流出端", "relX": 135.47,  "relY": 0, "facingAngle": 22.5,  "jointGroup": "tomix-cant", "polarity": -1 },
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -86.29, "relY": 14.71, "facingAngle": 56.25 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 86.29,  "relY": 14.71, "facingAngle": 123.75 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -95.80, "relY": -16.34, "facingAngle": -123.75 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 95.80,  "relY": -16.34, "facingAngle": -56.25 }
+            { "id": 0, "jointType": "rail-end", "name": "カント流入端", "relX": -135.47, "relY": 327.05, "facingAngle": 157.5, "jointGroup": "tomix-cant", "polarity": 1 },
+            { "id": 1, "jointType": "rail-end", "name": "カント流出端", "relX": 135.47,  "relY": 327.05, "facingAngle": 22.5,  "jointGroup": "tomix-cant", "polarity": -1 },
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -65.46, "relY": 329.05, "facingAngle": 78.75 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 65.46,  "relY": 329.05, "facingAngle": 101.25 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -72.68, "relY": 365.34, "facingAngle": -101.25 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 72.68,  "relY": 365.34, "facingAngle": -78.75 }
         ],
-        shapes: [{ "type": "arc", "radius": 354, "arcAngle": 45, "centerX": 0, "centerY": 327.05, "startAngle": 247.5 }]
+        shapes: [{ "type": "arc", "radius": 354, "arcAngle": 45, "centerX": 0, "centerY": 0, "startAngle": 112.5 }]
     },
     "TOMIX-CR354-22.5-CANT-FLAT": {
         systemId: "TOMIX-WIDE-N",
@@ -303,14 +303,14 @@ registerRailParts({
         name: "CL354-22.5-WP(F)",
         description: "アプローチPCレール CL354-22.5-WP-F (カント+→水平)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "カント端", "relX": -66.45, "relY": 0, "facingAngle": 168.75, "jointGroup": "tomix-cant", "polarity": 1 },
-            { "id": 1, "jointType": "rail-end", "name": "水平端", "relX": 66.45, "relY": 0, "facingAngle": 11.25, "polarity": "*" },
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -31.91, "relY": 15.61,  "facingAngle": 78.75 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 31.91,  "relY": 15.61,  "facingAngle": 101.25 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -35.43, "relY": -17.33, "facingAngle": -101.25 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 35.43,  "relY": -17.33, "facingAngle": -78.75 }
+            { "id": 0, "jointType": "rail-end", "name": "カント端", "relX": -69.07, "relY": 347.20, "facingAngle": 168.75, "jointGroup": "tomix-cant", "polarity": 1 },
+            { "id": 1, "jointType": "rail-end", "name": "水平端", "relX": 69.07, "relY": 347.20, "facingAngle": 11.25, "polarity": "*" },
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -32.74, "relY": 333.90, "facingAngle": 84.375 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 32.74,  "relY": 333.90, "facingAngle": 95.625 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -36.35, "relY": 370.72, "facingAngle": -95.625 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 36.35,  "relY": 370.72, "facingAngle": -84.375 }
         ],
-        shapes: [{ "type": "arc", "radius": 354, "arcAngle": 22.5, "centerX": 0, "centerY": 347.09, "startAngle": 258.75 }]
+        shapes: [{ "type": "arc", "radius": 354, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 101.25 }]
     },
 
     // --- R391 シリーズ ---
@@ -321,14 +321,14 @@ registerRailParts({
         name: "CR391-22.5-WP(F)",
         description: "アプローチPCレール CR391-22.5-WP-F (水平→カント-)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -73.39, "relY": 0, "facingAngle": 168.75, "polarity": "*" },
-            { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 73.39, "relY": 0, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": -1 },
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -35.43, "relY": 15.06,  "facingAngle": 78.75 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 35.43,  "relY": 15.06,  "facingAngle": 101.25 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": -38.95, "relY": -16.55, "facingAngle": -101.25 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": 38.95,  "relY": -16.55, "facingAngle": -78.75 }
+            { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -76.30, "relY": 383.49, "facingAngle": 168.75, "polarity": "*" },
+            { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 76.30, "relY": 383.49, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": -1 },
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -36.35, "relY": 370.72, "facingAngle": 84.375 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 36.35,  "relY": 370.72, "facingAngle": 95.625 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": -39.96, "relY": 407.55, "facingAngle": -95.625 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": 39.96,  "relY": 407.55, "facingAngle": -84.375 }
         ],
-        shapes: [{ "type": "arc", "radius": 391, "arcAngle": 22.5, "centerX": 0, "centerY": 383.38, "startAngle": 258.75 }]
+        shapes: [{ "type": "arc", "radius": 391, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 101.25 }]
     },
     "TOMIX-C391-45-V": {
         systemId: "TOMIX-WIDE-N",
@@ -337,14 +337,14 @@ registerRailParts({
         name: "C391-45-WP(F)",
         description: "ワイドPCカーブレール C391-45-WP(F)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "カント流入端", "relX": -149.63, "relY": 0, "facingAngle": 157.5, "jointGroup": "tomix-cant", "polarity": 1 },
-            { "id": 1, "jointType": "rail-end", "name": "カント流出端", "relX": 149.63,  "relY": 0, "facingAngle": 22.5,  "jointGroup": "tomix-cant", "polarity": -1 },
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -95.80, "relY": 14.19, "facingAngle": 56.25 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 95.80,  "relY": 14.19, "facingAngle": 123.75 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": -105.31, "relY": -15.60, "facingAngle": -123.75 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": 105.31,  "relY": -15.60, "facingAngle": -56.25 }
+            { "id": 0, "jointType": "rail-end", "name": "カント流入端", "relX": -149.63, "relY": 361.23, "facingAngle": 157.5, "jointGroup": "tomix-cant", "polarity": 1 },
+            { "id": 1, "jointType": "rail-end", "name": "カント流出端", "relX": 149.63,  "relY": 361.23, "facingAngle": 22.5,  "jointGroup": "tomix-cant", "polarity": -1 },
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -72.68, "relY": 365.34, "facingAngle": 78.75 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 72.68,  "relY": 365.34, "facingAngle": 101.25 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": -79.90, "relY": 401.63, "facingAngle": -101.25 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": 79.90,  "relY": 401.63, "facingAngle": -78.75 }
         ],
-        shapes: [{ "type": "arc", "radius": 391, "arcAngle": 45, "centerX": 0, "centerY": 361.23, "startAngle": 247.5 }]
+        shapes: [{ "type": "arc", "radius": 391, "arcAngle": 45, "centerX": 0, "centerY": 0, "startAngle": 112.5 }]
     },
     "TOMIX-CR391-22.5-CANT-FLAT": {
         systemId: "TOMIX-WIDE-N",
@@ -353,19 +353,17 @@ registerRailParts({
         name: "CL391-22.5-WP(F)",
         description: "アプローチPCレール CL391-22.5-WP-F (カント+→水平)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "カント端", "relX": -73.39, "relY": 0, "facingAngle": 168.75, "jointGroup": "tomix-cant", "polarity": 1 },
-            { "id": 1, "jointType": "rail-end", "name": "水平端", "relX": 73.39, "relY": 0, "facingAngle": 11.25, "polarity": "*" },
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -35.43, "relY": 15.06,  "facingAngle": 78.75 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 35.43,  "relY": 15.06,  "facingAngle": 101.25 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": -38.95, "relY": -16.55, "facingAngle": -101.25 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": 38.95,  "relY": -16.55, "facingAngle": -78.75 }
+            { "id": 0, "jointType": "rail-end", "name": "カント端", "relX": -76.30, "relY": 383.49, "facingAngle": 168.75, "jointGroup": "tomix-cant", "polarity": 1 },
+            { "id": 1, "jointType": "rail-end", "name": "水平端", "relX": 76.30, "relY": 383.49, "facingAngle": 11.25, "polarity": "*" },
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -36.35, "relY": 370.72, "facingAngle": 84.375 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 36.35,  "relY": 370.72, "facingAngle": 95.625 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": -39.96, "relY": 407.55, "facingAngle": -95.625 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": 39.96,  "relY": 407.55, "facingAngle": -84.375 }
         ],
-        shapes: [{ "type": "arc", "radius": 391, "arcAngle": 22.5, "centerX": 0, "centerY": 383.38, "startAngle": 258.75 }]
+        shapes: [{ "type": "arc", "radius": 391, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 101.25 }]
     },
 
-    // =========================================================
-    // 緩曲線レール (平坦系)
-    // =========================================================
+    // --- 緩曲線 シリーズ ---
     "TOMIX-C541-15-WP": {
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
@@ -373,14 +371,14 @@ registerRailParts({
         name: "C541-15-WP(F)",
         description: "ワイドPCカーブレール C541-15-WP",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "relX": -70.61, "relY": 0, "facingAngle": 172.5 },
-            { "id": 1, "jointType": "rail-end", "relX": 70.61,  "relY": 0, "facingAngle": 7.5 },
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R522.5", "relX": -34.12, "relY": 13.79,  "facingAngle": 82.5 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R522.5", "relX": 34.12,  "relY": 13.79,  "facingAngle": 97.5 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R559.5", "relX": -36.54, "relY": -14.77, "facingAngle": -97.5 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R559.5", "relX": 36.54,  "relY": -14.77, "facingAngle": -82.5 }
+            { "id": 0, "jointType": "rail-end", "relX": -70.61, "relY": 536.36, "facingAngle": 172.5 },
+            { "id": 1, "jointType": "rail-end", "relX": 70.61,  "relY": 536.36, "facingAngle": 7.5 },
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R522.5", "relX": -34.12, "relY": 518.01, "facingAngle": 86.25 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R522.5", "relX": 34.12,  "relY": 518.01, "facingAngle": 93.75 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R559.5", "relX": -36.54, "relY": 554.71, "facingAngle": -93.75 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R559.5", "relX": 36.54,  "relY": 554.71, "facingAngle": -86.25 }
         ],
-        shapes: [{ "type": "arc", "radius": 541, "arcAngle": 15, "centerX": 0, "centerY": 536.36, "startAngle": 262.5 }]
+        shapes: [{ "type": "arc", "radius": 541, "arcAngle": 15, "centerX": 0, "centerY": 0, "startAngle": 97.5 }]
     },
     "TOMIX-C605-10-WP": {
         systemId: "TOMIX-WIDE-N",
@@ -389,14 +387,14 @@ registerRailParts({
         name: "C605-10-WP(F)A・B",
         description: "ワイドPCカーブレール C605-10-WP",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "relX": -52.68, "relY": 0, "facingAngle": 175.0 },
-            { "id": 1, "jointType": "rail-end", "relX": 52.68,  "relY": 0, "facingAngle": 5.0 },
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R586.5", "relX": -25.56, "relY": 13.77,  "facingAngle": 85.0 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R586.5", "relX": 25.56,  "relY": 13.77,  "facingAngle": 95.0 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R623.5", "relX": -27.18, "relY": -14.64, "facingAngle": -95.0 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R623.5", "relX": 27.18,  "relY": -14.64, "facingAngle": -85.0 }
+            { "id": 0, "jointType": "rail-end", "relX": -52.68, "relY": 602.69, "facingAngle": 175.0 },
+            { "id": 1, "jointType": "rail-end", "relX": 52.68,  "relY": 602.69, "facingAngle": 5.0 },
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R586.5", "relX": -25.56, "relY": 584.28, "facingAngle": 87.5 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R586.5", "relX": 25.56,  "relY": 584.28, "facingAngle": 92.5 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R623.5", "relX": -27.18, "relY": 621.16, "facingAngle": -92.5 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R623.5", "relX": 27.18,  "relY": 621.16, "facingAngle": -87.5 }
         ],
-        shapes: [{ "type": "arc", "radius": 605, "arcAngle": 10, "centerX": 0, "centerY": 602.69, "startAngle": 265.0 }]
+        shapes: [{ "type": "arc", "radius": 605, "arcAngle": 10, "centerX": 0, "centerY": 0, "startAngle": 95.0 }]
     },
 
     // =========================================================
