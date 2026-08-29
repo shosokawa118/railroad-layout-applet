@@ -9,7 +9,7 @@
 // - ノードタイプ区分      : jointType ('rail-end' | 'side-joiner')
 // =============================================================
 
-console.log("スナップマネージャー（JS）が読み込まれました: VER-SNAP-SIDE-SNAP-S10");
+console.log("スナップマネージャー（JS）が読み込まれました: VER-SNAP-FACING-A0");
 
 function applyClusterSnapLogic(movedRail) {
     if (!movedRail) return;
@@ -116,10 +116,24 @@ function applyClusterSnapLogic(movedRail) {
                     oNodes.forEach(oN => {
                         if (isNodeOccupied(oId, oN.nodeId)) return;
                         if (!canConnectNodes(rRail, mN.nodeId, oRail, oN.nodeId)) return;
-
+                        
+                        // --- 3-1. 距離判定 ---
                         const dist = Math.sqrt(Math.pow(mN.x - oN.x, 2) + Math.pow(mN.y - oN.y, 2));
                         if (dist < 8) {
-                            addGlobalJointIfFree(rId, mN.nodeId, oId, oN.nodeId);
+                            // --- 3-2. 角度判定 (新規追加) ---
+                            // 2つのノードの絶対角度の差分を計算 (理想値は 180度)
+                            let angleDiff = Math.abs((mN.angle - oN.angle) % 360);
+                            if (angleDiff > 180) angleDiff = 360 - angleDiff;
+                            
+                            // 180度（対向）からのズレを算出
+                            const angleError = Math.abs(180 - angleDiff);
+                            
+                            // 許容角度誤差 (例: 10度以内のみ結合を許可)
+                            const MAX_ANGLE_ERROR = 10;
+                            
+                            if (angleError <= MAX_ANGLE_ERROR) {
+                                addGlobalJointIfFree(rId, mN.nodeId, oId, oN.nodeId);
+                            }
                         }
                     });
                 });
