@@ -49,6 +49,12 @@ const railCatalog = {
             defaultJointGroup: "tomix-clapper",
             libraryFile: "rail-catalog-tomix.js"
         },
+        "TOMIX-WIDE-N": { // 新設: TOMIX ワイドPCレールシステム
+            scale: "N", brand: "TOMIX", systemName: "ワイドPCレール (N)",
+            gauge: 9, ballastWidth: 37,
+            defaultJointGroup: "tomix-clapper",
+            libraryFile: "rail-catalog-tomix-wide.js"
+        },
         "TOMIX-MINICURVE-N": {
             scale: "N", brand: "TOMIX", systemName: "ミニカーブ (N)",
             gauge: 9, ballastWidth: 18.5,
