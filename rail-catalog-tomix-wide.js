@@ -135,56 +135,8 @@ registerRailParts({
     },
 
     // =========================================================
-    // ワイドPC平坦曲線レール
+    // ワイドPC平坦曲線レール (平坦は緩曲線系のみ存在)
     // =========================================================
-    "TOMIX-C280-45-WP": {
-        systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
-        category: "curve",
-        name: "C280-45-WP-F",
-        description: "ワイドPCカーブレール C280-45-WP",
-        nodes: [
-            { "id": 0, "jointType": "rail-end", "relX": -107.15, "relY": 0, "facingAngle": 157.5 },
-            { "id": 1, "jointType": "rail-end", "relX": 107.15,  "relY": 0, "facingAngle": 22.5 }
-        ],
-        shapes: [{ "type": "arc", "radius": 280, "arcAngle": 45, "centerX": 0, "centerY": 258.68, "startAngle": 247.5 }]
-    },
-    "TOMIX-C317-45-WP": {
-        systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
-        category: "curve",
-        name: "C317-45-WP-F",
-        description: "ワイドPCカーブレール C317-45-WP",
-        nodes: [
-            { "id": 0, "jointType": "rail-end", "relX": -121.32, "relY": 0, "facingAngle": 157.5 },
-            { "id": 1, "jointType": "rail-end", "relX": 121.32,  "relY": 0, "facingAngle": 22.5 }
-        ],
-        shapes: [{ "type": "arc", "radius": 317, "arcAngle": 45, "centerX": 0, "centerY": 292.86, "startAngle": 247.5 }]
-    },
-    "TOMIX-C354-45-WP": {
-        systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
-        category: "curve",
-        name: "C354-45-WP-F",
-        description: "ワイドPCカーブレール C354-45-WP",
-        nodes: [
-            { "id": 0, "jointType": "rail-end", "relX": -135.47, "relY": 0, "facingAngle": 157.5 },
-            { "id": 1, "jointType": "rail-end", "relX": 135.47,  "relY": 0, "facingAngle": 22.5 }
-        ],
-        shapes: [{ "type": "arc", "radius": 354, "arcAngle": 45, "centerX": 0, "centerY": 327.05, "startAngle": 247.5 }]
-    },
-    "TOMIX-C391-45-WP": {
-        systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
-        category: "curve",
-        name: "C391-45-WP-F",
-        description: "ワイドPCカーブレール C391-45-WP",
-        nodes: [
-            { "id": 0, "jointType": "rail-end", "relX": -149.63, "relY": 0, "facingAngle": 157.5 },
-            { "id": 1, "jointType": "rail-end", "relX": 149.63,  "relY": 0, "facingAngle": 22.5 }
-        ],
-        shapes: [{ "type": "arc", "radius": 391, "arcAngle": 45, "centerX": 0, "centerY": 361.23, "startAngle": 247.5 }]
-    },
     "TOMIX-C541-15-WP": {
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
