@@ -51,7 +51,7 @@
 
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 基本エンジン
-// バージョン: VER-LAYOUT-SIDE-SNAP-E34
+// バージョン: VER-LAYOUT-FACING-E4
 // =============================================================
 
 // --- 共通設定・フラグ定義 ---
@@ -246,6 +246,8 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
                 if (isNodeOccupied(otherId, oNode.nodeId)) return;
                 if (!canConnectNodes(newRail, nNode.nodeId, otherRail, oNode.nodeId)) return;
 
+                console.log(nNode)
+                console.log(oNode)
                 if (isNodePositionCompatible(nNode, oNode, 8, 5)) {
                     addGlobalJointIfFree(newId, nNode.nodeId, otherId, oNode.nodeId);
                 }
