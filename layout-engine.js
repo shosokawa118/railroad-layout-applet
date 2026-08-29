@@ -16,6 +16,9 @@
  *   2つのレールオブジェクトとそのノードIDを受け取り、内部でノードデータとカタログ（`railCatalog.items`）を取り出して
  *   `isJointCompatible(nodeA, catalogA, nodeB, catalogB)` へ委譲。系統・ジョイナー・システムの互換性を判定する。
  * 
+ * - isNodePositionCompatible(nodeA: Object, nodeB: Object, maxDist?: number, maxAngleError?: number): boolean
+ *   2つの絶対座標ノードの距離および向き（対向角）が許容値以内にあるか（近接して噛み合っているか）判定する。
+ * 
  * - getMovedRailIds(target: fabric.Object): Array<string>
  *   アクティブセレクションまたは単一操作対象のレールインスタンスID配列を取得。
  */
@@ -243,14 +246,7 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
                 if (isNodeOccupied(otherId, oNode.nodeId)) return;
                 if (!canConnectNodes(newRail, nNode.nodeId, otherRail, oNode.nodeId)) return;
 
-                const dist = Math.sqrt(Math.pow(nNode.x - oNode.x, 2) + Math.pow(nNode.y - oNode.y, 2));
-                
-                // 角度差（対向チェック: 180度反転差がほぼ0か）を計算
-                let angleDiff = Math.abs((nNode.angle - oNode.angle + 540) % 360 - 180);
-                if (angleDiff > 180) angleDiff = 360 - angleDiff;
-
-                // 距離判定だけでなく facingAngle（対向角）も適合しているか検証
-                if (dist < 8 && angleDiff < 5) {
+                if (isNodePositionCompatible(nNode, oNode, 8, 5)) {
                     addGlobalJointIfFree(newId, nNode.nodeId, otherId, oNode.nodeId);
                 }
             });
