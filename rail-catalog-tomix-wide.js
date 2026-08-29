@@ -177,9 +177,11 @@ registerRailParts({
         shapes: [{ "type": "line", "length": 18.5, "offsetX": 0, "offsetY": 0 }]
     },
 
-    // =========================================================
-    // 曲線レール（上に凸）
-    // 時計回り: 外周の山を沿って右へ（左上→右上） ➔ 内周に入って左へ（右下→左下）
+// =========================================================
+    // 曲線レール（修正版）
+    // facingAngle定義:
+    //   外周 (R_outer): 中心(0,0)から外側に向くベクトル = atan2(relY, relX)
+    //   内周 (R_inner): 外側から中心(0,0)に向くベクトル = atan2(relY, relX) + 180°
     // =========================================================
 
     // --- R280 シリーズ ---
@@ -192,11 +194,11 @@ registerRailParts({
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -54.62, "relY": -274.62, "facingAngle": 168.75, "polarity": "*" },
             { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 54.62, "relY": -274.62, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": -1 },
-            // --- 側面ジョイント　外周（左→右） ➔ 内周（右→左） ---
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -55.10, "relY": -293.36, "facingAngle": 100.636, "polarity": 1 },  // 外周左（左上）
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 55.10,  "relY": -293.36, "facingAngle": -100.636, "polarity": -1 }, // 外周右（右上）
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": 48.27,  "relY": -256.99, "facingAngle": 79.364,  "polarity": 1 },  // 内周右（右下）
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": -48.27, "relY": -256.99, "facingAngle": -79.364, "polarity": -1 }  // 内周左（左下）
+            // --- 側面ジョイント ---
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -55.10, "relY": -293.36, "facingAngle": -100.636, "polarity": 1 },  // 外周左
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 55.10,  "relY": -293.36, "facingAngle": -79.364,  "polarity": -1 },  // 外周右
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": 48.27,  "relY": -256.99, "facingAngle": 100.636,  "polarity": 1 },  // 内周右
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": -48.27, "relY": -256.99, "facingAngle": 79.364,   "polarity": -1 }   // 内周左
         ],
         shapes: [{ "type": "arc", "radius": 280, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 258.75 }]
     },
@@ -210,14 +212,14 @@ registerRailParts({
             { "id": 0, "jointType": "rail-end", "name": "カント流入端", "relX": -107.15, "relY": -258.68, "facingAngle": 157.5, "jointGroup": "tomix-cant", "polarity": 1 },
             { "id": 1, "jointType": "rail-end", "name": "カント流出端", "relX": 107.15,  "relY": -258.68, "facingAngle": 22.5, "jointGroup": "tomix-cant", "polarity": -1 },
             // --- 側面ジョイント ---
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -111.27, "relY": -276.99, "facingAngle": 111.886, "polarity": 1 }, // 外周左 (左上 +1)
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -3.20,   "relY": -298.48, "facingAngle": 90.614,  "polarity": -1 },// 外周中左 (-1)
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 3.20,    "relY": -298.48, "facingAngle": -90.614, "polarity": 1 }, // 外周中右 (+1)
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 111.27,  "relY": -276.99, "facingAngle": -111.886, "polarity": -1 },// 外周右 (右上 -1)
-            { "id": 6, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": 97.48,   "relY": -242.67, "facingAngle": 68.114,  "polarity": 1 }, // 内周右 (右下 +1)
-            { "id": 7, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": 2.80,    "relY": -261.48, "facingAngle": 89.386,  "polarity": -1 },// 内周中右 (-1)
-            { "id": 8, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": -2.80,   "relY": -261.48, "facingAngle": -89.386, "polarity": 1 }, // 内周中左 (+1)
-            { "id": 9, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": -97.48,  "relY": -242.67, "facingAngle": -68.114, "polarity": -1 } // 内周左 (左下 -1)
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -111.27, "relY": -276.99, "facingAngle": -111.886, "polarity": 1 }, // 外周左 (左上)
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -3.20,   "relY": -298.48, "facingAngle": -90.614,  "polarity": -1 }, // 外周中左
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 3.20,    "relY": -298.48, "facingAngle": -89.386,  "polarity": 1 },  // 外周中右
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 111.27,  "relY": -276.99, "facingAngle": -68.114,  "polarity": -1 }, // 外周右 (右上)
+            { "id": 6, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": 97.48,   "relY": -242.67, "facingAngle": 111.886,  "polarity": 1 },  // 内周右 (右下)
+            { "id": 7, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": 2.80,    "relY": -261.48, "facingAngle": 90.614,   "polarity": -1 }, // 内周中右
+            { "id": 8, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": -2.80,   "relY": -261.48, "facingAngle": 89.386,   "polarity": 1 },  // 内周中左
+            { "id": 9, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": -97.48,  "relY": -242.67, "facingAngle": 68.114,   "polarity": -1 }  // 内周左 (左下)
         ],
         shapes: [{ "type": "arc", "radius": 280, "arcAngle": 45, "centerX": 0, "centerY": 0, "startAngle": 247.5 }]
     },
@@ -231,10 +233,10 @@ registerRailParts({
             { "id": 0, "jointType": "rail-end", "name": "カント端", "relX": -54.62, "relY": -274.62, "facingAngle": 168.75, "jointGroup": "tomix-cant", "polarity": 1 },
             { "id": 1, "jointType": "rail-end", "name": "水平端", "relX": 54.62, "relY": -274.62, "facingAngle": 11.25, "polarity": "*" },
             // --- 側面ジョイント ---
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -55.10, "relY": -293.36, "facingAngle": 100.636, "polarity": 1 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 55.10,  "relY": -293.36, "facingAngle": -100.636, "polarity": -1 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": 48.27,  "relY": -256.99, "facingAngle": 79.364,  "polarity": 1 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": -48.27, "relY": -256.99, "facingAngle": -79.364, "polarity": -1 }
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -55.10, "relY": -293.36, "facingAngle": -100.636, "polarity": 1 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 55.10,  "relY": -293.36, "facingAngle": -79.364,  "polarity": -1 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": 48.27,  "relY": -256.99, "facingAngle": 100.636,  "polarity": 1 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R261.5", "relX": -48.27, "relY": -256.99, "facingAngle": 79.364,   "polarity": -1 }
         ],
         shapes: [{ "type": "arc", "radius": 280, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 258.75 }]
     },
@@ -250,10 +252,10 @@ registerRailParts({
             { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -61.85, "relY": -310.91, "facingAngle": 168.75, "polarity": "*" },
             { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 61.85, "relY": -310.91, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": -1 },
             // --- 側面ジョイント ---
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -61.93, "relY": -329.72, "facingAngle": 100.636, "polarity": 1 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 61.93,  "relY": -329.72, "facingAngle": -100.636, "polarity": -1 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 55.10,  "relY": -293.36, "facingAngle": 79.364,  "polarity": 1 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -55.10, "relY": -293.36, "facingAngle": -79.364, "polarity": -1 }
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -61.93, "relY": -329.72, "facingAngle": -100.636, "polarity": 1 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 61.93,  "relY": -329.72, "facingAngle": -79.364,  "polarity": -1 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 55.10,  "relY": -293.36, "facingAngle": 100.636,  "polarity": 1 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -55.10, "relY": -293.36, "facingAngle": 79.364,   "polarity": -1 }
         ],
         shapes: [{ "type": "arc", "radius": 317, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 258.75 }]
     },
@@ -267,14 +269,14 @@ registerRailParts({
             { "id": 0, "jointType": "rail-end", "name": "カント流入端", "relX": -121.32, "relY": -292.86, "facingAngle": 157.5, "jointGroup": "tomix-cant", "polarity": 1 },
             { "id": 1, "jointType": "rail-end", "name": "カント流出端", "relX": 121.32,  "relY": -292.86, "facingAngle": 22.5, "jointGroup": "tomix-cant", "polarity": -1 },
             // --- 側面ジョイント ---
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -125.06, "relY": -311.31, "facingAngle": 111.886, "polarity": 1 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -3.59,   "relY": -335.48, "facingAngle": 90.614,  "polarity": -1 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 3.59,    "relY": -335.48, "facingAngle": -90.614, "polarity": 1 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 125.06,  "relY": -311.31, "facingAngle": -111.886, "polarity": -1 },
-            { "id": 6, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 111.27,  "relY": -276.99, "facingAngle": 68.114,  "polarity": 1 },
-            { "id": 7, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 3.20,    "relY": -298.48, "facingAngle": 89.386,  "polarity": -1 },
-            { "id": 8, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -3.20,   "relY": -298.48, "facingAngle": -89.386, "polarity": 1 },
-            { "id": 9, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -111.27, "relY": -276.99, "facingAngle": -68.114, "polarity": -1 }
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -125.06, "relY": -311.31, "facingAngle": -111.886, "polarity": 1 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -3.59,   "relY": -335.48, "facingAngle": -90.614,  "polarity": -1 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 3.59,    "relY": -335.48, "facingAngle": -89.386,  "polarity": 1 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 125.06,  "relY": -311.31, "facingAngle": -68.114,  "polarity": -1 },
+            { "id": 6, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 111.27,  "relY": -276.99, "facingAngle": 111.886,  "polarity": 1 },
+            { "id": 7, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 3.20,    "relY": -298.48, "facingAngle": 90.614,   "polarity": -1 },
+            { "id": 8, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -3.20,   "relY": -298.48, "facingAngle": 89.386,   "polarity": 1 },
+            { "id": 9, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -111.27, "relY": -276.99, "facingAngle": 68.114,   "polarity": -1 }
         ],
         shapes: [{ "type": "arc", "radius": 317, "arcAngle": 45, "centerX": 0, "centerY": 0, "startAngle": 247.5 }]
     },
@@ -288,10 +290,10 @@ registerRailParts({
             { "id": 0, "jointType": "rail-end", "name": "カント端", "relX": -61.85, "relY": -310.91, "facingAngle": 168.75, "jointGroup": "tomix-cant", "polarity": 1 },
             { "id": 1, "jointType": "rail-end", "name": "水平端", "relX": 61.85, "relY": -310.91, "facingAngle": 11.25, "polarity": "*" },
             // --- 側面ジョイント ---
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -61.93, "relY": -329.72, "facingAngle": 100.636, "polarity": 1 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 61.93,  "relY": -329.72, "facingAngle": -100.636, "polarity": -1 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 55.10,  "relY": -293.36, "facingAngle": 79.364,  "polarity": 1 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -55.10, "relY": -293.36, "facingAngle": -79.364, "polarity": -1 }
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -61.93, "relY": -329.72, "facingAngle": -100.636, "polarity": 1 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 61.93,  "relY": -329.72, "facingAngle": -79.364,  "polarity": -1 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 55.10,  "relY": -293.36, "facingAngle": 100.636,  "polarity": 1 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -55.10, "relY": -293.36, "facingAngle": 79.364,   "polarity": -1 }
         ],
         shapes: [{ "type": "arc", "radius": 317, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 258.75 }]
     },
@@ -307,10 +309,10 @@ registerRailParts({
             { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -69.07, "relY": -347.20, "facingAngle": 168.75, "polarity": "*" },
             { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 69.07, "relY": -347.20, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": -1 },
             // --- 側面ジョイント ---
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -68.76, "relY": -366.08, "facingAngle": 100.636, "polarity": 1 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 68.76,  "relY": -366.08, "facingAngle": -100.636, "polarity": -1 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 61.93,  "relY": -329.72, "facingAngle": 79.364,  "polarity": 1 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -61.93, "relY": -329.72, "facingAngle": -79.364, "polarity": -1 }
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -68.76, "relY": -366.08, "facingAngle": -100.636, "polarity": 1 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 68.76,  "relY": -366.08, "facingAngle": -79.364,  "polarity": -1 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 61.93,  "relY": -329.72, "facingAngle": 100.636,  "polarity": 1 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -61.93, "relY": -329.72, "facingAngle": 79.364,   "polarity": -1 }
         ],
         shapes: [{ "type": "arc", "radius": 354, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 258.75 }]
     },
@@ -324,14 +326,14 @@ registerRailParts({
             { "id": 0, "jointType": "rail-end", "name": "カント流入端", "relX": -135.47, "relY": -327.05, "facingAngle": 157.5, "jointGroup": "tomix-cant", "polarity": 1 },
             { "id": 1, "jointType": "rail-end", "name": "カント流出端", "relX": 135.47,  "relY": -327.05, "facingAngle": 22.5, "jointGroup": "tomix-cant", "polarity": -1 },
             // --- 側面ジョイント ---
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -138.85, "relY": -345.62, "facingAngle": 111.886, "polarity": 1 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -3.99,   "relY": -372.48, "facingAngle": 90.614,  "polarity": -1 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 3.99,    "relY": -372.48, "facingAngle": -90.614, "polarity": 1 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 138.85,  "relY": -345.62, "facingAngle": -111.886, "polarity": -1 },
-            { "id": 6, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 125.06,  "relY": -311.31, "facingAngle": 68.114,  "polarity": 1 },
-            { "id": 7, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 3.59,    "relY": -335.48, "facingAngle": 89.386,  "polarity": -1 },
-            { "id": 8, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -3.59,   "relY": -335.48, "facingAngle": -89.386, "polarity": 1 },
-            { "id": 9, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -125.06, "relY": -311.31, "facingAngle": -68.114, "polarity": -1 }
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -138.85, "relY": -345.62, "facingAngle": -111.886, "polarity": 1 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -3.99,   "relY": -372.48, "facingAngle": -90.614,  "polarity": -1 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 3.99,    "relY": -372.48, "facingAngle": -89.386,  "polarity": 1 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 138.85,  "relY": -345.62, "facingAngle": -68.114,  "polarity": -1 },
+            { "id": 6, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 125.06,  "relY": -311.31, "facingAngle": 111.886,  "polarity": 1 },
+            { "id": 7, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 3.59,    "relY": -335.48, "facingAngle": 90.614,   "polarity": -1 },
+            { "id": 8, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -3.59,   "relY": -335.48, "facingAngle": 89.386,   "polarity": 1 },
+            { "id": 9, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -125.06, "relY": -311.31, "facingAngle": 68.114,   "polarity": -1 }
         ],
         shapes: [{ "type": "arc", "radius": 354, "arcAngle": 45, "centerX": 0, "centerY": 0, "startAngle": 247.5 }]
     },
@@ -345,10 +347,10 @@ registerRailParts({
             { "id": 0, "jointType": "rail-end", "name": "カント端", "relX": -69.07, "relY": -347.20, "facingAngle": 168.75, "jointGroup": "tomix-cant", "polarity": 1 },
             { "id": 1, "jointType": "rail-end", "name": "水平端", "relX": 69.07, "relY": -347.20, "facingAngle": 11.25, "polarity": "*" },
             // --- 側面ジョイント ---
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -68.76, "relY": -366.08, "facingAngle": 100.636, "polarity": 1 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 68.76,  "relY": -366.08, "facingAngle": -100.636, "polarity": -1 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 61.93,  "relY": -329.72, "facingAngle": 79.364,  "polarity": 1 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -61.93, "relY": -329.72, "facingAngle": -79.364, "polarity": -1 }
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -68.76, "relY": -366.08, "facingAngle": -100.636, "polarity": 1 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 68.76,  "relY": -366.08, "facingAngle": -79.364,  "polarity": -1 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 61.93,  "relY": -329.72, "facingAngle": 100.636,  "polarity": 1 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -61.93, "relY": -329.72, "facingAngle": 79.364,   "polarity": -1 }
         ],
         shapes: [{ "type": "arc", "radius": 354, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 258.75 }]
     },
@@ -364,10 +366,10 @@ registerRailParts({
             { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -76.30, "relY": -383.49, "facingAngle": 168.75, "polarity": "*" },
             { "id": 1, "jointType": "rail-end", "name": "カント端", "relX": 76.30, "relY": -383.49, "facingAngle": 11.25, "jointGroup": "tomix-cant", "polarity": -1 },
             // --- 側面ジョイント ---
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": -75.59, "relY": -402.44, "facingAngle": 100.636, "polarity": 1 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": 75.59,  "relY": -402.44, "facingAngle": -100.636, "polarity": -1 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 68.76,  "relY": -366.08, "facingAngle": 79.364,  "polarity": 1 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -68.76, "relY": -366.08, "facingAngle": -79.364, "polarity": -1 }
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": -75.59, "relY": -402.44, "facingAngle": -100.636, "polarity": 1 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": 75.59,  "relY": -402.44, "facingAngle": -79.364,  "polarity": -1 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 68.76,  "relY": -366.08, "facingAngle": 100.636,  "polarity": 1 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -68.76, "relY": -366.08, "facingAngle": 79.364,   "polarity": -1 }
         ],
         shapes: [{ "type": "arc", "radius": 391, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 258.75 }]
     },
@@ -381,14 +383,14 @@ registerRailParts({
             { "id": 0, "jointType": "rail-end", "name": "カント流入端", "relX": -149.63, "relY": -361.23, "facingAngle": 157.5, "jointGroup": "tomix-cant", "polarity": 1 },
             { "id": 1, "jointType": "rail-end", "name": "カント流出端", "relX": 149.63,  "relY": -361.23, "facingAngle": 22.5, "jointGroup": "tomix-cant", "polarity": -1 },
             // --- 側面ジョイント ---
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": -152.64, "relY": -379.94, "facingAngle": 111.886, "polarity": 1 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": -4.39,   "relY": -409.48, "facingAngle": 90.614,  "polarity": -1 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": 4.39,    "relY": -409.48, "facingAngle": -90.614, "polarity": 1 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": 152.64,  "relY": -379.94, "facingAngle": -111.886, "polarity": -1 },
-            { "id": 6, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 138.85,  "relY": -345.62, "facingAngle": 68.114,  "polarity": 1 },
-            { "id": 7, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 3.99,    "relY": -372.48, "facingAngle": 89.386,  "polarity": -1 },
-            { "id": 8, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -3.99,   "relY": -372.48, "facingAngle": -89.386, "polarity": 1 },
-            { "id": 9, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -138.85, "relY": -345.62, "facingAngle": -68.114, "polarity": -1 }
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": -152.64, "relY": -379.94, "facingAngle": -111.886, "polarity": 1 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": -4.39,   "relY": -409.48, "facingAngle": -90.614,  "polarity": -1 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": 4.39,    "relY": -409.48, "facingAngle": -89.386,  "polarity": 1 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": 152.64,  "relY": -379.94, "facingAngle": -68.114,  "polarity": -1 },
+            { "id": 6, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 138.85,  "relY": -345.62, "facingAngle": 111.886,  "polarity": 1 },
+            { "id": 7, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 3.99,    "relY": -372.48, "facingAngle": 90.614,   "polarity": -1 },
+            { "id": 8, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -3.99,   "relY": -372.48, "facingAngle": 89.386,   "polarity": 1 },
+            { "id": 9, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -138.85, "relY": -345.62, "facingAngle": 68.114,   "polarity": -1 }
         ],
         shapes: [{ "type": "arc", "radius": 391, "arcAngle": 45, "centerX": 0, "centerY": 0, "startAngle": 247.5 }]
     },
@@ -402,10 +404,10 @@ registerRailParts({
             { "id": 0, "jointType": "rail-end", "name": "カント端", "relX": -76.30, "relY": -383.49, "facingAngle": 168.75, "jointGroup": "tomix-cant", "polarity": 1 },
             { "id": 1, "jointType": "rail-end", "name": "水平端", "relX": 76.30, "relY": -383.49, "facingAngle": 11.25, "polarity": "*" },
             // --- 側面ジョイント ---
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": -75.59, "relY": -402.44, "facingAngle": 100.636, "polarity": 1 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": 75.59,  "relY": -402.44, "facingAngle": -100.636, "polarity": -1 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 68.76,  "relY": -366.08, "facingAngle": 79.364,  "polarity": 1 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -68.76, "relY": -366.08, "facingAngle": -79.364, "polarity": -1 }
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": -75.59, "relY": -402.44, "facingAngle": -100.636, "polarity": 1 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": 75.59,  "relY": -402.44, "facingAngle": -79.364,  "polarity": -1 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 68.76,  "relY": -366.08, "facingAngle": 100.636,  "polarity": 1 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -68.76, "relY": -366.08, "facingAngle": 79.364,   "polarity": -1 }
         ],
         shapes: [{ "type": "arc", "radius": 391, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 258.75 }]
     },
@@ -421,10 +423,10 @@ registerRailParts({
             { "id": 0, "jointType": "rail-end", "relX": -70.61, "relY": -536.36, "facingAngle": 172.5 },
             { "id": 1, "jointType": "rail-end", "relX": 70.61,  "relY": -536.36, "facingAngle": 7.5 },
             // --- 側面ジョイント ---
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R559.5", "relX": -67.08, "relY": -555.46, "facingAngle": 96.886,  "polarity": 1 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R559.5", "relX": 67.08,  "relY": -555.46, "facingAngle": -96.886, "polarity": -1 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R522.5", "relX": 62.65,  "relY": -518.73, "facingAngle": 83.114,  "polarity": 1 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R522.5", "relX": -62.65, "relY": -518.73, "facingAngle": -83.114, "polarity": -1 }
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R559.5", "relX": -67.08, "relY": -555.46, "facingAngle": -96.886, "polarity": 1 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R559.5", "relX": 67.08,  "relY": -555.46, "facingAngle": -83.114, "polarity": -1 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R522.5", "relX": 62.65,  "relY": -518.73, "facingAngle": 96.886,  "polarity": 1 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R522.5", "relX": -62.65, "relY": -518.73, "facingAngle": 83.114,  "polarity": -1 }
         ],
         shapes: [{ "type": "arc", "radius": 541, "arcAngle": 15, "centerX": 0, "centerY": 0, "startAngle": 262.5 }]
     },
@@ -438,10 +440,10 @@ registerRailParts({
             { "id": 0, "jointType": "rail-end", "relX": -52.68, "relY": -602.69, "facingAngle": 175.0 },
             { "id": 1, "jointType": "rail-end", "relX": 52.68,  "relY": -602.69, "facingAngle": 5.0 },
             // --- 側面ジョイント ---
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R623.5", "relX": -47.69, "relY": -621.67, "facingAngle": 94.386,  "polarity": 1 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R623.5", "relX": 47.69,  "relY": -621.67, "facingAngle": -94.386, "polarity": -1 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R586.5", "relX": 44.86,  "relY": -584.78, "facingAngle": 85.614,  "polarity": 1 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R586.5", "relX": -44.86, "relY": -584.78, "facingAngle": -85.614, "polarity": -1 }
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R623.5", "relX": -47.69, "relY": -621.67, "facingAngle": -94.386, "polarity": 1 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R623.5", "relX": 47.69,  "relY": -621.67, "facingAngle": -85.614, "polarity": -1 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R586.5", "relX": 44.86,  "relY": -584.78, "facingAngle": 94.386,  "polarity": 1 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R586.5", "relX": -44.86, "relY": -584.78, "facingAngle": 85.614,  "polarity": -1 }
         ],
         shapes: [{ "type": "arc", "radius": 605, "arcAngle": 10, "centerX": 0, "centerY": 0, "startAngle": 265.0 }]
     },
