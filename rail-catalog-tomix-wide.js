@@ -1,16 +1,38 @@
 /**
  * =============================================================================
- * TOMIX ワイドPCレール パーツライブラリ (rail-catalog-tomix-wide.js)
+ * RAIL PARTS CATALOG - DEFINITION GUIDE & NODE DESIGN RULES FOR AI / DEVELOPERS
  * =============================================================================
  * 
- * [仕様方針]
- * - TOMIXパーツは全て共通の「爪（tomix-clapper）」で結合可能なため、
- *   標準ノードには jointGroup を明示せずシステムデフォルト（tomix-clapper）を適用。
- * - カント接続端のみ jointGroup: "tomix-cant" と polarity (+1 / -1) を指定。
- * - 側壁・着脱道床用のサブジョイント等を追加する場合は jointType を区別する。
+ * [AUTO-CONNECT NODE EVALUATION ORDER]
+ * The auto-connection engine searches for open nodes based on the following algorithm:
+ *   - Parent (Selected Rail): Evaluated in DESCENDING order (Max Node ID -> ... -> Node 0)
+ *   - Child (New Added Rail): Evaluated in ASCENDING order (Node 0 -> ... -> Max Node ID)
+ * 
+ * [NODE ID ASSIGNMENT GUIDELINES (HIGHER NUMBERS = HIGHER PRIORITY)]
+ * 1. Highest Node IDs (Primary Exit / Main Extension Target):
+ *    - Main straight / forward exit direction where the user most likely wants to extend next.
+ *    - Assign the MAXIMUM Node ID (e.g., Node 3 for 4-node parts, Node 5 for 6-node parts).
+ *    - For turnouts or junctions, allocate the highest IDs to the primary straight exit route.
+ * 
+ * 2. Intermediate Node IDs (Secondary Exits & Branching Routes):
+ *    - Branching curve exits, crossover paths, or secondary outer track exits.
+ *    - Assign sequentially below the maximum ID.
+ * 
+ * 3. Node ID 0 & Lower IDs (Primary Entrances & Backside Nodes):
+ *    - Entry nodes located on the backward/left side of the rail part.
+ *    - Node ID 0 is assigned to the main entry point (lowest evaluation priority for parent).
+ *    - This ensures that parent rails extend FORWARD from their highest exit nodes into 
+ *      the child rail's entry nodes (starting at Node 0), preventing unwanted reverse connections.
+ * 
+ * [EXCEPTIONS]
+ * Special symmetrical or non-directional geometries (e.g., turntables, balloon loops) 
+ * can assign IDs based on their natural logical flow.
  * =============================================================================
  */
 
+// =============================================================
+// TOMIX ワイドPCレール パーツライブラリ (rail-catalog-tomix-wide.js)
+// =============================================================
 registerRailParts({
     // =========================================================
     // ワイドPC直線レール (S280-WP / S140-WP)
@@ -18,28 +40,24 @@ registerRailParts({
     "TOMIX-W280": {
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N", "TOMIX-WIDETRAM-N"],
-        category: "wide-straight",
+        category: "straight",
         name: "S280-WP-F",
         description: "ワイドPCレール S280-WP (幅37mm)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -140, "relY": 0, "facingAngle": 180 },
-            { "id": 1, "jointType": "side-joiner", "name": "左側ジョイント", "relX": 0, "relY": -18.5, "facingAngle": 270, "jointGroup": "tomix-wide-side" },
-            { "id": 2, "jointType": "side-joiner", "name": "右側ジョイント", "relX": 0, "relY": 18.5, "facingAngle": 90, "jointGroup": "tomix-wide-side" },
-            { "id": 3, "jointType": "rail-end", "name": "延伸端", "relX": 140, "relY": 0, "facingAngle": 0 }
+            { "id": 1, "jointType": "rail-end", "name": "延伸端", "relX": 140,  "relY": 0, "facingAngle": 0 }
         ],
         shapes: [{ "type": "line", "length": 280, "offsetX": 0, "offsetY": 0 }]
     },
     "TOMIX-W140": {
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N", "TOMIX-WIDETRAM-N"],
-        category: "wide-straight",
+        category: "straight",
         name: "S140-WP-F",
         description: "ワイドPCレール S140-WP (幅37mm)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -70, "relY": 0, "facingAngle": 180 },
-            { "id": 1, "jointType": "side-joiner", "name": "左側ジョイント", "relX": 0, "relY": -18.5, "facingAngle": 270, "jointGroup": "tomix-wide-side" },
-            { "id": 2, "jointType": "side-joiner", "name": "右側ジョイント", "relX": 0, "relY": 18.5, "facingAngle": 90, "jointGroup": "tomix-wide-side" },
-            { "id": 3, "jointType": "rail-end", "name": "延伸端", "relX": 70, "relY": 0, "facingAngle": 0 }
+            { "id": 1, "jointType": "rail-end", "name": "延伸端", "relX": 70,  "relY": 0, "facingAngle": 0 }
         ],
         shapes: [{ "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 }]
     },
@@ -49,7 +67,8 @@ registerRailParts({
     // =========================================================
     "TOMIX-CR317-22.5-V-L": {
         systemId: "TOMIX-WIDE-N",
-        category: "wide-cant-approach",
+        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
+        category: "curve",
         name: "CR317-22.5-WP-F(L)",
         description: "ワイドPCアプローチレール CR317-22.5-WP (左カント入り口)",
         nodes: [
@@ -60,7 +79,8 @@ registerRailParts({
     },
     "TOMIX-CR317-22.5-V-R": {
         systemId: "TOMIX-WIDE-N",
-        category: "wide-cant-approach",
+        compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-WIDE-N"],
+        category: "curve",
         name: "CR317-22.5-WP-F(R)",
         description: "ワイドPCアプローチレール CR317-22.5-WP (右カント入り口)",
         nodes: [
@@ -75,7 +95,8 @@ registerRailParts({
     // =========================================================
     "TOMIX-C317-22.5-V": {
         systemId: "TOMIX-WIDE-N",
-        category: "wide-cant-curve",
+        compatibleSystems: ["TOMIX-WIDE-N"],
+        category: "curve",
         name: "C317-22.5-WP-F",
         description: "ワイドPCカント曲線レール C317-22.5-WP",
         nodes: [
