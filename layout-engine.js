@@ -246,8 +246,6 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
                 if (isNodeOccupied(otherId, oNode.nodeId)) return;
                 if (!canConnectNodes(newRail, nNode.nodeId, otherRail, oNode.nodeId)) return;
 
-                console.log(nNode)
-                console.log(oNode)
                 if (isNodePositionCompatible(nNode, oNode, 8, 5)) {
                     addGlobalJointIfFree(newId, nNode.nodeId, otherId, oNode.nodeId);
                 }
