@@ -160,7 +160,7 @@ registerRailParts({
     },
 
     // =========================================================
-    // 曲線レール (円弧中心 (0,0) 基準再計算版)
+    // 曲線レール (描画角度・startAngle 修正版)
     // =========================================================
 
     // --- R280 シリーズ ---
@@ -178,7 +178,7 @@ registerRailParts({
             { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -29.13, "relY": 297.07, "facingAngle": -95.625 },
             { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 29.13,  "relY": 297.07, "facingAngle": -84.375 }
         ],
-        shapes: [{ "type": "arc", "radius": 280, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 101.25 }]
+        shapes: [{ "type": "arc", "radius": 280, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 78.75 }]
     },
     "TOMIX-C280-45-V": {
         systemId: "TOMIX-WIDE-N",
@@ -194,7 +194,7 @@ registerRailParts({
             { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -58.24, "relY": 292.76, "facingAngle": -101.25 },
             { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 58.24,  "relY": 292.76, "facingAngle": -78.75 }
         ],
-        shapes: [{ "type": "arc", "radius": 280, "arcAngle": 45, "centerX": 0, "centerY": 0, "startAngle": 112.5 }]
+        shapes: [{ "type": "arc", "radius": 280, "arcAngle": 45, "centerX": 0, "centerY": 0, "startAngle": 67.5 }]
     },
     "TOMIX-CR280-22.5-CANT-FLAT": {
         systemId: "TOMIX-WIDE-N",
@@ -210,7 +210,7 @@ registerRailParts({
             { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": -29.13, "relY": 297.07, "facingAngle": -95.625 },
             { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R298.5", "relX": 29.13,  "relY": 297.07, "facingAngle": -84.375 }
         ],
-        shapes: [{ "type": "arc", "radius": 280, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 101.25 }]
+        shapes: [{ "type": "arc", "radius": 280, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 78.75 }]
     },
 
     // --- R317 シリーズ ---
@@ -228,7 +228,7 @@ registerRailParts({
             { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -32.74, "relY": 333.90, "facingAngle": -95.625 },
             { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 32.74,  "relY": 333.90, "facingAngle": -84.375 }
         ],
-        shapes: [{ "type": "arc", "radius": 317, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 101.25 }]
+        shapes: [{ "type": "arc", "radius": 317, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 78.75 }]
     },
     "TOMIX-C317-45-V": {
         systemId: "TOMIX-WIDE-N",
@@ -244,7 +244,7 @@ registerRailParts({
             { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -65.46, "relY": 329.05, "facingAngle": -101.25 },
             { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 65.46,  "relY": 329.05, "facingAngle": -78.75 }
         ],
-        shapes: [{ "type": "arc", "radius": 317, "arcAngle": 45, "centerX": 0, "centerY": 0, "startAngle": 112.5 }]
+        shapes: [{ "type": "arc", "radius": 317, "arcAngle": 45, "centerX": 0, "centerY": 0, "startAngle": 67.5 }]
     },
     "TOMIX-CR317-22.5-CANT-FLAT": {
         systemId: "TOMIX-WIDE-N",
@@ -260,7 +260,7 @@ registerRailParts({
             { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": -32.74, "relY": 333.90, "facingAngle": -95.625 },
             { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R335.5", "relX": 32.74,  "relY": 333.90, "facingAngle": -84.375 }
         ],
-        shapes: [{ "type": "arc", "radius": 317, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 101.25 }]
+        shapes: [{ "type": "arc", "radius": 317, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 78.75 }]
     },
 
     // --- R354 シリーズ ---
@@ -278,7 +278,7 @@ registerRailParts({
             { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -36.35, "relY": 370.72, "facingAngle": -95.625 },
             { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 36.35,  "relY": 370.72, "facingAngle": -84.375 }
         ],
-        shapes: [{ "type": "arc", "radius": 354, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 101.25 }]
+        shapes: [{ "type": "arc", "radius": 354, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 78.75 }]
     },
     "TOMIX-C354-45-V": {
         systemId: "TOMIX-WIDE-N",
@@ -294,7 +294,7 @@ registerRailParts({
             { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -72.68, "relY": 365.34, "facingAngle": -101.25 },
             { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 72.68,  "relY": 365.34, "facingAngle": -78.75 }
         ],
-        shapes: [{ "type": "arc", "radius": 354, "arcAngle": 45, "centerX": 0, "centerY": 0, "startAngle": 112.5 }]
+        shapes: [{ "type": "arc", "radius": 354, "arcAngle": 45, "centerX": 0, "centerY": 0, "startAngle": 67.5 }]
     },
     "TOMIX-CR354-22.5-CANT-FLAT": {
         systemId: "TOMIX-WIDE-N",
@@ -310,7 +310,7 @@ registerRailParts({
             { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": -36.35, "relY": 370.72, "facingAngle": -95.625 },
             { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R372.5", "relX": 36.35,  "relY": 370.72, "facingAngle": -84.375 }
         ],
-        shapes: [{ "type": "arc", "radius": 354, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 101.25 }]
+        shapes: [{ "type": "arc", "radius": 354, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 78.75 }]
     },
 
     // --- R391 シリーズ ---
@@ -328,7 +328,7 @@ registerRailParts({
             { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": -39.96, "relY": 407.55, "facingAngle": -95.625 },
             { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": 39.96,  "relY": 407.55, "facingAngle": -84.375 }
         ],
-        shapes: [{ "type": "arc", "radius": 391, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 101.25 }]
+        shapes: [{ "type": "arc", "radius": 391, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 78.75 }]
     },
     "TOMIX-C391-45-V": {
         systemId: "TOMIX-WIDE-N",
@@ -344,7 +344,7 @@ registerRailParts({
             { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": -79.90, "relY": 401.63, "facingAngle": -101.25 },
             { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": 79.90,  "relY": 401.63, "facingAngle": -78.75 }
         ],
-        shapes: [{ "type": "arc", "radius": 391, "arcAngle": 45, "centerX": 0, "centerY": 0, "startAngle": 112.5 }]
+        shapes: [{ "type": "arc", "radius": 391, "arcAngle": 45, "centerX": 0, "centerY": 0, "startAngle": 67.5 }]
     },
     "TOMIX-CR391-22.5-CANT-FLAT": {
         systemId: "TOMIX-WIDE-N",
@@ -360,7 +360,7 @@ registerRailParts({
             { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": -39.96, "relY": 407.55, "facingAngle": -95.625 },
             { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R409.5", "relX": 39.96,  "relY": 407.55, "facingAngle": -84.375 }
         ],
-        shapes: [{ "type": "arc", "radius": 391, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 101.25 }]
+        shapes: [{ "type": "arc", "radius": 391, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 78.75 }]
     },
 
     // --- 緩曲線 シリーズ ---
@@ -378,7 +378,7 @@ registerRailParts({
             { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R559.5", "relX": -36.54, "relY": 554.71, "facingAngle": -93.75 },
             { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R559.5", "relX": 36.54,  "relY": 554.71, "facingAngle": -86.25 }
         ],
-        shapes: [{ "type": "arc", "radius": 541, "arcAngle": 15, "centerX": 0, "centerY": 0, "startAngle": 97.5 }]
+        shapes: [{ "type": "arc", "radius": 541, "arcAngle": 15, "centerX": 0, "centerY": 0, "startAngle": 82.5 }]
     },
     "TOMIX-C605-10-WP": {
         systemId: "TOMIX-WIDE-N",
@@ -394,7 +394,7 @@ registerRailParts({
             { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R623.5", "relX": -27.18, "relY": 621.16, "facingAngle": -92.5 },
             { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R623.5", "relX": 27.18,  "relY": 621.16, "facingAngle": -87.5 }
         ],
-        shapes: [{ "type": "arc", "radius": 605, "arcAngle": 10, "centerX": 0, "centerY": 0, "startAngle": 95.0 }]
+        shapes: [{ "type": "arc", "radius": 605, "arcAngle": 10, "centerX": 0, "centerY": 0, "startAngle": 85.0 }]
     },
 
     // =========================================================
