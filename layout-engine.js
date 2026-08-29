@@ -600,9 +600,9 @@ function updateJointIndicators() {
             });
 
             canvas.add(dot);
-//            canvas.add(line);
+            canvas.add(line);
             canvas.bringToFront(dot);
-//            canvas.bringToFront(line);
+            canvas.bringToFront(line);
         });
     });
 }
