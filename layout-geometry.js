@@ -2,7 +2,7 @@
 // 鉄道模型レイアウトジェネレータ - 幾何・座標計算
 // バージョン: VER-LAYOUT-GEO-H1
 // =============================================================
-console.log("幾何・座標計算（JS）が読み込まれました: VER-LAYOUT-GEO-H0");
+console.log("幾何・座標計算（JS）が読み込まれました: VER-LAYOUT-GEO-H1");
 
 function generateGenericRailData(catalogItem) {
     const basePaths = [];
@@ -211,7 +211,7 @@ function getMovedRailIds(target) {
 }
 
 /**
- * 2つの絶対座標ノードの位置および向き（角度）が接続許容範囲内にあるか判定する
+ * 2つの絶対座標ノードの位置および向き（対向角）が接続許容範囲内にあるか判定する
  * @param {Object} nodeA - ノードA (x, y, angle)
  * @param {Object} nodeB - ノードB (x, y, angle)
  * @param {number} maxDist - 許容最大距離 (px)
@@ -224,8 +224,10 @@ function isNodePositionCompatible(nodeA, nodeB, maxDist = 8, maxAngleError = 10)
     const dist = Math.hypot(nodeA.x - nodeB.x, nodeA.y - nodeB.y);
     if (dist > maxDist) return false;
 
-    let angleDiff = Math.abs((nodeA.angle - nodeB.angle + 540) % 360 - 180);
+    let angleDiff = Math.abs((nodeA.angle - nodeB.angle) % 360);
     if (angleDiff > 180) angleDiff = 360 - angleDiff;
 
-    return angleDiff <= maxAngleError;
+    const angleError = Math.abs(180 - angleDiff);
+
+    return angleError <= maxAngleError;
 }
