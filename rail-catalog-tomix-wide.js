@@ -524,6 +524,84 @@ registerRailParts({
         ]
     },
 
+    // --- 1. C541-15-WP（片側道床版） ---
+    "TOMIX-N-C541-15-WP-SINGLE": {
+        systemId: "TOMIX-WIDE-N",
+        category: "curve",
+        name: "C541-15-WP(片側道床)",
+        description: "ポイント接続用片側道床カーブ基幹レール",
+        ballastWidth: 18.5, // 片側道床（37/2 mm）
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "端点1", "relX": -70.0, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "端点2", "relX": 68.7,  "relY": 18.3, "facingAngle": 15.0 },
+            // 外側バラスト接続用ジョイント (R = 541 - 9.25 = 531.75 mm)
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "外側バラスト接続", "relX": -0.59, "relY": 13.91, "facingAngle": 97.5 }
+        ],
+        shapes: [
+            { "type": "arc", "radius": 541, "arcAngle": 15, "centerX": -70.0, "centerY": 541.0, "startAngle": 270 }
+        ]
+    },
+
+    // --- 2. S140-WP（ポイント分岐用・片側道床版） ---
+    "TOMIX-N-S140-WP-SINGLE": {
+        systemId: "TOMIX-WIDE-N",
+        category: "straight",
+        name: "S140-WP(片側道床)",
+        description: "ポイント分岐用片側道床直線レール",
+        ballastWidth: 18.5, // 片側道床（37/2 mm）
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "端点1", "relX": -70.0, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "端点2", "relX": 70.0,  "relY": 0, "facingAngle": 0 },
+            // 直線外側のバラスト接続用ジョイント (Y = -9.25 mm)
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "外側バラスト接続", "relX": 0, "relY": -9.25, "facingAngle": 270 }
+        ],
+        shapes: [
+            { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 }
+        ]
+    },
+
+    // --- 3. バラストパーツ L5（左ポイント後の隙間埋め用） ---
+    "TOMIX-N-BALLAST-L5": {
+        systemId: "TOMIX-WIDE-N",
+        category: "turnout",
+        trackType: "ballast-only",
+        name: "バラストパーツ L5",
+        description: "ポイント分岐・渡り用隙間埋めバラスト(L)",
+        ballastWidth: 9.25,
+        nodes: [
+            // 直線側接続ジョイント
+            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "直線側接続", "relX": 0, "relY": 9.25, "facingAngle": 90 },
+            // カーブ側接続ジョイント (R = 531.75 mm の交点)
+            { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側接続", "relX": -0.59, "relY": -13.91, "facingAngle": 262.5 }
+        ],
+        shapes: [
+            // 直線エッジ＋カーブエッジで囲まれる隙間バラストのジオメトリ
+            { "type": "line", "length": 140, "offsetX": 0, "offsetY": 4.625 },
+            { "type": "arc", "radius": 541 - 3/8 * 37, "arcAngle": -15, "centerX": -70.0, "centerY": -527.125, "startAngle": 90 }
+        ]
+    },
+
+    // --- 4. バラストパーツ R5（右ポイント後の隙間埋め用） ---
+    "TOMIX-N-BALLAST-R5": {
+        systemId: "TOMIX-WIDE-N",
+        category: "turnout",
+        trackType: "ballast-only",
+        name: "バラストパーツ R5",
+        description: "ポイント分岐・渡り用隙間埋めバラスト(R)",
+        ballastWidth: 9.25,
+        nodes: [
+            // 直線側接続ジョイント
+            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "直線側接続", "relX": 0, "relY": -9.25, "facingAngle": 270 },
+            // カーブ側接続ジョイント (R = 531.75 mm の交点)
+            { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側接続", "relX": -0.59, "relY": 13.91, "facingAngle": 97.5 }
+        ],
+        shapes: [
+            // 直線エッジ＋カーブエッジで囲まれる隙間バラストのジオメトリ
+            { "type": "line", "length": 140, "offsetX": 0, "offsetY": -4.625 },
+            { "type": "arc", "radius": 541 - 3/8 * 37, "arcAngle": 15, "centerX": -70.0, "centerY": 527.125, "startAngle": 270 }
+        ]
+    },
+
     // --- 外付け道床パーツ：直線 S140 用 ---
     "TOMIX-N-BALLAST-S140": {
         systemId: "TOMIX-WIDE-N",
