@@ -538,8 +538,12 @@ registerRailParts({
             { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "外側バラスト接続", "relX": -0.59, "relY": 13.91, "facingAngle": 97.5 }
         ],
         shapes: [
-            { "type": "arc", "radius": 541, "arcAngle": 15, "centerX": -70.0, "centerY": 541.0, "startAngle": 270 }
+            // レール＆内側ベースライン（中心線）
+            { "type": "arc", "radius": 541, "arcAngle": 15, "centerX": -70.0, "centerY": 541.0, "startAngle": 270 },
+            // 外側バラスト（R541から外側に 4.625mm オフセット、幅 9.25mm）
+            { "type": "arc", "radius": 545.625, "arcAngle": 15, "centerX": -70.0, "centerY": 541.0, "startAngle": 270 }
         ]
+    },
     },
 
     // --- 2. S140-WP（ポイント分岐用・片側道床版） ---
@@ -556,7 +560,10 @@ registerRailParts({
             { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "外側バラスト接続", "relX": 0, "relY": -9.25, "facingAngle": 270 }
         ],
         shapes: [
-            { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 }
+            // レール＆メイン道床
+            { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
+            // 外側追加道床 (y = -4.625mm 位置)
+            { "type": "line", "length": 140, "offsetX": 0, "offsetY": -4.625 }
         ]
     },
 
