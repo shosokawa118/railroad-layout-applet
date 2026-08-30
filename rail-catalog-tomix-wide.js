@@ -483,9 +483,17 @@ registerRailParts({
             { "id": 1, "jointType": "rail-end", "name": "直進端", "relX": 70.0,  "relY": 0,    "facingAngle": 0 },
             { "id": 2, "jointType": "rail-end", "name": "分岐端", "relX": 68.7,  "relY": 18.3, "facingAngle": 15.0 },
 
-            // 外付け道床接続用サイドノード (直線外側中央1個, カーブ外側中央1個)
+            // 外付け道床接続用サイドノード (直線外側中央1個, カーブ内側/外付け道床側1個)
             { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "直線側着脱用ノード(左)", "relX": 0, "relY": -9.25, "facingAngle": 270 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側着脱用ノード(外)", "relX": 1.74, "relY": 18.25, "facingAngle": 97.5 }
+            /**
+             * ポイント分岐側・道床接続ノード (R_inner_edge = 541 - 18.5/2 = 531.75 mm):
+             *   - 円弧の中心: (-70.0, 541.0)
+             *   - 弧の中央角度: 7.5°
+             *   - 相対座標計算:
+             *       relX = -70.0 + 531.75 * sin(7.5°) ≈ -0.59 mm
+             *       relY = 541.0 - 531.75 * cos(7.5°) ≈ 13.91 mm
+             */
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側着脱用ノード(内)", "relX": -0.59, "relY": 13.91, "facingAngle": 97.5 }
         ],
         shapes: [
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
@@ -506,9 +514,9 @@ registerRailParts({
             { "id": 1, "jointType": "rail-end", "name": "直進端", "relX": 70.0,  "relY": 0,     "facingAngle": 0 },
             { "id": 2, "jointType": "rail-end", "name": "分岐端", "relX": 68.7,  "relY": -18.3, "facingAngle": -15.0 },
 
-            // 外付け道床接続用サイドノード (直線外側中央1個, カーブ外側中央1個)
+            // 外付け道床接続用サイドノード (直線外側中央1個, カーブ内側/外付け道床側1個)
             { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "直線側着脱用ノード(右)", "relX": 0, "relY": 9.25, "facingAngle": 90 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側着脱用ノード(外)", "relX": 1.74, "relY": -18.25, "facingAngle": 262.5 }
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側着脱用ノード(内)", "relX": -0.59, "relY": -13.91, "facingAngle": 262.5 }
         ],
         shapes: [
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
@@ -542,22 +550,20 @@ registerRailParts({
         ballastWidth: 9.25, // 37 / 4 mm
         nodes: [
             /**
-             * ジョイント位置の計算根拠 (R = 527.125 mm):
-             *   - 中心点: (centerX, centerY) = (-70.0, 527.125)
-             *   - 角度: 15°の半分である 7.5°（弧の中央位置）
-             *   - 相対座標 (relX, relY):
-             *       relX = -70.0 + 527.125 * sin(7.5°) ≈ -1.15 mm
-             *       relY =  527.125 - 527.125 * cos(7.5°) + 4.625 ≈ 9.10 mm
-             *     ※ ノードの自力基準位置（内径寄り 4.625mm）からのオフセットを適用
+             * バラスト外径側の接続ノード (R = 531.75 mm):
+             *   - 円弧の中心: (-70.0, 527.125)
+             *   - 弧の中央角度: 7.5°
+             *   - 相対座標計算:
+             *       relX = -70.0 + 531.75 * sin(7.5°) ≈ -0.59 mm
+             *       relY = 527.125 - 531.75 * cos(7.5°) ≈ 0.03 mm (ローカル座標系での高さ)
              */
-            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "接続端", "relX": -1.15, "relY": 9.10, "facingAngle": 277.5 }
+            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "接続端", "relX": -0.59, "relY": 0.03, "facingAngle": 277.5 }
         ],
         shapes: [
             /**
-             * 幾何構造の補足:
-             * 複線間隔 37mm を4等分した最も内側のセグメント。
-             * 路線中心半径 R541 から 複線幅の半分のさらに半分 (3/8 * 37 = 13.875mm) 内側にシフトするため、
-             * 描画・判定用半径は 541 - 3/8 * 37 = 527.125 mm となる。
+             * 描画定義:
+             * 扇形自体の中心半径: R = 541 - 3/8 * 37 = 527.125 mm
+             * 道床幅 9.25mm（外径 531.75mm / 内径 522.5mm）
              */
             { "type": "arc", "radius": 541 - 3/8 * 37, "arcAngle": 15, "centerX": -70.0, "centerY": 527.125, "startAngle": 270 }
         ]
