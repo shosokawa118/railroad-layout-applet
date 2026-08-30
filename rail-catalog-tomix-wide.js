@@ -541,10 +541,25 @@ registerRailParts({
         description: "ポイント分岐用外付け道床（カーブ用）",
         ballastWidth: 9.25, // 37 / 4 mm
         nodes: [
-            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "接続端", "relX": -0.07, "relY": 4.38, "facingAngle": 277.5 }
+            /**
+             * ジョイント位置の計算根拠 (R = 527.125 mm):
+             *   - 中心点: (centerX, centerY) = (-70.0, 527.125)
+             *   - 角度: 15°の半分である 7.5°（弧の中央位置）
+             *   - 相対座標 (relX, relY):
+             *       relX = -70.0 + 527.125 * sin(7.5°) ≈ -1.15 mm
+             *       relY =  527.125 - 527.125 * cos(7.5°) + 4.625 ≈ 9.10 mm
+             *     ※ ノードの自力基準位置（内径寄り 4.625mm）からのオフセットを適用
+             */
+            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "接続端", "relX": -1.15, "relY": 9.10, "facingAngle": 277.5 }
         ],
         shapes: [
-            { "type": "arc", "radius": 541, "arcAngle": 15, "centerX": -70.0, "centerY": 541.0, "startAngle": 270 }
+            /**
+             * 幾何構造の補足:
+             * 複線間隔 37mm を4等分した最も内側のセグメント。
+             * 路線中心半径 R541 から 複線幅の半分のさらに半分 (3/8 * 37 = 13.875mm) 内側にシフトするため、
+             * 描画・判定用半径は 541 - 3/8 * 37 = 527.125 mm となる。
+             */
+            { "type": "arc", "radius": 541 - 3/8 * 37, "arcAngle": 15, "centerX": -70.0, "centerY": 527.125, "startAngle": 270 }
         ]
     }
 });
