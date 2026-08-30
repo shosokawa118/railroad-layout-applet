@@ -17,9 +17,8 @@ function generateGenericRailData(catalogItem) {
 
     const halfW = BALLAST_WIDTH / 2;
 
-    const trackType = (catalogItem && catalogItem.trackType) || (sys && sys.trackType) || 'standard';
     const gauge = sys ? sys.gauge : null;
-    const shouldRenderRails = (trackType === 'standard') && (typeof gauge === 'number' && gauge > 0);
+    const shouldRenderRails = (typeof gauge === 'number' && gauge > 0);
     const halfGauge = shouldRenderRails ? gauge / 2 : 0;
 
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
