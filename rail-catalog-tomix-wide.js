@@ -570,7 +570,6 @@ registerRailParts({
     "TOMIX-N-BALLAST-L5": {
         systemId: "TOMIX-WIDE-N",
         category: "turnout",
-        trackType: "ballast-only",
         name: "バラストパーツ L5",
         description: "ポイント分岐・渡り用隙間埋めバラスト(L)",
         ballastWidth: 9.25,
@@ -582,24 +581,7 @@ registerRailParts({
         ],
         shapes: [
             // 直線エッジ＋カーブエッジで囲まれる隙間バラストのジオメトリ
-            {
-                "type": "path",
-                "commands": [
-                    { "code": "M", "x": -70.0, "y": 0.0 },
-                    { "code": "L", "x": 70.0, "y": 0.0 },
-                    {
-                        "code": "A",
-                        "rx": 531.75,
-                        "ry": 531.75,
-                        "xAxisRotation": 0,
-                        "largeArcFlag": 0,
-                        "sweepFlag": 0,
-                        "x": -70.0,
-                        "y": 0.0
-                    },
-                    { "code": "Z" }
-                ]
-            }
+            { "type": "path", "pathData": "M -70 0 L 70 0 A 531.75 531.75 0 0 0 -70 0 Z" }
         ]
     },
 
@@ -607,7 +589,6 @@ registerRailParts({
     "TOMIX-N-BALLAST-R5": {
         systemId: "TOMIX-WIDE-N",
         category: "turnout",
-        trackType: "ballast-only",
         name: "バラストパーツ R5",
         description: "ポイント分岐・渡り用隙間埋めバラスト(R)",
         ballastWidth: 9.25,
@@ -619,24 +600,7 @@ registerRailParts({
         ],
         shapes: [
             // 直線エッジ＋カーブエッジで囲まれる隙間バラストのジオメトリ
-            {
-                "type": "path",
-                "commands": [
-                    { "code": "M", "x": -70.0, "y": 0.0 },
-                    { "code": "L", "x": 70.0, "y": 0.0 },
-                    {
-                        "code": "A",
-                        "rx": 531.75,
-                        "ry": 531.75,
-                        "xAxisRotation": 0,
-                        "largeArcFlag": 0,
-                        "sweepFlag": 1,
-                        "x": -70.0,
-                        "y": 0.0
-                    },
-                    { "code": "Z" }
-                ]
-            }
+            { "type": "path", "pathData": "M -70 0 L 70 0 A 531.75 531.75 0 0 1 -70 0 Z" }
         ]
     },
 
