@@ -1,8 +1,8 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 幾何・座標計算
-// バージョン: VER-LAYOUT-GEO-G0
+// バージョン: VER-LAYOUT-GEO-G1
 // =============================================================
-console.log("幾何・座標計算（JS）が読み込まれました: VER-LAYOUT-GEO-G0");
+console.log("幾何・座標計算（JS）が読み込まれました: VER-LAYOUT-GEO-G1");
 
 function generateGenericRailData(catalogItem) {
     const basePaths = [];
@@ -42,6 +42,22 @@ function generateGenericRailData(catalogItem) {
             });
             polyPath += " Z";
             basePaths.push(polyPath);
+        }
+        else if (shape.type === "path" && shape.pathData) {
+            // SVG Path文字列を直接 basePaths に追加
+            basePaths.push(shape.pathData);
+
+            // Path文字列から主要な数値座標（X, Y）を簡易抽出して bounds を更新
+            const coords = shape.pathData.match(/[-+]?\d*\.?\d+/g);
+            if (coords) {
+                for (let i = 0; i < coords.length - 1; i += 2) {
+                    const px = parseFloat(coords[i]);
+                    const py = parseFloat(coords[i + 1]);
+                    if (!isNaN(px) && !isNaN(py)) {
+                        updateBounds(px, py);
+                    }
+                }
+            }
         }
         else if (shape.type === "line") {
             const len = shape.length;
