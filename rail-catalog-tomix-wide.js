@@ -464,5 +464,87 @@ registerRailParts({
             { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": -32, "relY": 18.5,  "facingAngle": 90,  "polarity": -1 }  // 左下
         ],
         shapes: [{ "type": "line", "length": 70, "offsetX": 0, "offsetY": 0 }]
+    },
+
+    // =========================================================
+    // TOMIX ワイドPCポイントレール & 拡張バラストパーツ
+    // =========================================================
+
+    // --- ポイント本体（右 PR541-15） ---
+    "TOMIX-N-WPR541-15": {
+        systemId: "TOMIX-FINETRACK-N",
+        category: "turnout",
+        name: "N-WPR541-15-WB",
+        description: "ワイドPC電動ポイント (右)",
+        ballastWidth: 18.5, // 37/2 mm
+        nodes: [
+            // レール端接続ノード (0〜2)
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -70.0, "relY": 0,    "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "直進端", "relX": 70.0,  "relY": 0,    "facingAngle": 0 },
+            { "id": 2, "jointType": "rail-end", "name": "分岐端", "relX": 68.7,  "relY": 18.3, "facingAngle": 15.0 },
+
+            // 外付け道床接続用サイドノード (直線外側中央1個, カーブ外側中央1個)
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "直線側着脱用ノード(左)", "relX": 0, "relY": -9.25, "facingAngle": 270 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側着脱用ノード(外)", "relX": 0.58, "relY": 18.42, "facingAngle": 97.5 }
+        ],
+        shapes: [
+            { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
+            { "type": "arc", "radius": 541, "arcAngle": 15, "centerX": -70.0, "centerY": 541.0, "startAngle": 270 }
+        ]
+    },
+
+    // --- ポイント本体（左 PL541-15） ---
+    "TOMIX-N-WPL541-15": {
+        systemId: "TOMIX-FINETRACK-N",
+        category: "turnout",
+        name: "N-WPL541-15-WB",
+        description: "ワイドPC電動ポイント (左)",
+        ballastWidth: 18.5, // 37/2 mm
+        nodes: [
+            // レール端接続ノード (0〜2)
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -70.0, "relY": 0,     "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "直進端", "relX": 70.0,  "relY": 0,     "facingAngle": 0 },
+            { "id": 2, "jointType": "rail-end", "name": "分岐端", "relX": 68.7,  "relY": -18.3, "facingAngle": -15.0 },
+
+            // 外付け道床接続用サイドノード (直線外側中央1個, カーブ外側中央1個)
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "直線側着脱用ノード(右)", "relX": 0, "relY": 9.25, "facingAngle": 90 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側着脱用ノード(外)", "relX": 0.58, "relY": -18.42, "facingAngle": 262.5 }
+        ],
+        shapes: [
+            { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
+            { "type": "arc", "radius": 541, "arcAngle": -15, "centerX": -70.0, "centerY": -541.0, "startAngle": 90 }
+        ]
+    },
+
+    // --- 外付け道床パーツ：直線 S140 用 ---
+    "TOMIX-N-BALLAST-S140": {
+        systemId: "TOMIX-FINETRACK-N",
+        category: "accessory",
+        trackType: "ballast-only",
+        name: "S140-WPバラスト",
+        description: "ポイント分岐用外付け道床（直線用）",
+        ballastWidth: 9.25, // 37/4 mm
+        nodes: [
+            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "接続端", "relX": 0, "relY": 4.625, "facingAngle": 90 }
+        ],
+        shapes: [
+            { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 }
+        ]
+    },
+
+    // --- 外付け道床パーツ：カーブ C541-15 用（L/R共通部品） ---
+    "TOMIX-N-BALLAST-C541-15": {
+        systemId: "TOMIX-FINETRACK-N",
+        category: "accessory",
+        trackType: "ballast-only",
+        name: "C541-15-WPバラスト",
+        description: "ポイント分岐用外付け道床（カーブ用）",
+        ballastWidth: 9.25, // 37/4 mm
+        nodes: [
+            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "接続端", "relX": 0.58, "relY": 7.62, "facingAngle": 277.5 }
+        ],
+        shapes: [
+            { "type": "arc", "radius": 541, "arcAngle": 15, "centerX": -70.0, "centerY": 541.0, "startAngle": 270 }
+        ]
     }
 });
