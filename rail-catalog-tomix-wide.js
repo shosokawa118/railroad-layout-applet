@@ -177,7 +177,7 @@ registerRailParts({
         shapes: [{ "type": "line", "length": 18.5, "offsetX": 0, "offsetY": 0 }]
     },
 
-// =========================================================
+    // =========================================================
     // 曲線レール（修正版）
     // facingAngle定義:
     //   外周 (R_outer): 中心(0,0)から外側に向くベクトル = atan2(relY, relX)
@@ -576,8 +576,24 @@ registerRailParts({
         ],
         shapes: [
             // 直線エッジ＋カーブエッジで囲まれる隙間バラストのジオメトリ
-            { "type": "line", "length": 140, "offsetX": 0, "offsetY": 4.625 },
-            { "type": "arc", "radius": 541 - 3/8 * 37, "arcAngle": -15, "centerX": -70.0, "centerY": -527.125, "startAngle": 90 }
+            {
+                "type": "path",
+                "commands": [
+                    { "code": "M", "x": -70.0, "y": 0.0 },
+                    { "code": "L", "x": 70.0, "y": 0.0 },
+                    {
+                        "code": "A",
+                        "rx": 531.75,
+                        "ry": 531.75,
+                        "xAxisRotation": 0,
+                        "largeArcFlag": 0,
+                        "sweepFlag": 0,
+                        "x": -70.0,
+                        "y": 0.0
+                    },
+                    { "code": "Z" }
+                ]
+            }
         ]
     },
 
@@ -597,8 +613,24 @@ registerRailParts({
         ],
         shapes: [
             // 直線エッジ＋カーブエッジで囲まれる隙間バラストのジオメトリ
-            { "type": "line", "length": 140, "offsetX": 0, "offsetY": -4.625 },
-            { "type": "arc", "radius": 541 - 3/8 * 37, "arcAngle": 15, "centerX": -70.0, "centerY": 527.125, "startAngle": 270 }
+            {
+                "type": "path",
+                "commands": [
+                    { "code": "M", "x": -70.0, "y": 0.0 },
+                    { "code": "L", "x": 70.0, "y": 0.0 },
+                    {
+                        "code": "A",
+                        "rx": 531.75,
+                        "ry": 531.75,
+                        "xAxisRotation": 0,
+                        "largeArcFlag": 0,
+                        "sweepFlag": 1,
+                        "x": -70.0,
+                        "y": 0.0
+                    },
+                    { "code": "Z" }
+                ]
+            }
         ]
     },
 
