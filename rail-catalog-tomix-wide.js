@@ -580,8 +580,8 @@ registerRailParts({
             { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側接続", "relX": -0.59, "relY": -13.91, "facingAngle": 262.5 }
         ],
         shapes: [
-            // 直線エッジ＋カーブエッジで囲まれる隙間バラストのジオメトリ
-            { "type": "path", "pathData": "M -70 0 L 70 0 A 531.75 531.75 0 0 0 -70 0 Z" }
+            // 頂点(-70,0)から直線底辺(70,0)へ伸び、右端高さ(70, 18.5)まで上がり、R531.75の円弧を描いて頂点へ
+            { "type": "path", "pathData": "M -70 0 L 70 0 L 70 18.5 A 531.75 531.75 0 0 0 -70 0 Z" }
         ]
     },
 
@@ -599,8 +599,8 @@ registerRailParts({
             { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側接続", "relX": -0.59, "relY": 13.91, "facingAngle": 97.5 }
         ],
         shapes: [
-            // 直線エッジ＋カーブエッジで囲まれる隙間バラストのジオメトリ
-            { "type": "path", "pathData": "M -70 0 L 70 0 A 531.75 531.75 0 0 1 -70 0 Z" }
+            // 頂点(-70,0)から直線底辺(70,0)へ伸び、右端高さ(70, -18.5)へ下がり、R531.75の円弧を描いて頂点へ  
+            { "type": "path", "pathData": "M -70 0 L 70 0 L 70 -18.5 A 531.75 531.75 0 0 1 -70 0 Z" }
         ]
     },
 
