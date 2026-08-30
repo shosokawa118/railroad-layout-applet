@@ -574,14 +574,14 @@ registerRailParts({
         description: "ポイント分岐・渡り用隙間埋めバラスト(L)",
         ballastWidth: 9.25,
         nodes: [
-            // 直線側接続ジョイント
+            // 直線側接続ジョイント（パーツ下側の直線エッジ中央）
             { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "直線側接続", "relX": 0, "relY": 9.25, "facingAngle": 90 },
-            // カーブ側接続ジョイント (R = 531.75 mm の交点)
-            { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側接続", "relX": -0.59, "relY": -13.91, "facingAngle": 262.5 }
+            // カーブ側接続ジョイント（パーツ上側のカーブエッジ中央）
+            { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側接続", "relX": 0, "relY": -4.6, "facingAngle": 262.5 }
         ],
         shapes: [
-            // 頂点(-70,0)から直線底辺(70,0)へ伸び、右端高さ(70, 18.5)まで上がり、R531.75の円弧を描いて頂点へ
-            { "type": "path", "pathData": "M -70 0 L 70 0 L 70 18.5 A 531.75 531.75 0 0 0 -70 0 Z" }
+            // 左端(-70,0)を頂点とし、右端に向かって広がった後、R531.75の円弧で戻る楔形
+            { "type": "path", "pathData": "M -70 0 L 70 0 L 70 -18.5 A 531.75 531.75 0 0 0 -70 0 Z" }
         ]
     },
 
@@ -593,14 +593,14 @@ registerRailParts({
         description: "ポイント分岐・渡り用隙間埋めバラスト(R)",
         ballastWidth: 9.25,
         nodes: [
-            // 直線側接続ジョイント
+            // 直線側接続ジョイント（パーツ上側の直線エッジ中央）
             { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "直線側接続", "relX": 0, "relY": -9.25, "facingAngle": 270 },
-            // カーブ側接続ジョイント (R = 531.75 mm の交点)
-            { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側接続", "relX": -0.59, "relY": 13.91, "facingAngle": 97.5 }
+            // カーブ側接続ジョイント（パーツ下側のカーブエッジ中央）
+            { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側接続", "relX": 0, "relY": 4.6, "facingAngle": 97.5 }
         ],
         shapes: [
-            // 頂点(-70,0)から直線底辺(70,0)へ伸び、右端高さ(70, -18.5)へ下がり、R531.75の円弧を描いて頂点へ  
-            { "type": "path", "pathData": "M -70 0 L 70 0 L 70 -18.5 A 531.75 531.75 0 0 1 -70 0 Z" }
+            // 左端(-70,0)を頂点とし、右端に向かって広がった後、R531.75の円弧で戻る楔形
+            { "type": "path", "pathData": "M -70 0 L 70 0 L 70 18.5 A 531.75 531.75 0 0 1 -70 0 Z" }
         ]
     },
 
