@@ -544,7 +544,6 @@ registerRailParts({
             { "type": "arc", "radius": 545.625, "arcAngle": 15, "centerX": -70.0, "centerY": 541.0, "startAngle": 270 }
         ]
     },
-    },
 
     // --- 2. S140-WP（ポイント分岐用・片側道床版） ---
     "TOMIX-N-S140-WP-SINGLE": {
