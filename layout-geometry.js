@@ -1,15 +1,20 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 幾何・座標計算
-// バージョン: VER-LAYOUT-GEO-H1
+// バージョン: VER-LAYOUT-GEO-G0
 // =============================================================
-console.log("幾何・座標計算（JS）が読み込まれました: VER-LAYOUT-GEO-H1");
+console.log("幾何・座標計算（JS）が読み込まれました: VER-LAYOUT-GEO-G0");
 
 function generateGenericRailData(catalogItem) {
     const basePaths = [];
     const railPaths = [];
     
     const sys = catalogItem && catalogItem.systemId ? railCatalog.systems[catalogItem.systemId] : null;
-    const BALLAST_WIDTH = sys ? sys.ballastWidth : 16;
+    
+    // パーツ個別の ballastWidth オーバーライドを優先取得
+    const BALLAST_WIDTH = (catalogItem && typeof catalogItem.ballastWidth === 'number')
+        ? catalogItem.ballastWidth
+        : (sys ? sys.ballastWidth : 16);
+
     const halfW = BALLAST_WIDTH / 2;
 
     const trackType = (catalogItem && catalogItem.trackType) || (sys && sys.trackType) || 'standard';
