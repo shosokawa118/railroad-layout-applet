@@ -472,7 +472,7 @@ registerRailParts({
 
     // --- ポイント本体（右 PR541-15） ---
     "TOMIX-N-WPR541-15": {
-        systemId: "TOMIX-FINETRACK-N",
+        systemId: "TOMIX-WIDE-N",
         category: "turnout",
         name: "N-WPR541-15-WB",
         description: "ワイドPC電動ポイント (右)",
@@ -485,7 +485,7 @@ registerRailParts({
 
             // 外付け道床接続用サイドノード (直線外側中央1個, カーブ外側中央1個)
             { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "直線側着脱用ノード(左)", "relX": 0, "relY": -9.25, "facingAngle": 270 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側着脱用ノード(外)", "relX": 0.58, "relY": 18.42, "facingAngle": 97.5 }
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側着脱用ノード(外)", "relX": 1.74, "relY": 18.25, "facingAngle": 97.5 }
         ],
         shapes: [
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
@@ -495,7 +495,7 @@ registerRailParts({
 
     // --- ポイント本体（左 PL541-15） ---
     "TOMIX-N-WPL541-15": {
-        systemId: "TOMIX-FINETRACK-N",
+        systemId: "TOMIX-WIDE-N",
         category: "turnout",
         name: "N-WPL541-15-WB",
         description: "ワイドPC電動ポイント (左)",
@@ -508,7 +508,7 @@ registerRailParts({
 
             // 外付け道床接続用サイドノード (直線外側中央1個, カーブ外側中央1個)
             { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "直線側着脱用ノード(右)", "relX": 0, "relY": 9.25, "facingAngle": 90 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側着脱用ノード(外)", "relX": 0.58, "relY": -18.42, "facingAngle": 262.5 }
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側着脱用ノード(外)", "relX": 1.74, "relY": -18.25, "facingAngle": 262.5 }
         ],
         shapes: [
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
@@ -518,8 +518,8 @@ registerRailParts({
 
     // --- 外付け道床パーツ：直線 S140 用 ---
     "TOMIX-N-BALLAST-S140": {
-        systemId: "TOMIX-FINETRACK-N",
-        category: "accessory",
+        systemId: "TOMIX-WIDE-N",
+        category: "turnout",
         trackType: "ballast-only",
         name: "S140-WPバラスト",
         description: "ポイント分岐用外付け道床（直線用）",
@@ -534,14 +534,14 @@ registerRailParts({
 
     // --- 外付け道床パーツ：カーブ C541-15 用（L/R共通部品） ---
     "TOMIX-N-BALLAST-C541-15": {
-        systemId: "TOMIX-FINETRACK-N",
-        category: "accessory",
+        systemId: "TOMIX-WIDE-N",
+        category: "turnout",
         trackType: "ballast-only",
         name: "C541-15-WPバラスト",
         description: "ポイント分岐用外付け道床（カーブ用）",
-        ballastWidth: 9.25, // 37/4 mm
+        ballastWidth: 9.25, // 37 / 4 mm
         nodes: [
-            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "接続端", "relX": 0.58, "relY": 7.62, "facingAngle": 277.5 }
+            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "接続端", "relX": -0.07, "relY": 4.38, "facingAngle": 277.5 }
         ],
         shapes: [
             { "type": "arc", "radius": 541, "arcAngle": 15, "centerX": -70.0, "centerY": 541.0, "startAngle": 270 }
