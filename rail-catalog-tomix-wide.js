@@ -541,7 +541,7 @@ registerRailParts({
             // レール＆内側ベースライン（中心線）
             { "type": "arc", "radius": 541, "arcAngle": 15, "centerX": -70.0, "centerY": 541.0, "startAngle": 270 },
             // 外側バラスト（R541から外側に 4.625mm オフセット、幅 9.25mm）
-            { "type": "arc", "radius": 545.625, "arcAngle": 15, "centerX": -70.0, "centerY": 541.0, "startAngle": 270 }
+            { "type": "path", "pathData": "M -70 -9.25 L 68.7 9.05 A 550.25 550.25 0 0 1 68.7 27.55 A 531.75 531.75 0 0 0 -70 9.25 Z" }
         ]
     },
 
@@ -562,7 +562,7 @@ registerRailParts({
             // レール＆メイン道床
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
             // 外側追加道床 (y = -4.625mm 位置)
-            { "type": "line", "length": 140, "offsetX": 0, "offsetY": -4.625 }
+            { "type": "path", "pathData": "M -70 -18.5 L 70 -18.5 L 70 0 L -70 0 Z" }
         ]
     },
 
