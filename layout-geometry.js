@@ -46,14 +46,25 @@ function generateGenericRailData(catalogItem) {
             // SVG Path文字列を直接 basePaths に追加
             basePaths.push(shape.pathData);
 
-            // Path文字列から主要な数値座標（X, Y）を簡易抽出して bounds を更新
-            const coords = shape.pathData.match(/[-+]?\d*\.?\d+/g);
-            if (coords) {
-                for (let i = 0; i < coords.length - 1; i += 2) {
-                    const px = parseFloat(coords[i]);
-                    const py = parseFloat(coords[i + 1]);
-                    if (!isNaN(px) && !isNaN(py)) {
-                        updateBounds(px, py);
+            // コマンド（M, L, A等）とその後の数値群を順に解析して終点座標(X, Y)のみ抽出
+            const commandRegex = /([a-zA-Z])([^a-zA-Z]*)/g;
+            let match;
+            while ((match = commandRegex.exec(shape.pathData)) !== null) {
+                const cmd = match[1].toUpperCase();
+                const args = match[2].trim().split(/[\s,]+/).map(parseFloat).filter(n => !isNaN(n));
+                
+                if (args.length === 0) continue;
+
+                if (cmd === 'M' || cmd === 'L') {
+                    // M, L コマンド: [x, y] または連続する座標対の末尾(終点)で bounds 更新
+                    for (let i = 0; i < args.length - 1; i += 2) {
+                        updateBounds(args[i], args[i + 1]);
+                    }
+                } else if (cmd === 'A' && args.length >= 7) {
+                    // A コマンド: [rx, ry, xAxisRotation, largeArcFlag, sweepFlag, x, y] の末尾(x, y)のみ取得
+                    // ※連続するAコマンドにも対応
+                    for (let i = 0; i <= args.length - 7; i += 7) {
+                        updateBounds(args[i + 5], args[i + 6]);
                     }
                 }
             }
