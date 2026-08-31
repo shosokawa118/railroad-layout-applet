@@ -527,7 +527,7 @@ registerRailParts({
     // --- 1. C541-15-WP（片側道床版） ---
     "TOMIX-N-C541-15-WP-SINGLE": {
         systemId: "TOMIX-WIDE-N",
-        category: "curve",
+        category: "turnout",
         name: "C541-15-WP(片側道床)",
         description: "ポイント接続用片側道床カーブ基幹レール",
         ballastWidth: 18.5, // 片側道床（37/2 mm）
@@ -548,7 +548,7 @@ registerRailParts({
     // --- 2. S140-WP（ポイント分岐用・片側道床版） ---
     "TOMIX-N-S140-WP-SINGLE": {
         systemId: "TOMIX-WIDE-N",
-        category: "straight",
+        category: "turnout",
         name: "S140-WP(片側道床)",
         description: "ポイント分岐用片側道床直線レール",
         ballastWidth: 18.5, // 片側道床（37/2 mm）
@@ -562,7 +562,7 @@ registerRailParts({
             // レール＆メイン道床
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
             // 外側追加道床 (y = -4.625mm 位置)
-            { "type": "path", "pathData": "M -70 -18.5 L 70 -18.5 L 70 0 L -70 0 Z" }
+            { "type": "path", "pathData": "M -70 18.5 L 70 18.5 L 70 0 L -70 0 Z" }
         ]
     },
 
