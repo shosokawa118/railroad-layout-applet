@@ -46,25 +46,83 @@ function generateGenericRailData(catalogItem) {
             // SVG Path文字列を直接 basePaths に追加
             basePaths.push(shape.pathData);
 
-            // コマンド（M, L, A等）とその後の数値群を順に解析して終点座標(X, Y)のみ抽出
+            // コマンド（M, L, A等）とその後の数値群を順に解析
             const commandRegex = /([a-zA-Z])([^a-zA-Z]*)/g;
             let match;
+            let currentX = 0, currentY = 0; // 直前の終点座標（始点として利用）
+
             while ((match = commandRegex.exec(shape.pathData)) !== null) {
-                const cmd = match[1].toUpperCase();
+                const cmd = match[1];
+                const isRel = (cmd === cmd.toLowerCase());
+                const upperCmd = cmd.toUpperCase();
                 const args = match[2].trim().split(/[\s,]+/).map(parseFloat).filter(n => !isNaN(n));
                 
                 if (args.length === 0) continue;
 
-                if (cmd === 'M' || cmd === 'L') {
-                    // M, L コマンド: [x, y] または連続する座標対の末尾(終点)で bounds 更新
+                if (upperCmd === 'M' || upperCmd === 'L') {
                     for (let i = 0; i < args.length - 1; i += 2) {
-                        updateBounds(args[i], args[i + 1]);
+                        const x = isRel ? currentX + args[i] : args[i];
+                        const y = isRel ? currentY + args[i + 1] : args[i + 1];
+                        updateBounds(x, y);
+                        currentX = x;
+                        currentY = y;
                     }
-                } else if (cmd === 'A' && args.length >= 7) {
-                    // A コマンド: [rx, ry, xAxisRotation, largeArcFlag, sweepFlag, x, y] の末尾(x, y)のみ取得
-                    // ※連続するAコマンドにも対応
+                } else if (upperCmd === 'A' && args.length >= 7) {
                     for (let i = 0; i <= args.length - 7; i += 7) {
-                        updateBounds(args[i + 5], args[i + 6]);
+                        const rx = args[i];
+                        const ry = args[i + 1];
+                        // args[i+2]: xAxisRotation, args[i+3]: largeArcFlag, args[i+4]: sweepFlag
+                        const sweepFlag = args[i + 4];
+                        const endX = isRel ? currentX + args[i + 5] : args[i + 5];
+                        const endY = isRel ? currentY + args[i + 6] : args[i + 6];
+
+                        // 終点の更新
+                        updateBounds(endX, endY);
+
+                        // 円弧の極値（中心座標および角度範囲）を算出
+                        // 簡易的に始点(currentX, currentY)と終点(endX, endY)から中心を逆算して極値を反映
+                        const startX = currentX;
+                        const startY = currentY;
+
+                        // 中点
+                        const mx = (startX + endX) / 2;
+                        const my = (startY + endY) / 2;
+                        const dx = (startX - endX) / 2;
+                        const dy = (startY - endY) / 2;
+
+                        const dSq = (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry);
+                        if (dSq < 1 && rx > 0 && ry > 0) {
+                            const factor = Math.sqrt(Math.max(0, 1 / dSq - 1)) * (args[i + 3] === sweepFlag ? -1 : 1);
+                            const cx = mx + factor * (-dy * (rx / ry));
+                            const cy = my + factor * (dx * (ry / rx));
+
+                            const startAngle = Math.atan2((startY - cy) / ry, (startX - cx) / rx);
+                            const endAngle = Math.atan2((endY - cy) / ry, (endX - cx) / rx);
+
+                            // 0, 90, 180, 270度（ラジアン）の極値が含まれているか確認してbounds更新
+                            [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2].forEach(angle => {
+                                let inRange = false;
+                                if (sweepFlag === 1) {
+                                    let diff = endAngle - startAngle;
+                                    if (diff < 0) diff += 2 * Math.PI;
+                                    let aDiff = angle - startAngle;
+                                    if (aDiff < 0) aDiff += 2 * Math.PI;
+                                    inRange = aDiff <= diff;
+                                } else {
+                                    let diff = startAngle - endAngle;
+                                    if (diff < 0) diff += 2 * Math.PI;
+                                    let aDiff = startAngle - angle;
+                                    if (aDiff < 0) aDiff += 2 * Math.PI;
+                                    inRange = aDiff <= diff;
+                                }
+                                if (inRange) {
+                                    updateBounds(cx + rx * Math.cos(angle), cy + ry * Math.sin(angle));
+                                }
+                            });
+                        }
+
+                        currentX = endX;
+                        currentY = endY;
                     }
                 }
             }
