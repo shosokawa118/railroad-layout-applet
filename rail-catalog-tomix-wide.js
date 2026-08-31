@@ -524,25 +524,30 @@ registerRailParts({
         ]
     },
 
-    // --- 1. C541-15-WP（片側道床版） ---
+    // --- 1. C541-15-WP（片側道床版：他カーブと共通の12時頂点原点系） ---
     "TOMIX-N-C541-15-WP-SINGLE": {
         systemId: "TOMIX-WIDE-N",
         category: "turnout",
         name: "C541-15-WP(片側道床)",
         description: "ポイント接続用片側道床カーブ基幹レール",
-        ballastWidth: 18.5, // 片側道床（37/2 mm）
+        ballastWidth: 18.5,
         nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "端点1", "relX": -70.0, "relY": 0, "facingAngle": 180 },
-            { "id": 1, "jointType": "rail-end", "name": "端点2", "relX": 68.7,  "relY": 18.3, "facingAngle": 15.0 },
-            // 外側バラスト接続用ジョイント (R = 541 - 9.25 = 531.75 mm)
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "外側バラスト接続", "relX": -0.59, "relY": 13.91, "facingAngle": 97.5 }
+            // レール端点1（左上・180度向き）
+            { "id": 0, "jointType": "rail-end", "name": "端点1", "relX": -70.58, "relY": -536.36, "facingAngle": 187.5 },
+            // レール端点2（右上・0度向き）
+            { "id": 1, "jointType": "rail-end", "name": "端点2", "relX": 70.58, "relY": -536.36, "facingAngle": -7.5 },
+            // ジョイント（カーブ外側中央）
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "外側バラスト接続", "relX": 0, "relY": -559.5, "facingAngle": 90 }
         ],
         shapes: [
-            // レール＆メイン道床（arc指定）
-            { "type": "arc", "radius": 541, "arcAngle": 15, "centerX": -70.0, "centerY": 541.0, "startAngle": 270 },
-            // 固定道床（カーブ外側のみの扇形面：R531.75 〜 R559.5）
-            // M (左・内) -> L (左・外) -> A (外周時計回り) -> L (右・内) -> A (内周反時計回りで戻る)
-            { "type": "path", "pathData": "M -70 9.25 L -70 -18.5 A 559.5 559.5 0 0 1 74.81 18.08 L 68.7 18.3 A 531.75 531.75 0 0 0 -70 9.25 Z" }
+            // レール＆メイン道床（円弧中心 0,0 / 12時中心）
+            { "type": "arc", "radius": 541, "arcAngle": -15, "centerX": 0, "centerY": 0, "startAngle": 97.5 },
+            // 外側固定道床（円弧 R531.75 〜 R559.5 の滑らかな扇形面）
+            // M (左下内側) -> L (左上外側) -> A (外周・時計回り) -> L (右下内側) -> A (内周・反時計回りで戻る)
+            {
+                "type": "path",
+                "pathData": "M -69.38 -527.20 L -73.0 -554.71 A 559.5 559.5 0 0 1 73.0 -554.71 L 69.38 -527.20 A 531.75 531.75 0 0 0 -69.38 -527.20 Z"
+            }
         ]
     },
 
