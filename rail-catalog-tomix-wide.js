@@ -538,10 +538,11 @@ registerRailParts({
             { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "外側バラスト接続", "relX": -0.59, "relY": 13.91, "facingAngle": 97.5 }
         ],
         shapes: [
-            // レール＆内側ベースライン（中心線）
+            // レール＆メイン道床（arc指定）
             { "type": "arc", "radius": 541, "arcAngle": 15, "centerX": -70.0, "centerY": 541.0, "startAngle": 270 },
-            // 外側バラスト（R541から外側に 4.625mm オフセット、幅 9.25mm）
-            { "type": "path", "pathData": "M -70 -9.25 L 68.7 9.05 A 550.25 550.25 0 0 1 68.7 27.55 A 531.75 531.75 0 0 0 -70 9.25 Z" }
+            // 固定道床（カーブ外側のみの扇形面：R531.75 〜 R559.5）
+            // M (左・内) -> L (左・外) -> A (外周時計回り) -> L (右・内) -> A (内周反時計回りで戻る)
+            { "type": "path", "pathData": "M -70 9.25 L -70 -18.5 A 559.5 559.5 0 0 1 74.81 18.08 L 68.7 18.3 A 531.75 531.75 0 0 0 -70 9.25 Z" }
         ]
     },
 
@@ -572,7 +573,7 @@ registerRailParts({
         category: "turnout",
         name: "バラストパーツ L5",
         description: "ポイント分岐・渡り用隙間埋めバラスト(L)",
-        ballastWidth: 9.25,
+        ballastWidth: 9.25, // 37/4 mm
         nodes: [
             // 直線側接続ジョイント（下側直線エッジ Y = +9.25）
             { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "直線側接続", "relX": 0, "relY": 9.25, "facingAngle": 90 },
@@ -616,7 +617,16 @@ registerRailParts({
             { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "接続端", "relX": 0, "relY": 4.625, "facingAngle": 90 }
         ],
         shapes: [
-            { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 }
+            // レールなし・バラストのみ（polygon指定：幅9.25mm）
+            {
+                "type": "polygon",
+                "points": [
+                    { "x": -70, "y": -4.625 },
+                    { "x": 70, "y": -4.625 },
+                    { "x": 70, "y": 4.625 },
+                    { "x": -70, "y": 4.625 }
+                ]
+            }
         ]
     },
 
@@ -627,7 +637,7 @@ registerRailParts({
         trackType: "ballast-only",
         name: "C541-15-WPバラスト",
         description: "ポイント分岐用外付け道床（カーブ用）",
-        ballastWidth: 9.25, // 37 / 4 mm
+        ballastWidth: 9.25, // 37/4 mm
         nodes: [
             /**
              * バラスト外径側の接続ノード (R = 531.75 mm):
@@ -640,12 +650,11 @@ registerRailParts({
             { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "接続端", "relX": -0.59, "relY": 0.03, "facingAngle": 277.5 }
         ],
         shapes: [
-            /**
-             * 描画定義:
-             * 扇形自体の中心半径: R = 541 - 3/8 * 37 = 527.125 mm
-             * 道床幅 9.25mm（外径 531.75mm / 内径 522.5mm）
-             */
-            { "type": "arc", "radius": 541 - 3/8 * 37, "arcAngle": 15, "centerX": -70.0, "centerY": 527.125, "startAngle": 270 }
+            // レールなし・バラストのみ（path指定：R522.5 〜 R531.75 の扇形面）
+            {
+                "type": "path",
+                "pathData": "M -70 4.625 A 522.5 522.5 0 0 1 66.25 21.75 L 68.7 12.8 A 531.75 531.75 0 0 0 -70 -4.625 Z"
+            }
         ]
     }
 });
