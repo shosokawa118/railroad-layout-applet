@@ -43,13 +43,11 @@ function generateGenericRailData(catalogItem) {
             basePaths.push(polyPath);
         }
         else if (shape.type === "path" && shape.pathData) {
-            // SVG Path文字列を直接 basePaths に追加
             basePaths.push(shape.pathData);
 
-            // コマンド（M, L, A等）とその後の数値群を順に解析
             const commandRegex = /([a-zA-Z])([^a-zA-Z]*)/g;
             let match;
-            let currentX = 0, currentY = 0; // 直前の終点座標（始点として利用）
+            let currentX = 0, currentY = 0;
 
             while ((match = commandRegex.exec(shape.pathData)) !== null) {
                 const cmd = match[1];
@@ -71,20 +69,16 @@ function generateGenericRailData(catalogItem) {
                     for (let i = 0; i <= args.length - 7; i += 7) {
                         const rx = args[i];
                         const ry = args[i + 1];
-                        // args[i+2]: xAxisRotation, args[i+3]: largeArcFlag, args[i+4]: sweepFlag
                         const sweepFlag = args[i + 4];
                         const endX = isRel ? currentX + args[i + 5] : args[i + 5];
                         const endY = isRel ? currentY + args[i + 6] : args[i + 6];
 
-                        // 終点の更新
+                        // 1. 終点の更新（中心点はupdateBoundsに渡さない）
                         updateBounds(endX, endY);
 
-                        // 円弧の極値（中心座標および角度範囲）を算出
-                        // 簡易的に始点(currentX, currentY)と終点(endX, endY)から中心を逆算して極値を反映
+                        // 2. 円弧の頂点（最上点）が含まれているか判定して頂点のみ更新
                         const startX = currentX;
                         const startY = currentY;
-
-                        // 中点
                         const mx = (startX + endX) / 2;
                         const my = (startY + endY) / 2;
                         const dx = (startX - endX) / 2;
@@ -96,29 +90,14 @@ function generateGenericRailData(catalogItem) {
                             const cx = mx + factor * (-dy * (rx / ry));
                             const cy = my + factor * (dx * (ry / rx));
 
-                            const startAngle = Math.atan2((startY - cy) / ry, (startX - cx) / rx);
-                            const endAngle = Math.atan2((endY - cy) / ry, (endX - cx) / rx);
+                            // 最上点（12時方向: Y = cy - ry）の座標
+                            const topY = cy - ry;
+                            const topX = cx;
 
-                            // 0, 90, 180, 270度（ラジアン）の極値が含まれているか確認してbounds更新
-                            [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2].forEach(angle => {
-                                let inRange = false;
-                                if (sweepFlag === 1) {
-                                    let diff = endAngle - startAngle;
-                                    if (diff < 0) diff += 2 * Math.PI;
-                                    let aDiff = angle - startAngle;
-                                    if (aDiff < 0) aDiff += 2 * Math.PI;
-                                    inRange = aDiff <= diff;
-                                } else {
-                                    let diff = startAngle - endAngle;
-                                    if (diff < 0) diff += 2 * Math.PI;
-                                    let aDiff = startAngle - angle;
-                                    if (aDiff < 0) aDiff += 2 * Math.PI;
-                                    inRange = aDiff <= diff;
-                                }
-                                if (inRange) {
-                                    updateBounds(cx + rx * Math.cos(angle), cy + ry * Math.sin(angle));
-                                }
-                            });
+                            // 始点・終点の間に最上点(topX, topY)が含まれるか判定
+                            if ((startX <= topX && topX <= endX) || (endX <= topX && topX <= startX)) {
+                                updateBounds(topX, topY);
+                            }
                         }
 
                         currentX = endX;
