@@ -1,8 +1,8 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 幾何・座標計算
-// バージョン: VER-LAYOUT-GEO-G3 (デバッグログ追加)
+// バージョン: VER-LAYOUT-GEO-G4
 // =============================================================
-console.log("幾何・座標計算（JS）が読み込まれました: VER-LAYOUT-GEO-G3");
+console.log("幾何・座標計算（JS）が読み込まれました: VER-LAYOUT-GEO-G4");
 
 /**
  * 円弧の90度刻み極値（真右・真下・真左・真上）が含まれているかを判定し、バウンディングボックスを更新する共通関数
@@ -131,9 +131,16 @@ function generateGenericRailData(catalogItem) {
                             let startDeg = (startRad * 180) / Math.PI;
                             let endDeg = (endRad * 180) / Math.PI;
 
-                            let arcAngle = endDeg - startDeg;
-                            if (sweepFlag === 1 && arcAngle < 0) arcAngle += 360;
-                            if (sweepFlag === 0 && arcAngle > 0) arcAngle -= 360;
+                            // 通過角度（arcAngle）の正負・範囲を sweepFlag に合わせて正規化
+                            let diff = endDeg - startDeg;
+                            if (sweepFlag === 1) { // 時計回り（角度増加）
+                                while (diff < 0) diff += 360;
+                                while (diff >= 360) diff -= 360;
+                            } else { // 反時計回り（角度減少）
+                                while (diff > 0) diff -= 360;
+                                while (diff <= -360) diff += 360;
+                            }
+                            let arcAngle = diff;
 
                             console.log(`  Arc Calc Result: Calculated Center=(${cx.toFixed(2)}, ${cy.toFixed(2)}), startDeg=${startDeg.toFixed(2)}°, arcAngle=${arcAngle.toFixed(2)}°`);
 
