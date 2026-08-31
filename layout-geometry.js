@@ -1,8 +1,29 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 幾何・座標計算
-// バージョン: VER-LAYOUT-GEO-G1
+// バージョン: VER-LAYOUT-GEO-G2
 // =============================================================
-console.log("幾何・座標計算（JS）が読み込まれました: VER-LAYOUT-GEO-G1");
+console.log("幾何・座標計算（JS）が読み込まれました: VER-LAYOUT-GEO-G2");
+
+/**
+ * 円弧の90度刻み極値（真右・真下・真左・真上）が含まれているかを判定し、バウンディングボックスを更新する共通関数
+ */
+function checkArcCardinalBounds(cX, cY, rOut, rIn, startDeg, arcAngle, updateBounds) {
+    const ccwDistance = (fromDeg, toDeg) => ((toDeg - fromDeg) % 360 + 360) % 360;
+
+    [0, 90, 180, 270].forEach(cardinal => {
+        let contains = arcAngle >= 0 
+            ? ccwDistance(startDeg, cardinal) <= arcAngle 
+            : ccwDistance(cardinal, startDeg) <= -arcAngle;
+
+        if (contains) {
+            const rad = (cardinal * Math.PI) / 180;
+            updateBounds(cX + rOut * Math.cos(rad), cY + rOut * Math.sin(rad));
+            if (rIn > 0) {
+                updateBounds(cX + rIn * Math.cos(rad), cY + rIn * Math.sin(rad));
+            }
+        }
+    });
+}
 
 function generateGenericRailData(catalogItem) {
     const basePaths = [];
@@ -74,10 +95,10 @@ function generateGenericRailData(catalogItem) {
                         const endX = isRel ? currentX + args[i + 5] : args[i + 5];
                         const endY = isRel ? currentY + args[i + 6] : args[i + 6];
 
-                        // 1. 終点を bounds に追加（中心点座標は updateBounds に追加しない）
+                        // 1. 終点座標を bounds に追加
                         updateBounds(endX, endY);
 
-                        // 2. 始点と終点から円弧の中心 (cx, cy) を逆算
+                        // 2. Aコマンドのパラメータから中心座標 (cx, cy) と角度範囲 (startDeg, arcAngle) を逆算
                         const startX = currentX;
                         const startY = currentY;
                         const mx = (startX + endX) / 2;
@@ -91,39 +112,19 @@ function generateGenericRailData(catalogItem) {
                             const cx = mx + factor * (-dy * (rx / ry));
                             const cy = my + factor * (dx * (ry / rx));
 
-                            // 始点角と終点角（ラジアン）を算出
-                            const startAngle = Math.atan2((startY - cy) / ry, (startX - cx) / rx);
-                            const endAngle = Math.atan2((endY - cy) / ry, (endX - cx) / rx);
+                            const startRad = Math.atan2(startY - cy, startX - cx);
+                            const endRad = Math.atan2(endY - cy, endX - cx);
 
-                            // 3. 真右(0), 真下(PI/2), 真左(PI), 真上(3PI/2) の4方向の極値を判定
-                            const cardinals = [
-                                { angle: 0,           px: cx + rx, py: cy },       // 真右 (0°)
-                                { angle: Math.PI / 2, px: cx,      py: cy + ry },  // 真下 (90°)
-                                { angle: Math.PI,     px: cx - rx, py: cy },       // 真左 (180°)
-                                { angle: 3 * Math.PI / 2, px: cx,  py: cy - ry }   // 真上 (270°)
-                            ];
+                            let startDeg = (startRad * 180) / Math.PI;
+                            let endDeg = (endRad * 180) / Math.PI;
 
-                            cardinals.forEach(card => {
-                                let inArc = false;
-                                if (sweepFlag === 1) { // 時計回り
-                                    let diff = endAngle - startAngle;
-                                    if (diff < 0) diff += 2 * Math.PI;
-                                    let aDiff = card.angle - startAngle;
-                                    if (aDiff < 0) aDiff += 2 * Math.PI;
-                                    inArc = aDiff <= diff;
-                                } else { // 反時計回り
-                                    let diff = startAngle - endAngle;
-                                    if (diff < 0) diff += 2 * Math.PI;
-                                    let aDiff = startAngle - card.angle;
-                                    if (aDiff < 0) aDiff += 2 * Math.PI;
-                                    inArc = aDiff <= diff;
-                                }
+                            // 通過角度（arcAngle）の計算
+                            let arcAngle = endDeg - startDeg;
+                            if (sweepFlag === 1 && arcAngle < 0) arcAngle += 360;
+                            if (sweepFlag === 0 && arcAngle > 0) arcAngle -= 360;
 
-                                // 範囲内に含まれていれば極値座標のみを bounds に追加
-                                if (inArc) {
-                                    updateBounds(card.px, card.py);
-                                }
-                            });
+                            // 3. 共通関数を呼び出して極値を計算（rOut, rIn ともに rx を使用）
+                            checkArcCardinalBounds(cx, cy, rx, rx, startDeg, arcAngle, updateBounds);
                         }
 
                         currentX = endX;
@@ -204,15 +205,8 @@ function generateGenericRailData(catalogItem) {
             updateBounds(x1, y1); updateBounds(x2, y2);
             updateBounds(x3, y3); updateBounds(x4, y4);
 
-            const ccwDistance = (fromDeg, toDeg) => ((toDeg - fromDeg) % 360 + 360) % 360;
-            [0, 90, 180, 270].forEach(cardinal => {
-                let contains = arcAngle >= 0 ? ccwDistance(startDeg, cardinal) <= arcAngle : ccwDistance(cardinal, startDeg) <= -arcAngle;
-                if (contains) {
-                    const rad = (cardinal * Math.PI) / 180;
-                    updateBounds(cX + rOut * Math.cos(rad), cY + rOut * Math.sin(rad));
-                    updateBounds(cX + rIn  * Math.cos(rad), cY + rIn  * Math.sin(rad));
-                }
-            });
+            // 共通関数を呼び出して極値を計算
+            checkArcCardinalBounds(cX, cY, rOut, rIn, startDeg, arcAngle, updateBounds);
 
             if (shouldRenderRails) {
                 const rRailIn = r - halfGauge;
@@ -291,7 +285,6 @@ function canConnectNodes(railA, nodeAId, railB, nodeBId) {
     const nodeB = catalogB.nodes.find(n => n.id === nodeBId);
     if (!nodeA || !nodeB) return false;
 
-    // カタログコアの判定関数を呼び出す（ジオメトリ側に重複ロジックは不要）
     return isJointCompatible(nodeA, catalogA, nodeB, catalogB);
 }
 
