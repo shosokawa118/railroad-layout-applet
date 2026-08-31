@@ -524,7 +524,7 @@ registerRailParts({
         ]
     },
 
-    // --- 1. C541-15-WP（片側道床版：他カーブと共通の12時頂点原点系） ---
+    // --- 1. C541-15-WP（片側道床版：他カーブと共通の12時頂点原点系・Y軸下向き対応） ---
     "TOMIX-N-C541-15-WP-SINGLE": {
         systemId: "TOMIX-WIDE-N",
         category: "turnout",
@@ -532,21 +532,21 @@ registerRailParts({
         description: "ポイント接続用片側道床カーブ基幹レール",
         ballastWidth: 18.5,
         nodes: [
-            // レール端点1（左上・180度向き）
-            { "id": 0, "jointType": "rail-end", "name": "端点1", "relX": -70.58, "relY": -536.36, "facingAngle": 187.5 },
-            // レール端点2（右上・0度向き）
-            { "id": 1, "jointType": "rail-end", "name": "端点2", "relX": 70.58, "relY": -536.36, "facingAngle": -7.5 },
+            // レール端点1（左上）
+            { "id": 0, "jointType": "rail-end", "name": "端点1", "relX": -70.58, "relY": 536.36, "facingAngle": 187.5 },
+            // レール端点2（右上）
+            { "id": 1, "jointType": "rail-end", "name": "端点2", "relX": 70.58, "relY": 536.36, "facingAngle": -7.5 },
             // ジョイント（カーブ外側中央）
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "外側バラスト接続", "relX": 0, "relY": -559.5, "facingAngle": 90 }
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "外側バラスト接続", "relX": 0, "relY": 559.5, "facingAngle": 90 }
         ],
         shapes: [
-            // レール＆メイン道床（円弧中心 0,0 / 12時中心）
+            // レール＆メイン道床（円弧中心 0,0）
             { "type": "arc", "radius": 541, "arcAngle": -15, "centerX": 0, "centerY": 0, "startAngle": 97.5 },
-            // 外側固定道床（円弧 R531.75 〜 R559.5 の滑らかな扇形面）
-            // M (左下内側) -> L (左上外側) -> A (外周・時計回り) -> L (右下内側) -> A (内周・反時計回りで戻る)
+            // 外側固定道床（円弧 R531.75 〜 R559.5 の扇形面）
+            // M (左下内側) -> L (左上外側) -> A (外周) -> L (右下内側) -> A (内周で戻る)
             {
                 "type": "path",
-                "pathData": "M -69.38 -527.20 L -73.0 -554.71 A 559.5 559.5 0 0 1 73.0 -554.71 L 69.38 -527.20 A 531.75 531.75 0 0 0 -69.38 -527.20 Z"
+                "pathData": "M -69.38 527.20 L -73.0 554.71 A 559.5 559.5 0 0 0 73.0 554.71 L 69.38 527.20 A 531.75 531.75 0 0 1 -69.38 527.20 Z"
             }
         ]
     },
