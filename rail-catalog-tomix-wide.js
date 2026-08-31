@@ -532,15 +532,15 @@ registerRailParts({
         description: "ポイント接続用片側道床カーブ基幹レール",
         ballastWidth: 18.5,
         nodes: [
-            // レール端点1（左端：X=-70.58, Y=4.62, facingAngle=172.5）
+            // レール端点1（左端：斜め下 172.5度）
             { "id": 0, "jointType": "rail-end", "name": "端点1", "relX": -70.58, "relY": 4.62, "facingAngle": 172.5 },
-            // レール端点2（右端：X=70.58, Y=4.62, facingAngle=7.5）
+            // レール端点2（右端：斜め下 7.5度）
             { "id": 1, "jointType": "rail-end", "name": "端点2", "relX": 70.58, "relY": 4.62, "facingAngle": 7.5 },
-            // 側面ジョイント（X=0での道床端：Y=9.25, facingAngle=270で下向き）
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "内側バラスト接続", "relX": 0, "relY": 9.25, "facingAngle": 270 }
+            // 側面ジョイント（頂点道床端：Y=9.25, 下向き 90度）
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "内側バラスト接続", "relX": 0, "relY": 9.25, "facingAngle": 90 }
         ],
         shapes: [
-            // レール＆メイン道床（中心 0, 541 / 頂点 Y=0）
+            // レール＆メイン道床（中心 0, 541）
             { "type": "arc", "radius": 541, "arcAngle": 15, "centerX": 0, "centerY": 541.0, "startAngle": 262.5 },
             // 外側固定道床
             {
