@@ -574,10 +574,10 @@ registerRailParts({
         description: "ポイント分岐・渡り用隙間埋めバラスト(L)",
         ballastWidth: 9.25,
         nodes: [
-            // 直線側接続ジョイント（下側直線エッジ Y = 9.25）
+            // 直線側接続ジョイント（下側直線エッジ Y = +9.25）
             { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "直線側接続", "relX": 0, "relY": 9.25, "facingAngle": 90 },
-            // カーブ側接続ジョイント（中央でのカーブエッジ Y = 8.68）
-            { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側接続", "relX": -0.59, "relY": 8.68, "facingAngle": 262.5 }
+            // カーブ側接続ジョイント（上側カーブエッジ Y = -4.54）
+            { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側接続", "relX": -0.59, "relY": -4.54, "facingAngle": 262.5 }
         ],
         shapes: [
             // 左端(-70,9.25)を頂点とし、右端に向かって広がった後、R531.75の円弧で戻る楔形
@@ -595,8 +595,8 @@ registerRailParts({
         nodes: [
             // 直線側接続ジョイント（上側直線エッジ Y = -9.25）
             { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "直線側接続", "relX": 0, "relY": -9.25, "facingAngle": 270 },
-            // カーブ側接続ジョイント（中央でのカーブエッジ Y = -8.68）
-            { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側接続", "relX": -0.59, "relY": -8.68, "facingAngle": 97.5 }
+            // カーブ側接続ジョイント（下側カーブエッジ Y = +4.54）
+            { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側接続", "relX": -0.59, "relY": 4.54, "facingAngle": 97.5 }
         ],
         shapes: [
             // 左端(-70,-9.25)を頂点とし、右端に向かって広がった後、R531.75の円弧で戻る楔形
