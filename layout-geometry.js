@@ -69,14 +69,15 @@ function generateGenericRailData(catalogItem) {
                     for (let i = 0; i <= args.length - 7; i += 7) {
                         const rx = args[i];
                         const ry = args[i + 1];
+                        const largeArcFlag = args[i + 3];
                         const sweepFlag = args[i + 4];
                         const endX = isRel ? currentX + args[i + 5] : args[i + 5];
                         const endY = isRel ? currentY + args[i + 6] : args[i + 6];
 
-                        // 1. 終点の更新（中心点はupdateBoundsに渡さない）
+                        // 1. 終点を bounds に追加（中心点座標は updateBounds に追加しない）
                         updateBounds(endX, endY);
 
-                        // 2. 円弧の頂点（最上点）が含まれているか判定して頂点のみ更新
+                        // 2. 始点と終点から円弧の中心 (cx, cy) を逆算
                         const startX = currentX;
                         const startY = currentY;
                         const mx = (startX + endX) / 2;
@@ -86,18 +87,43 @@ function generateGenericRailData(catalogItem) {
 
                         const dSq = (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry);
                         if (dSq < 1 && rx > 0 && ry > 0) {
-                            const factor = Math.sqrt(Math.max(0, 1 / dSq - 1)) * (args[i + 3] === sweepFlag ? -1 : 1);
+                            const factor = Math.sqrt(Math.max(0, 1 / dSq - 1)) * (largeArcFlag === sweepFlag ? -1 : 1);
                             const cx = mx + factor * (-dy * (rx / ry));
                             const cy = my + factor * (dx * (ry / rx));
 
-                            // 最上点（12時方向: Y = cy - ry）の座標
-                            const topY = cy - ry;
-                            const topX = cx;
+                            // 始点角と終点角（ラジアン）を算出
+                            const startAngle = Math.atan2((startY - cy) / ry, (startX - cx) / rx);
+                            const endAngle = Math.atan2((endY - cy) / ry, (endX - cx) / rx);
 
-                            // 始点・終点の間に最上点(topX, topY)が含まれるか判定
-                            if ((startX <= topX && topX <= endX) || (endX <= topX && topX <= startX)) {
-                                updateBounds(topX, topY);
-                            }
+                            // 3. 真右(0), 真下(PI/2), 真左(PI), 真上(3PI/2) の4方向の極値を判定
+                            const cardinals = [
+                                { angle: 0,           px: cx + rx, py: cy },       // 真右 (0°)
+                                { angle: Math.PI / 2, px: cx,      py: cy + ry },  // 真下 (90°)
+                                { angle: Math.PI,     px: cx - rx, py: cy },       // 真左 (180°)
+                                { angle: 3 * Math.PI / 2, px: cx,  py: cy - ry }   // 真上 (270°)
+                            ];
+
+                            cardinals.forEach(card => {
+                                let inArc = false;
+                                if (sweepFlag === 1) { // 時計回り
+                                    let diff = endAngle - startAngle;
+                                    if (diff < 0) diff += 2 * Math.PI;
+                                    let aDiff = card.angle - startAngle;
+                                    if (aDiff < 0) aDiff += 2 * Math.PI;
+                                    inArc = aDiff <= diff;
+                                } else { // 反時計回り
+                                    let diff = startAngle - endAngle;
+                                    if (diff < 0) diff += 2 * Math.PI;
+                                    let aDiff = startAngle - card.angle;
+                                    if (aDiff < 0) aDiff += 2 * Math.PI;
+                                    inArc = aDiff <= diff;
+                                }
+
+                                // 範囲内に含まれていれば極値座標のみを bounds に追加
+                                if (inArc) {
+                                    updateBounds(card.px, card.py);
+                                }
+                            });
                         }
 
                         currentX = endX;
