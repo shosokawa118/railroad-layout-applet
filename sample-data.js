@@ -1,70 +1,14 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 初期サンプルデータ
-// バージョン: VER-SNAP-MOUSEUP-SEPARATE-S8
+// バージョン: VER-SAMPLE-C541-15-WP
 // =============================================================
 const INITIAL_SAMPLE_LAYOUT = {
-  "version": "VER-SNAP-MOUSEUP-SEPARATE-S8",
+  "version": "VER-LAYOUT-SIDE-SNAP-E34",
+  "systems": [ "TOMIX-WIDE-N" ],
   "rails": [
-    { "instanceId": "rail-0", "partId": "KATO-248", "x": 89.55, "y": 189.92, "angle": 0 },
-    { "instanceId": "rail-1", "partId": "KATO-R315-45", "x": 579.9, "y": 191.52, "angle": 22.5 },
-    { "instanceId": "rail-2", "partId": "KATO-248", "x": 89.75, "y": 156.92, "angle": 0 },
-    { "instanceId": "rail-3", "partId": "KATO-R315-45", "x": 742.16, "y": 355.78, "angle": 67.5 },
-    { "instanceId": "rail-4", "partId": "KATO-R315-45", "x": 742.16, "y": 588.08, "angle": 112.5 },
-    { "instanceId": "rail-5", "partId": "KATO-R315-45", "x": 577.9, "y": 752.34, "angle": 157.5 },
-    { "instanceId": "rail-6", "partId": "KATO-248", "x": 337.75, "y": 786.94, "angle": 180 },
-    { "instanceId": "rail-7", "partId": "KATO-248", "x": 89.75, "y": 786.94, "angle": 180 },
-    { "instanceId": "rail-8", "partId": "KATO-R315-45", "x": -150.4, "y": 752.34, "angle": 202.5 },
-    { "instanceId": "rail-9", "partId": "KATO-R315-45", "x": -314.66, "y": 588.08, "angle": 247.5 },
-    { "instanceId": "rail-10", "partId": "KATO-R315-45", "x": -314.66, "y": 355.78, "angle": 292.5 },
-    { "instanceId": "rail-11", "partId": "KATO-R315-45", "x": -150.4, "y": 191.52, "angle": 337.5 },
-    { "instanceId": "rail-12", "partId": "KATO-EP4-R", "x": 277.61, "y": 164.9, "angle": 0 },
-    { "instanceId": "rail-13", "partId": "KATO-EP4-R", "x": 399.69, "y": 181.93, "angle": 180 },
-    { "instanceId": "rail-16", "partId": "KATO-R282-45", "x": 567.55, "y": 220.86, "angle": 22.5 },
-    { "instanceId": "rail-17", "partId": "KATO-R282-45", "x": 714.62, "y": 367.93, "angle": 67.5 },
-    { "instanceId": "rail-18", "partId": "KATO-R282-45", "x": 714.62, "y": 575.92, "angle": 112.5 },
-    { "instanceId": "rail-19", "partId": "KATO-R282-45", "x": 565.55, "y": 722.99, "angle": 157.5 },
-    { "instanceId": "rail-20", "partId": "KATO-248", "x": 337.55, "y": 753.93, "angle": 180 },
-    { "instanceId": "rail-21", "partId": "KATO-248", "x": 89.55, "y": 753.93, "angle": 180 },
-    { "instanceId": "rail-22", "partId": "KATO-R282-45", "x": -138.45, "y": 722.99, "angle": 202.5 },
-    { "instanceId": "rail-23", "partId": "KATO-R282-45", "x": -285.52, "y": 575.92, "angle": 247.5 },
-    { "instanceId": "rail-24", "partId": "KATO-R282-45", "x": -285.52, "y": 367.93, "angle": 292.5 },
-    { "instanceId": "rail-25", "partId": "KATO-R282-45", "x": -138.45, "y": 220.86, "angle": 337.5 },
-    { "instanceId": "rail-26", "partId": "KATO-S60", "x": 307.55, "y": 189.92, "angle": 0 },
-    { "instanceId": "rail-27", "partId": "KATO-S64", "x": 245.55, "y": 189.92, "angle": 0 },
-    { "instanceId": "rail-28", "partId": "KATO-S60", "x": 369.75, "y": 156.92, "angle": 0 },
-    { "instanceId": "rail-29", "partId": "KATO-S64", "x": 431.75, "y": 156.92, "angle": 0 }
+    { "instanceId": "rail-29", "partId": "TOMIX-N-C541-15-WP-SINGLE", "x": 0, "y": 0, "angle": 0 }
   ],
-  "joints": [
-    { "railA": "rail-26", "nodeA": 0, "railB": "rail-27", "nodeB": 1 },
-    { "railA": "rail-13", "nodeA": 2, "railB": "rail-12", "nodeB": 2 },
-    { "railA": "rail-13", "nodeA": 1, "railB": "rail-26", "nodeB": 1 },
-    { "railA": "rail-28", "nodeA": 0, "railB": "rail-12", "nodeB": 1 },
-    { "railA": "rail-29", "nodeA": 0, "railB": "rail-28", "nodeB": 1 },
-    { "railA": "rail-16", "nodeA": 0, "railB": "rail-13", "nodeB": 0 },
-    { "railA": "rail-17", "nodeA": 0, "railB": "rail-16", "nodeB": 1 },
-    { "railA": "rail-0", "nodeA": 1, "railB": "rail-27", "nodeB": 0 },
-    { "railA": "rail-25", "nodeA": 1, "railB": "rail-0", "nodeB": 0 },
-    { "railA": "rail-2", "nodeA": 1, "railB": "rail-12", "nodeB": 0 },
-    { "railA": "rail-11", "nodeA": 1, "railB": "rail-2", "nodeB": 0 },
-    { "railA": "rail-10", "nodeA": 1, "railB": "rail-11", "nodeB": 0 },
-    { "railA": "rail-24", "nodeA": 1, "railB": "rail-25", "nodeB": 0 },
-    { "railA": "rail-9", "nodeA": 1, "railB": "rail-10", "nodeB": 0 },
-    { "railA": "rail-23", "nodeA": 1, "railB": "rail-24", "nodeB": 0 },
-    { "railA": "rail-8", "nodeA": 1, "railB": "rail-9", "nodeB": 0 },
-    { "railA": "rail-22", "nodeA": 1, "railB": "rail-23", "nodeB": 0 },
-    { "railA": "rail-21", "nodeA": 1, "railB": "rail-22", "nodeB": 0 },
-    { "railA": "rail-7", "nodeA": 1, "railB": "rail-8", "nodeB": 0 },
-    { "railA": "rail-6", "nodeA": 1, "railB": "rail-7", "nodeB": 0 },
-    { "railA": "rail-20", "nodeA": 1, "railB": "rail-21", "nodeB": 0 },
-    { "railA": "rail-19", "nodeA": 1, "railB": "rail-20", "nodeB": 0 },
-    { "railA": "rail-5", "nodeA": 1, "railB": "rail-6", "nodeB": 0 },
-    { "railA": "rail-18", "nodeA": 0, "railB": "rail-17", "nodeB": 1 },
-    { "railA": "rail-18", "nodeA": 1, "railB": "rail-19", "nodeB": 0 },
-    { "railA": "rail-4", "nodeA": 1, "railB": "rail-5", "nodeB": 0 },
-    { "railA": "rail-3", "nodeA": 1, "railB": "rail-4", "nodeB": 0 },
-    { "railA": "rail-1", "nodeA": 0, "railB": "rail-29", "nodeB": 1 },
-    { "railA": "rail-1", "nodeA": 1, "railB": "rail-3", "nodeB": 0 }
-  ]
+  "joints": []
 };
 
-console.log("初期サンプルデータ更新完了: VER-SNAP-MOUSEUP-SEPARATE-S8");
+console.log("初期サンプルデータ更新完了: VER-SAMPLE-C541-15-WP");
