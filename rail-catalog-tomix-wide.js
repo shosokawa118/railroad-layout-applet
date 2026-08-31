@@ -480,20 +480,12 @@ registerRailParts({
         nodes: [
             // レール端接続ノード (0〜2)
             { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -70.0, "relY": 0,    "facingAngle": 180 },
-            { "id": 1, "jointType": "rail-end", "name": "直進端", "relX": 70.0,  "relY": 0,    "facingAngle": 0 },
-            { "id": 2, "jointType": "rail-end", "name": "分岐端", "relX": 68.7,  "relY": 18.3, "facingAngle": 15.0 },
+            { "id": 1, "jointType": "rail-end", "name": "分岐端", "relX": 70.02, "relY": 18.44, "facingAngle": 15.0 },
+            { "id": 2, "jointType": "rail-end", "name": "直進端", "relX": 70.0,  "relY": 0,    "facingAngle": 0 },
 
             // 外付け道床接続用サイドノード (直線外側中央1個, カーブ内側/外付け道床側1個)
             { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "直線側着脱用ノード(左)", "relX": 0, "relY": -9.25, "facingAngle": 270 },
-            /**
-             * ポイント分岐側・道床接続ノード (R_inner_edge = 541 - 18.5/2 = 531.75 mm):
-             *   - 円弧の中心: (-70.0, 541.0)
-             *   - 弧の中央角度: 7.5°
-             *   - 相対座標計算:
-             *       relX = -70.0 + 531.75 * sin(7.5°) ≈ -0.59 mm
-             *       relY = 541.0 - 531.75 * cos(7.5°) ≈ 13.91 mm
-             */
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側着脱用ノード(内)", "relX": -0.59, "relY": 13.91, "facingAngle": 97.5 }
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast", "name": "カーブ側着脱用ノード(内)", "relX": -0.59, "relY": 13.79, "facingAngle": 97.5 }
         ],
         shapes: [
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
