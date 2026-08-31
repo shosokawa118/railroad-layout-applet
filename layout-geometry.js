@@ -1,8 +1,8 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 幾何・座標計算
-// バージョン: VER-LAYOUT-GEO-G2
+// バージョン: VER-LAYOUT-GEO-G3 (デバッグログ追加)
 // =============================================================
-console.log("幾何・座標計算（JS）が読み込まれました: VER-LAYOUT-GEO-G2");
+console.log("幾何・座標計算（JS）が読み込まれました: VER-LAYOUT-GEO-G3");
 
 /**
  * 円弧の90度刻み極値（真右・真下・真左・真上）が含まれているかを判定し、バウンディングボックスを更新する共通関数
@@ -17,9 +17,16 @@ function checkArcCardinalBounds(cX, cY, rOut, rIn, startDeg, arcAngle, updateBou
 
         if (contains) {
             const rad = (cardinal * Math.PI) / 180;
-            updateBounds(cX + rOut * Math.cos(rad), cY + rOut * Math.sin(rad));
+            const pxOut = cX + rOut * Math.cos(rad);
+            const pyOut = cY + rOut * Math.sin(rad);
+            updateBounds(pxOut, pyOut);
+            console.log(`[checkArc] 極値検出 (${cardinal}°): Outer=(${pxOut.toFixed(2)}, ${pyOut.toFixed(2)})`);
+
             if (rIn > 0) {
-                updateBounds(cX + rIn * Math.cos(rad), cY + rIn * Math.sin(rad));
+                const pxIn = cX + rIn * Math.cos(rad);
+                const pyIn = cY + rIn * Math.sin(rad);
+                updateBounds(pxIn, pyIn);
+                console.log(`[checkArc] 極値検出 (${cardinal}°): Inner=(${pxIn.toFixed(2)}, ${pyIn.toFixed(2)})`);
             }
         }
     });
@@ -31,7 +38,6 @@ function generateGenericRailData(catalogItem) {
     
     const sys = catalogItem && catalogItem.systemId ? railCatalog.systems[catalogItem.systemId] : null;
     
-    // パーツ個別の ballastWidth オーバーライドを優先取得
     const BALLAST_WIDTH = (catalogItem && typeof catalogItem.ballastWidth === 'number')
         ? catalogItem.ballastWidth
         : (sys ? sys.ballastWidth : 16);
@@ -53,7 +59,11 @@ function generateGenericRailData(catalogItem) {
         return { basePaths: ["M 0 0 L 10 0"], railPaths: [], centerX: 0, centerY: 0 };
     }
 
-    catalogItem.shapes.forEach(shape => {
+    console.group(`--- [RailData Gen] PartID: ${catalogItem.id || "Unknown"} ---`);
+
+    catalogItem.shapes.forEach((shape, sIdx) => {
+        console.log(`[Shape ${sIdx}] Type: ${shape.type}`);
+
         if (shape.type === "polygon" && Array.isArray(shape.points) && shape.points.length > 0) {
             let polyPath = "";
             shape.points.forEach((pt, idx) => {
@@ -65,6 +75,7 @@ function generateGenericRailData(catalogItem) {
         }
         else if (shape.type === "path" && shape.pathData) {
             basePaths.push(shape.pathData);
+            console.log(`  pathData: "${shape.pathData}"`);
 
             const commandRegex = /([a-zA-Z])([^a-zA-Z]*)/g;
             let match;
@@ -83,6 +94,7 @@ function generateGenericRailData(catalogItem) {
                         const x = isRel ? currentX + args[i] : args[i];
                         const y = isRel ? currentY + args[i + 1] : args[i + 1];
                         updateBounds(x, y);
+                        console.log(`  Cmd ${cmd}: Point=(${x.toFixed(2)}, ${y.toFixed(2)})`);
                         currentX = x;
                         currentY = y;
                     }
@@ -95,10 +107,9 @@ function generateGenericRailData(catalogItem) {
                         const endX = isRel ? currentX + args[i + 5] : args[i + 5];
                         const endY = isRel ? currentY + args[i + 6] : args[i + 6];
 
-                        // 1. 終点座標を bounds に追加
                         updateBounds(endX, endY);
+                        console.log(`  Cmd ${cmd} Arc EndPoint: (${endX.toFixed(2)}, ${endY.toFixed(2)}) [rx=${rx}, ry=${ry}]`);
 
-                        // 2. Aコマンドのパラメータから中心座標 (cx, cy) と角度範囲 (startDeg, arcAngle) を逆算
                         const startX = currentX;
                         const startY = currentY;
                         const mx = (startX + endX) / 2;
@@ -107,6 +118,8 @@ function generateGenericRailData(catalogItem) {
                         const dy = (startY - endY) / 2;
 
                         const dSq = (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry);
+                        console.log(`  Arc Calc: Start=(${startX.toFixed(2)}, ${startY.toFixed(2)}), dSq=${dSq.toFixed(4)}`);
+
                         if (dSq < 1 && rx > 0 && ry > 0) {
                             const factor = Math.sqrt(Math.max(0, 1 / dSq - 1)) * (largeArcFlag === sweepFlag ? -1 : 1);
                             const cx = mx + factor * (-dy * (rx / ry));
@@ -118,13 +131,15 @@ function generateGenericRailData(catalogItem) {
                             let startDeg = (startRad * 180) / Math.PI;
                             let endDeg = (endRad * 180) / Math.PI;
 
-                            // 通過角度（arcAngle）の計算
                             let arcAngle = endDeg - startDeg;
                             if (sweepFlag === 1 && arcAngle < 0) arcAngle += 360;
                             if (sweepFlag === 0 && arcAngle > 0) arcAngle -= 360;
 
-                            // 3. 共通関数を呼び出して極値を計算（rOut, rIn ともに rx を使用）
+                            console.log(`  Arc Calc Result: Calculated Center=(${cx.toFixed(2)}, ${cy.toFixed(2)}), startDeg=${startDeg.toFixed(2)}°, arcAngle=${arcAngle.toFixed(2)}°`);
+
                             checkArcCardinalBounds(cx, cy, rx, rx, startDeg, arcAngle, updateBounds);
+                        } else {
+                            console.warn(`  Arc Calc Warning: dSq >= 1 判定により中心逆算がスキップされました`);
                         }
 
                         currentX = endX;
@@ -205,7 +220,6 @@ function generateGenericRailData(catalogItem) {
             updateBounds(x1, y1); updateBounds(x2, y2);
             updateBounds(x3, y3); updateBounds(x4, y4);
 
-            // 共通関数を呼び出して極値を計算
             checkArcCardinalBounds(cX, cY, rOut, rIn, startDeg, arcAngle, updateBounds);
 
             if (shouldRenderRails) {
@@ -228,8 +242,25 @@ function generateGenericRailData(catalogItem) {
         }
     });
 
-    const geoCenterX = (minX !== Infinity && maxX !== -Infinity) ? minX + (maxX - minX) / 2 : 0;
-    const geoCenterY = (minY !== Infinity && maxY !== -Infinity) ? minY + (maxY - minY) / 2 : 0;
+    const width = (minX !== Infinity && maxX !== -Infinity) ? (maxX - minX) : 0;
+    const height = (minY !== Infinity && maxY !== -Infinity) ? (maxY - minY) : 0;
+    const geoCenterX = (minX !== Infinity && maxX !== -Infinity) ? minX + width / 2 : 0;
+    const geoCenterY = (minY !== Infinity && maxY !== -Infinity) ? minY + height / 2 : 0;
+
+    console.log(`[Bounds Result] Bounds: X=[${minX.toFixed(2)}, ${maxX.toFixed(2)}], Y=[${minY.toFixed(2)}, ${maxY.toFixed(2)}]`);
+    console.log(`[Bounds Result] Size: Width=${width.toFixed(2)}, Height=${height.toFixed(2)}`);
+    console.log(`[Bounds Result] Calculated geoCenter: (${geoCenterX.toFixed(2)}, ${geoCenterY.toFixed(2)})`);
+
+    if (catalogItem.nodes && catalogItem.nodes.length > 0) {
+        console.log(`[Nodes Relative Pos] Nodes before offset (catalog relX/relY vs calculated geoCenter):`);
+        catalogItem.nodes.forEach(node => {
+            const shiftedX = node.relX - geoCenterX;
+            const shiftedY = node.relY - geoCenterY;
+            console.log(`  Node [${node.id}]: Catalog=(${node.relX}, ${node.relY}) -> ShiftedLocal=(${shiftedX.toFixed(2)}, ${shiftedY.toFixed(2)})`);
+        });
+    }
+
+    console.groupEnd();
 
     return {
         basePaths: basePaths,
