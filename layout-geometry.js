@@ -1,8 +1,8 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 幾何・座標計算
-// バージョン: VER-LAYOUT-GEO-G5
+// バージョン: VER-LAYOUT-GEO-G6
 // =============================================================
-console.log("幾何・座標計算（JS）が読み込まれました: VER-LAYOUT-GEO-G5");
+console.log("幾何・座標計算（JS）が読み込まれました: VER-LAYOUT-GEO-G6");
 
 /**
  * 円弧の90度刻み極値（真右・真下・真左・真上）が含まれているかを判定し、バウンディングボックスを更新する共通関数
@@ -118,10 +118,10 @@ function generateGenericRailData(catalogItem) {
                         const dy = (startY - endY) / 2;
 
                         const dSq = (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry);
-                        console.log(`  Arc Calc: Start=(${startX.toFixed(2)}, ${startY.toFixed(2)}), dSq=${dSq.toFixed(4)}`);
 
                         if (dSq < 1 && rx > 0 && ry > 0) {
-                            const factor = Math.sqrt(Math.max(0, 1 / dSq - 1)) * (largeArcFlag === sweepFlag ? -1 : 1);
+                            // SVG/Canvas座標系（Y下向き）に合わせた中心計算の符号修正
+                            const factor = Math.sqrt(Math.max(0, 1 / dSq - 1)) * (largeArcFlag === sweepFlag ? 1 : -1);
                             const cx = mx + factor * (-dy * (rx / ry));
                             const cy = my + factor * (dx * (ry / rx));
 
@@ -131,12 +131,11 @@ function generateGenericRailData(catalogItem) {
                             let startDeg = (startRad * 180) / Math.PI;
                             let endDeg = (endRad * 180) / Math.PI;
 
-                            // 通過角度（arcAngle）の正負・範囲を sweepFlag に合わせて正規化
                             let diff = endDeg - startDeg;
-                            if (sweepFlag === 1) { // 時計回り（角度増加）
+                            if (sweepFlag === 1) {
                                 while (diff < 0) diff += 360;
                                 while (diff >= 360) diff -= 360;
-                            } else { // 反時計回り（角度減少）
+                            } else {
                                 while (diff > 0) diff -= 360;
                                 while (diff <= -360) diff += 360;
                             }
@@ -144,12 +143,8 @@ function generateGenericRailData(catalogItem) {
 
                             console.log(`  Arc Calc Result: Calculated Center=(${cx.toFixed(2)}, ${cy.toFixed(2)}), startDeg=${startDeg.toFixed(2)}°, arcAngle=${arcAngle.toFixed(2)}°`);
 
-                            // pathのAコマンド単体では道床幅オフセットを含めず、半径rxそのままで極値判定する
                             checkArcCardinalBounds(cx, cy, rx, 0, startDeg, arcAngle, updateBounds);
-                        } else {
-                            console.warn(`  Arc Calc Warning: dSq >= 1 判定により中心逆算がスキップされました`);
                         }
-
                         currentX = endX;
                         currentY = endY;
                     }
