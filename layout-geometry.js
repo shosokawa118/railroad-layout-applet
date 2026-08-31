@@ -1,8 +1,8 @@
 // =============================================================
 // 鉄道模型レイアウトジェネレータ - 幾何・座標計算
-// バージョン: VER-LAYOUT-GEO-G4
+// バージョン: VER-LAYOUT-GEO-G5
 // =============================================================
-console.log("幾何・座標計算（JS）が読み込まれました: VER-LAYOUT-GEO-G4");
+console.log("幾何・座標計算（JS）が読み込まれました: VER-LAYOUT-GEO-G5");
 
 /**
  * 円弧の90度刻み極値（真右・真下・真左・真上）が含まれているかを判定し、バウンディングボックスを更新する共通関数
@@ -144,7 +144,8 @@ function generateGenericRailData(catalogItem) {
 
                             console.log(`  Arc Calc Result: Calculated Center=(${cx.toFixed(2)}, ${cy.toFixed(2)}), startDeg=${startDeg.toFixed(2)}°, arcAngle=${arcAngle.toFixed(2)}°`);
 
-                            checkArcCardinalBounds(cx, cy, rx, rx, startDeg, arcAngle, updateBounds);
+                            // pathのAコマンド単体では道床幅オフセットを含めず、半径rxそのままで極値判定する
+                            checkArcCardinalBounds(cx, cy, rx, 0, startDeg, arcAngle, updateBounds);
                         } else {
                             console.warn(`  Arc Calc Warning: dSq >= 1 判定により中心逆算がスキップされました`);
                         }
