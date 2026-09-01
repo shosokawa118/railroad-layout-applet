@@ -474,24 +474,44 @@ registerRailParts({
         category: "turnout",
         name: "N-PX280-WB",
         description: "ワイドPC電動複線両渡りポイント PX280",
-        ballastWidth: 18.5, // 外付け道床追加に対応するため18.5mmに設定
+        ballastWidth: 18.5,
         nodes: [
+            // レール端点ノード
             { "id": 0, "jointType": "rail-end", "name": "進入端-主線(上)", "relX": -140.0, "relY": -18.5, "facingAngle": 180 },
             { "id": 1, "jointType": "rail-end", "name": "進入端-副線(下)", "relX": -140.0, "relY":  18.5, "facingAngle": 180 },
             { "id": 2, "jointType": "rail-end", "name": "退出端-副線(下)", "relX":  140.0, "relY":  18.5, "facingAngle": 0 },
-            { "id": 3, "jointType": "rail-end", "name": "退出端-主線(上)", "relX":  140.0, "relY": -18.5, "facingAngle": 0 }
+            { "id": 3, "jointType": "rail-end", "name": "退出端-主線(上)", "relX":  140.0, "relY": -18.5, "facingAngle": 0 },
+
+            // 外付け道床用サイドノード (上側: Y = -27.75, 面角 270°)
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast-straight", "name": "上側外付け道床(左)", "relX": -70.0, "relY": -27.75, "facingAngle": 270, "polarity": 1 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-ballast-straight", "name": "上側外付け道床(右)", "relX":  70.0, "relY": -27.75, "facingAngle": 270, "polarity": 1 },
+
+            // 外付け道床用サイドノード (下側: Y = +27.75, 面角 90°)
+            { "id": 6, "jointType": "side-joiner", "jointGroup": "wide-ballast-straight", "name": "下側外付け道床(左)", "relX": -70.0, "relY":  27.75, "facingAngle": 90, "polarity": 1 },
+            { "id": 7, "jointType": "side-joiner", "jointGroup": "wide-ballast-straight", "name": "下側外付け道床(右)", "relX":  70.0, "relY":  27.75, "facingAngle": 90, "polarity": 1 }
         ],
         shapes: [
-            // 1. 直線主線・副線 (全長 280mm)
+            // 1. 複線間のバラスト領域 (Y: -18.5 ～ +18.5)
+            {
+                "type": "polygon",
+                "points": [
+                    { "x": -140.0, "y": -18.5 },
+                    { "x":  140.0, "y": -18.5 },
+                    { "x":  140.0, "y":  18.5 },
+                    { "x": -140.0, "y":  18.5 }
+                ]
+            },
+
+            // 2. 直線主線・副線 (全長 280mm)
             { "type": "line", "length": 280, "offsetX": 0, "offsetY": -18.5 },
             { "type": "line", "length": 280, "offsetX": 0, "offsetY":  18.5 },
 
-            // 2. 渡り線 (C541 / 15.0° 中央交差点接続)
-            // 上の線 (Y = -18.5) から分岐する円弧：中心は下側 (+Y方向)
+            // 3. 渡り線 (C541 / 15.0° 中央交差点接続)
+            // 上の線 (Y = -18.5) から分岐する円弧
             { "type": "arc", "radius": 541, "arcAngle": 15.0, "centerX": -140.0, "centerY": 522.5, "startAngle": 270 },
             { "type": "arc", "radius": 541, "arcAngle": -15.0, "centerX": 140.0, "centerY": 522.5, "startAngle": 270 },
 
-            // 下の線 (Y = +18.5) から分岐する円弧：中心は上側 (-Y方向)
+            // 下の線 (Y = +18.5) から分岐する円弧
             { "type": "arc", "radius": 541, "arcAngle": -15.0, "centerX": -140.0, "centerY": -522.5, "startAngle": 90 },
             { "type": "arc", "radius": 541, "arcAngle": 15.0, "centerX": 140.0, "centerY": -522.5, "startAngle": 90 }
         ]
