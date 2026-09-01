@@ -260,6 +260,13 @@ function registerGlobalCanvasEvents() {
     if (globalEventsRegistered || !canvas) return;
     globalEventsRegistered = true;
 
+    // --- 【追加】操作開始時の状態保持 ---
+    canvas.on('mouse:down', (options) => {
+        if (options && options.target && typeof captureDragStart === 'function') {
+            captureDragStart(options.target);
+        }
+    });
+
     canvas.on('object:moving', (options) => { 
         isDraggingRail = true;
         if (options && options.target) onGeneralTransform(options.target); 
@@ -271,12 +278,18 @@ function registerGlobalCanvasEvents() {
     });
     
     canvas.on('mouse:up', () => {
+        const activeObj = canvas.getActiveObject();
+
         if (isDraggingRail) {
             isDraggingRail = false;
-            const activeObj = canvas.getActiveObject();
             if (activeObj && typeof applyClusterSnapLogic === 'function') {
                 applyClusterSnapLogic(activeObj);
             }
+        }
+
+        // --- 【追加】移動終了・スナップ完了後の差分記録 ---
+        if (activeObj && typeof captureDragEnd === 'function') {
+            captureDragEnd(activeObj);
         }
     });
 
@@ -321,6 +334,8 @@ function addRailToCanvas(partId, options = {}) {
         geoCenterY: geoData.centerY
     };
 
+    const jointsBefore = typeof globalJoints !== 'undefined' ? [...globalJoints] : [];
+
     if (!options.skipAutoConnect) {
         const activeObj = canvas.getActiveObject();
         const parentRail = (activeObj && activeObj.customData && activeObj.customData.isRail) ? activeObj : null;
@@ -362,6 +377,22 @@ function addRailToCanvas(partId, options = {}) {
         canvas.setActiveObject(railObject);
     }
 
+    // --- 【追加】手動操作による追加時にUndo履歴へ記録 ---
+    if (!options.skipAutoConnect && !options.skipSelect && typeof recordAction === 'function') {
+        recordAction({
+            type: 'ADD',
+            rails: [{
+                instanceId: railObject.customData.instanceId,
+                partId: partId,
+                x: railObject.left,
+                y: railObject.top,
+                angle: railObject.angle
+            }],
+            jointsBefore: jointsBefore,
+            jointsAfter: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
+        });
+    }
+
     updateJointIndicators();
     canvas.calcOffset();
     canvas.requestRenderAll();
@@ -382,6 +413,21 @@ function deleteSelectedRails() {
     }
 
     if (targetRails.length === 0) return;
+
+    // --- 【追加】削除実行前のUndo履歴記録 ---
+    if (typeof recordAction === 'function') {
+        recordAction({
+            type: 'DELETE',
+            rails: targetRails.map(r => ({
+                instanceId: r.customData.instanceId,
+                partId: r.customData.partId,
+                x: r.left,
+                y: r.top,
+                angle: r.angle
+            })),
+            jointsBefore: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
+        });
+    }
 
     const targetIds = targetRails.map(r => r.customData.instanceId);
 
