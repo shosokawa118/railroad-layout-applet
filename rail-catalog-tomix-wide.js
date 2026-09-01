@@ -556,26 +556,28 @@ registerRailParts({
     },
 
     // --- 3. バラストパーツ L5（左ポイント後の隙間埋め用） ---
+    // ※ 原点 (0, 0) はカーブ円弧の中心
     "TOMIX-N-BALLAST-L5": {
         systemId: "TOMIX-WIDE-N",
         category: "turnout",
         trackType: "ballast-only",
         name: "バラストパーツ L5",
         description: "ポイント分岐・渡り用隙間埋めバラスト(L)",
-        ballastWidth: 9.25, // 37/4 mm
+        ballastWidth: 9.25,
         nodes: [
-            // 直線側接続ジョイント（受け側: polarity -1）
-            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast-straight", "name": "直線側接続", "relX": 0, "relY": 9.25, "facingAngle": 90, "polarity": -1 },
-            // カーブ側接続ジョイント（受け側: polarity -1）
-            { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-ballast-C541",     "name": "カーブ側接続", "relX": -0.59, "relY": -4.54, "facingAngle": 262.5, "polarity": -1 }
+            // 直線側接続ジョイント (直線エッジ Y = -522.5 mm 位置)
+            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast-straight", "name": "直線側接続", "relX": 0, "relY": -522.5, "facingAngle": 90, "polarity": -1 },
+            // カーブ側接続ジョイント (R=531.75, θ=-7.5° 位置)
+            { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-ballast-C541",     "name": "カーブ側接続", "relX": -69.41, "relY": -527.21, "facingAngle": 262.5, "polarity": -1 }
         ],
         shapes: [
-            // 左端(-70,9.25)を頂点とし、右端に向かって広がった後、R531.75の円弧で戻る楔形
-            { "type": "path", "pathData": "M -70 9.25 L 70 9.25 L 70 -9.25 A 531.75 531.75 0 0 0 -70 9.25 Z" }
+            // 円弧の中心 (0, 0) を基準としたパス
+            { "type": "path", "pathData": "M -70 -522.5 L 70 -522.5 L 69.41 -527.21 A 531.75 531.75 0 0 1 -69.41 -527.21 Z" }
         ]
     },
 
     // --- 4. バラストパーツ R5（右ポイント後の隙間埋め用） ---
+    // ※ 原点 (0, 0) はカーブ円弧の中心
     "TOMIX-N-BALLAST-R5": {
         systemId: "TOMIX-WIDE-N",
         category: "turnout",
@@ -584,14 +586,14 @@ registerRailParts({
         description: "ポイント分岐・渡り用隙間埋めバラスト(R)",
         ballastWidth: 9.25,
         nodes: [
-            // 直線側接続ジョイント（受け側: polarity -1）
-            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast-straight", "name": "直線側接続", "relX": 0, "relY": -9.25, "facingAngle": 270, "polarity": -1 },
-            // カーブ側接続ジョイント（受け側: polarity -1）
-            { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-ballast-C541",     "name": "カーブ側接続", "relX": -0.59, "relY": 4.54, "facingAngle": 97.5, "polarity": -1 }
+            // 直線側接続ジョイント (直線エッジ Y = +522.5 mm 位置)
+            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast-straight", "name": "直線側接続", "relX": 0, "relY": 522.5, "facingAngle": 270, "polarity": -1 },
+            // カーブ側接続ジョイント (R=531.75, θ=+7.5° 位置)
+            { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-ballast-C541",     "name": "カーブ側接続", "relX": -69.41, "relY": 527.21, "facingAngle": 97.5, "polarity": -1 }
         ],
         shapes: [
-            // 左端(-70,-9.25)を頂点とし、右端に向かって広がった後、R531.75の円弧で戻る楔形
-            { "type": "path", "pathData": "M -70 -9.25 L 70 -9.25 L 70 9.25 A 531.75 531.75 0 0 1 -70 -9.25 Z" }
+            // 円弧の中心 (0, 0) を基準としたパス
+            { "type": "path", "pathData": "M -70 522.5 L 70 522.5 L 69.41 527.21 A 531.75 531.75 0 0 0 -69.41 527.21 Z" }
         ]
     },
     
