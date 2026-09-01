@@ -650,7 +650,7 @@ registerRailParts({
         ]
     },
 
-    // 外付け道床パーツ：カーブ C280-30 用（左右共通）
+    // 外付け道床パーツ：カーブ C280-30 用（左右共通・修正版）
     "TOMIX-N-BALLAST-C280-30": {
         systemId: "TOMIX-WIDE-N",
         category: "turnout",
@@ -659,15 +659,14 @@ registerRailParts({
         description: "ポイント分岐用外付け道床（C280-30用）",
         ballastWidth: 9.25,
         nodes: [
-            // 原点(0,0)=円弧の中心。ジョイントは真上(Y = -270.75)、面角は内側(下向き 90°)
-            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast-C280", "name": "接続端", "relX": 0, "relY": -270.75, "facingAngle": 90.0, "polarity": -1 }
+            // 原点(0,0)=円弧中心。外半径の受入面(Y = -270.75)に上向き(270°)のノードを配置
+            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast-C280", "name": "接続端", "relX": 0, "relY": -270.75, "facingAngle": 270.0, "polarity": -1 }
         ],
         shapes: [
             {
-                // 円弧の中心 (0,0) を基準としたパス
-                // 内径 R=270.75, 外径 R=289.25 (θ = -15° ～ +15°)
+                // 外半径 R=270.75 から内側へ 9.25mm 狭まる内半径 R=261.50 の扇形
                 "type": "path",
-                "pathData": "M -70.08 -261.53 A 270.75 270.75 0 0 1 70.08 -261.53 L 74.87 -279.39 A 289.25 289.25 0 0 0 -74.87 -279.39 Z"
+                "pathData": "M -70.08 -261.53 A 270.75 270.75 0 0 1 70.08 -261.53 L 67.68 -252.59 A 261.50 261.50 0 0 0 -67.68 -252.59 Z"
             }
         ]
     },
