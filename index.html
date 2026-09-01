@@ -12,6 +12,7 @@
     <script src="layout-engine.js"></script>
     <script src="snap-manager.js"></script>
     <script src="sample-data.js"></script>
+    <script src="editor-actions.js"></script>
 
     <style>
         body { margin: 0; padding: 10px; background-color: #f0f0f0; font-family: sans-serif; touch-action: none; }
@@ -161,6 +162,10 @@
                 if (typeof initKeyControls === 'function') initKeyControls();
                 if (typeof initTouchControls === 'function') initTouchControls();
                 
+                // ファイルドラッグ＆ドロップのレシーバー設定
+                const canvasContainer = document.querySelector('.canvas-container') || document.getElementById('layoutCanvas');
+                if (typeof setupFileDropZone === 'function') setupFileDropZone(canvasContainer);
+
                 initPaletteUI();
 
                 console.log("[%s] Canvas初期化成功。初期配置データをロードします...", CODE_VERSION);
@@ -248,8 +253,50 @@
 
         function initKeyControls() {
             window.addEventListener('keydown', e => {
-                if ((e.key === 'Delete' || e.key === 'Backspace') && !isInputFocused()) {
+                if (isInputFocused()) return;
+
+                // 削除操作 (履歴ログ付き)
+                if (e.key === 'Delete' || e.key === 'Backspace') {
+                    const activeObj = canvas ? canvas.getActiveObject() : null;
+                    if (activeObj) {
+                        const targetRails = (activeObj.type === 'activeSelection') ? activeObj.getObjects() : [activeObj];
+                        const railsData = targetRails.filter(r => r && r.customData && r.customData.isRail);
+                        
+                        if (railsData.length > 0 && typeof recordAction === 'function') {
+                            recordAction({
+                                type: 'DELETE',
+                                rails: railsData.map(r => ({
+                                    instanceId: r.customData.instanceId,
+                                    partId: r.customData.partId,
+                                    x: r.left,
+                                    y: r.top,
+                                    angle: r.angle
+                                })),
+                                jointsBefore: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
+                            });
+                        }
+                    }
                     deleteSelectedRails();
+                }
+
+                // Undo / Redo / Copy / Paste / Duplicate
+                if (e.ctrlKey || e.metaKey) {
+                    if (e.key === 'z' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (typeof undoLayout === 'function') undoLayout();
+                    } else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
+                        e.preventDefault();
+                        if (typeof redoLayout === 'function') redoLayout();
+                    } else if (e.key === 'c') {
+                        e.preventDefault();
+                        if (typeof copySelectedRails === 'function') copySelectedRails();
+                    } else if (e.key === 'v') {
+                        e.preventDefault();
+                        if (typeof pasteRails === 'function') pasteRails();
+                    } else if (e.key === 'd') {
+                        e.preventDefault();
+                        if (typeof duplicateSelectedRails === 'function') duplicateSelectedRails();
+                    }
                 }
             });
         }
