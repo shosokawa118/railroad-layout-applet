@@ -618,9 +618,9 @@ registerRailParts({
             { "id": 1, "jointType": "rail-end", "name": "分岐端", "relX": 70.0,  "relY": 37.51, "facingAngle": 30.0 },
             { "id": 2, "jointType": "rail-end", "name": "直進端", "relX": 70.0,  "relY": 0,     "facingAngle": 0 },
 
-            // 外付け道床用サイドノード (直線側: Y=-9.25, カーブ側: R=270.75)
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-ballast-straight", "name": "直線側着脱用ノード(左)", "relX": 0, "relY": -9.25, "facingAngle": 270, "polarity": 1 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast-C280",     "name": "カーブ側着脱用ノード(内)", "relX": 0.08, "relY": 18.48, "facingAngle": 255.0, "polarity": 1 }
+            // 外付け道床用サイドノード
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-ballast-straight", "name": "直線側着脱用ノード(上)", "relX": 0, "relY": -9.25, "facingAngle": 270, "polarity": 1 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast-C280",     "name": "カーブ側着脱用ノード(内)", "relX": 0.08, "relY": 18.48, "facingAngle": 105.0, "polarity": 1 }
         ],
         shapes: [
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
@@ -640,9 +640,9 @@ registerRailParts({
             { "id": 1, "jointType": "rail-end", "name": "分岐端", "relX": 70.0,  "relY": -37.51, "facingAngle": -30.0 },
             { "id": 2, "jointType": "rail-end", "name": "直進端", "relX": 70.0,  "relY": 0,      "facingAngle": 0 },
 
-            // 外付け道床用サイドノード (直線側: Y=+9.25, カーブ側: R=270.75)
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-ballast-straight", "name": "直線側着脱用ノード(右)", "relX": 0, "relY": 9.25, "facingAngle": 90, "polarity": 1 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast-C280",     "name": "カーブ側着脱用ノード(内)", "relX": 0.08, "relY": -18.48, "facingAngle": 105.0, "polarity": 1 }
+            // 外付け道床用サイドノード
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-ballast-straight", "name": "直線側着脱用ノード(下)", "relX": 0, "relY": 9.25, "facingAngle": 90, "polarity": 1 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast-C280",     "name": "カーブ側着脱用ノード(内)", "relX": 0.08, "relY": -18.48, "facingAngle": 255.0, "polarity": 1 }
         ],
         shapes: [
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
@@ -659,14 +659,15 @@ registerRailParts({
         description: "ポイント分岐用外付け道床（C280-30用）",
         ballastWidth: 9.25,
         nodes: [
-            // C280バラスト受入ノード (受け面: R=270.75, θ=15° の位置でピタリ結合)
-            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast-C280", "name": "接続端", "relX": 0, "relY": -4.625, "facingAngle": 75.0, "polarity": -1 }
+            // 原点(0,0)=円弧の中心。ジョイントは真上(Y = -270.75)、面角は内側(下向き 90°)
+            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast-C280", "name": "接続端", "relX": 0, "relY": -270.75, "facingAngle": 90.0, "polarity": -1 }
         ],
         shapes: [
             {
-                // ジョイント受入面(R=270.75)から外側(R=261.5)へ9.25mm伸びる帯状の30度扇形バラスト
+                // 円弧の中心 (0,0) を基準としたパス
+                // 内径 R=270.75, 外径 R=289.25 (θ = -15° ～ +15°)
                 "type": "path",
-                "pathData": "M -70.08 4.625 A 270.75 270.75 0 0 1 70.08 4.625 L 67.68 -4.625 A 261.5 261.5 0 0 0 -67.68 -4.625 Z"
+                "pathData": "M -70.08 -261.53 A 270.75 270.75 0 0 1 70.08 -261.53 L 74.87 -279.39 A 289.25 289.25 0 0 0 -74.87 -279.39 Z"
             }
         ]
     },
