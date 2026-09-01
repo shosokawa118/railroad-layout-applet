@@ -467,6 +467,41 @@ registerRailParts({
     },
 
     // =========================================================
+    // TOMIX ワイドPC電動複線両渡りポイント (N-PX280-WB)
+    // =========================================================
+    "TOMIX-N-PX280-WB": {
+        systemId: "TOMIX-WIDE-N",
+        category: "turnout",
+        name: "N-PX280-WB",
+        description: "ワイドPC電動複線両渡りポイント PX280",
+        ballastWidth: 55.5, // 37mm + 18.5mm
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端-主線(上)", "relX": -140.0, "relY": -18.5, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "進入端-副線(下)", "relX": -140.0, "relY":  18.5, "facingAngle": 180 },
+            { "id": 2, "jointType": "rail-end", "name": "退出端-副線(下)", "relX":  140.0, "relY":  18.5, "facingAngle": 0 },
+            { "id": 3, "jointType": "rail-end", "name": "退出端-主線(上)", "relX":  140.0, "relY": -18.5, "facingAngle": 0 }
+        ],
+        shapes: [
+            // 1. 直線主線・副線 (全長 280mm)
+            { "type": "line", "length": 280, "offsetX": 0, "offsetY": -18.5 },
+            { "type": "line", "length": 280, "offsetX": 0, "offsetY":  18.5 },
+
+            // 2. 渡り線 (C541 / 15.0° 中央交差点接続)
+            // 左上 (-140, -18.5) -> 中心方向 (右下へ)
+            { "type": "arc", "radius": 541, "arcAngle": -15.0, "centerX": -140.0, "centerY": -559.5, "startAngle": 90 },
+
+            // 左下 (-140, +18.5) -> 中心方向 (右上へ)
+            { "type": "arc", "radius": 541, "arcAngle": 15.0, "centerX": -140.0, "centerY": 559.5, "startAngle": 270 },
+
+            // 右上 (+140, -18.5) -> 中心方向 (左下へ)
+            { "type": "arc", "radius": 541, "arcAngle": 15.0, "centerX": 140.0, "centerY": -559.5, "startAngle": 90 },
+
+            // 右下 (+140, +18.5) -> 中心方向 (左上へ)
+            { "type": "arc", "radius": 541, "arcAngle": -15.0, "centerX": 140.0, "centerY": 559.5, "startAngle": 270 }
+        ]
+    },
+
+    // =========================================================
     // TOMIX ワイドPCポイントレール & 拡張バラストパーツ
     // =========================================================
 
