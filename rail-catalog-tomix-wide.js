@@ -474,7 +474,7 @@ registerRailParts({
         category: "turnout",
         name: "N-PX280-WB",
         description: "ワイドPC電動複線両渡りポイント PX280",
-        ballastWidth: 55.5, // 37mm + 18.5mm
+        ballastWidth: 18.5, // 外付け道床追加に対応するため18.5mmに設定
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "進入端-主線(上)", "relX": -140.0, "relY": -18.5, "facingAngle": 180 },
             { "id": 1, "jointType": "rail-end", "name": "進入端-副線(下)", "relX": -140.0, "relY":  18.5, "facingAngle": 180 },
@@ -487,17 +487,13 @@ registerRailParts({
             { "type": "line", "length": 280, "offsetX": 0, "offsetY":  18.5 },
 
             // 2. 渡り線 (C541 / 15.0° 中央交差点接続)
-            // 左上 (-140, -18.5) -> 中心方向 (右下へ)
-            { "type": "arc", "radius": 541, "arcAngle": -15.0, "centerX": -140.0, "centerY": -559.5, "startAngle": 90 },
+            // 上の線 (Y = -18.5) から分岐する円弧：中心は下側 (+Y方向)
+            { "type": "arc", "radius": 541, "arcAngle": 15.0, "centerX": -140.0, "centerY": 522.5, "startAngle": 270 },
+            { "type": "arc", "radius": 541, "arcAngle": -15.0, "centerX": 140.0, "centerY": 522.5, "startAngle": 270 },
 
-            // 左下 (-140, +18.5) -> 中心方向 (右上へ)
-            { "type": "arc", "radius": 541, "arcAngle": 15.0, "centerX": -140.0, "centerY": 559.5, "startAngle": 270 },
-
-            // 右上 (+140, -18.5) -> 中心方向 (左下へ)
-            { "type": "arc", "radius": 541, "arcAngle": 15.0, "centerX": 140.0, "centerY": -559.5, "startAngle": 90 },
-
-            // 右下 (+140, +18.5) -> 中心方向 (左上へ)
-            { "type": "arc", "radius": 541, "arcAngle": -15.0, "centerX": 140.0, "centerY": 559.5, "startAngle": 270 }
+            // 下の線 (Y = +18.5) から分岐する円弧：中心は上側 (-Y方向)
+            { "type": "arc", "radius": 541, "arcAngle": -15.0, "centerX": -140.0, "centerY": -522.5, "startAngle": 90 },
+            { "type": "arc", "radius": 541, "arcAngle": 15.0, "centerX": 140.0, "centerY": -522.5, "startAngle": 90 }
         ]
     },
 
