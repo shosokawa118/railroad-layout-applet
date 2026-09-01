@@ -606,6 +606,70 @@ registerRailParts({
         ]
     },
 
+    // TOMIX 電動ポイント PR280-30-WB (右)
+    "TOMIX-N-WPR280-30": {
+        systemId: "TOMIX-WIDE-N",
+        category: "turnout",
+        name: "N-WPR280-30-WB",
+        description: "ワイドPC電動ポイント PR280-30 (右)",
+        ballastWidth: 18.5,
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -70.0, "relY": 0,     "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "分岐端", "relX": 70.0,  "relY": 37.51, "facingAngle": 30.0 },
+            { "id": 2, "jointType": "rail-end", "name": "直進端", "relX": 70.0,  "relY": 0,     "facingAngle": 0 },
+
+            // 外付け道床用サイドノード (極性: +1)
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-ballast-straight", "name": "直線側着脱用ノード(左)", "relX": 0, "relY": -9.25, "facingAngle": 270, "polarity": 1 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast-C280",     "name": "カーブ側着脱用ノード(内)", "relX": -2.48, "relY": 28.05, "facingAngle": 105.0, "polarity": 1 }
+        ],
+        shapes: [
+            { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
+            { "type": "arc", "radius": 280, "arcAngle": 30.0, "centerX": -70.0, "centerY": 280.0, "startAngle": 270 }
+        ]
+    },
+
+    // TOMIX 電動ポイント PL280-30-WB (左)
+    "TOMIX-N-WPL280-30": {
+        systemId: "TOMIX-WIDE-N",
+        category: "turnout",
+        name: "N-WPL280-30-WB",
+        description: "ワイドPC電動ポイント PL280-30 (左)",
+        ballastWidth: 18.5,
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -70.0, "relY": 0,      "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "分岐端", "relX": 70.0,  "relY": -37.51, "facingAngle": -30.0 },
+            { "id": 2, "jointType": "rail-end", "name": "直進端", "relX": 70.0,  "relY": 0,      "facingAngle": 0 },
+
+            // 外付け道床用サイドノード (極性: +1)
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-ballast-straight", "name": "直線側着脱用ノード(右)", "relX": 0, "relY": 9.25, "facingAngle": 90, "polarity": 1 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast-C280",     "name": "カーブ側着脱用ノード(内)", "relX": -2.48, "relY": -28.05, "facingAngle": 255.0, "polarity": 1 }
+        ],
+        shapes: [
+            { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
+            { "type": "arc", "radius": 280, "arcAngle": -30.0, "centerX": -70.0, "centerY": -280.0, "startAngle": 90 }
+        ]
+    },
+
+    // 外付け道床パーツ：カーブ C280-30 用（左右共通）
+    "TOMIX-N-BALLAST-C280-30": {
+        systemId: "TOMIX-WIDE-N",
+        category: "turnout",
+        trackType: "ballast-only",
+        name: "C280-30-WPバラスト",
+        description: "ポイント分岐用外付け道床（C280-30用）",
+        ballastWidth: 9.25,
+        nodes: [
+            // C280バラスト受入ノード (極性: -1)
+            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast-C280", "name": "接続端", "relX": 0, "relY": -270.75, "facingAngle": 270, "polarity": -1 }
+        ],
+        shapes: [
+            {
+                "type": "path",
+                "pathData": "M -66.1 -256.4 A 270.75 270.75 0 0 1 66.1 -256.4 L 63.8 -247.5 A 261.5 261.5 0 0 0 -63.8 -247.5 Z"
+            }
+        ]
+    },
+
     // --- 3. バラストパーツ L5（左ポイント後の隙間埋め用） ---
     "TOMIX-N-BALLAST-L5": {
         systemId: "TOMIX-WIDE-N",
