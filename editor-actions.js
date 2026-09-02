@@ -778,6 +778,12 @@ document.addEventListener('keydown', (e) => {
 
     if (isCtrl) {
         switch (e.key.toLowerCase()) {
+            case ',': // Ctrl + , でノード補正ダイアログを開く
+                e.preventDefault();
+                if (typeof openNodeOffsetDialog === 'function') {
+                    openNodeOffsetDialog();
+                }
+                break;
             case 'a':
                 e.preventDefault();
                 if (e.shiftKey) {
