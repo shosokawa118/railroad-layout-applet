@@ -476,6 +476,14 @@ function cycleSelectedRailNode(direction) {
     const nodeKeys = Object.keys(selfCatalog.nodes);
     if (nodeKeys.length <= 1) return;
 
+    // --- 【検証用ログ出力】 geoCenterX / geoCenterY の保持状態チェック ---
+    console.log("[NodeCycle:geoCenter検証]", {
+        activeObj_customData: activeObj.customData,
+        targetRailObj_customData: targetRailObj.customData,
+        hasSelfGeoCenterX: 'geoCenterX' in activeObj.customData,
+        hasTargetGeoCenterX: 'geoCenterX' in targetRailObj.customData
+    });
+
     // 3. 次ノードインデックスの計算
     let currentIdx = nodeKeys.indexOf(selfNodeId);
     if (currentIdx === -1) currentIdx = 0;
