@@ -22,7 +22,8 @@
         canvas { position: absolute !important; left: 0 !important; top: 0 !important; width: 800px !important; height: 600px !important; }
         
         button { padding: 4px 10px; border-radius: 4px; border: 1px solid #ccc; background-color: #fff; cursor: pointer; font-size: 13px; }
-        button:hover { background-color: #f0f0f0; }
+        button:hover:not(:disabled) { background-color: #f0f0f0; }
+        button:disabled { opacity: 0.4; cursor: not-allowed; }
         
         select { padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; background-color: #fff; font-size: 13px; font-weight: bold; }
         
@@ -30,10 +31,10 @@
         .tab-btn.active { border-bottom-color: #0288d1; color: #0288d1; }
         
         .part-btn { background-color: #e3f2fd; border-color: #90caf9; }
-        .part-btn:hover { background-color: #bbdefb; }
+        .part-btn:hover:not(:disabled) { background-color: #bbdefb; }
 
         .btn-danger { background-color: #ffebee; color: #c62828; border-color: #ef9a9a; font-weight: bold; }
-        .btn-danger:hover { background-color: #ffcdd2; }
+        .btn-danger:hover:not(:disabled) { background-color: #ffcdd2; }
 
         /* コンテキストメニュー（右クリック / タップホールド用）のスタイル */
         #contextMenu {
@@ -45,7 +46,7 @@
             border-radius: 6px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             padding: 4px 0;
-            min-width: 160px;
+            min-width: 180px;
         }
         #contextMenu button {
             display: block;
@@ -57,7 +58,7 @@
             background: transparent;
             font-size: 13px;
         }
-        #contextMenu button:hover {
+        #contextMenu button:hover:not(:disabled) {
             background-color: #e3f2fd;
         }
         #contextMenu .menu-divider {
@@ -76,14 +77,12 @@
             <select id="systemSelect"></select>
             <span style="border-left: 1px solid #ccc; height: 16px; margin: 0 4px;"></span>
 
-            <!-- 画面上部の操作ボタン群（Undo/Redo -> Cut -> Copy -> Paste -> Duplicate の順） -->
-            <button onclick="undoLayout()">↶ 元に戻す</button>
-            <button onclick="redoLayout()">↷ やり直し</button>
-            <button onclick="cutSelectedRails()">切り取り</button>
-            <button onclick="copySelectedRails()">コピー</button>
-            <button onclick="pasteRails()">貼り付け</button>
-            <button onclick="duplicateSelectedRails()">複製</button>
-            <button onclick="deleteSelectedRails()" class="btn-danger">選択削除 [Del]</button>
+            <!-- 画面上部の基本編集ボタン群（Undo -> Cut -> Copy -> Paste -> Delete） -->
+            <button id="btnUndo" onclick="undoLayout()" title="元に戻す [Ctrl+Z]">元に戻す</button>
+            <button id="btnCut" onclick="cutSelectedRails()" title="切り取り [Ctrl+X]">切り取り</button>
+            <button id="btnCopy" onclick="copySelectedRails()" title="コピー [Ctrl+C]">コピー</button>
+            <button id="btnPaste" onclick="pasteRails()" title="貼り付け [Ctrl+V]">貼り付け</button>
+            <button id="btnDelete" onclick="deleteSelectedRails()" class="btn-danger" title="削除 [Delete]">削除</button>
 
             <span style="border-left: 1px solid #ccc; height: 16px; margin: 0 4px;"></span>
             <label for="jointDisplaySelect" style="font-size: 12px; font-weight: bold; color: #555;">ジョイント表示:</label>
@@ -113,22 +112,22 @@
 
     <!-- コンテキストメニュー（右クリック / 長押し用ポップアップ） -->
     <div id="contextMenu">
-        <button onclick="execMenuAction('selectConnected')">連結レールを選択 [Ctrl+Shift+A]</button>
-        <button onclick="execMenuAction('selectAll')">すべて選択 [Ctrl+A]</button>
+        <button id="menuSelectConnected" onclick="execMenuAction('selectConnected')">連結レールを選択 [Ctrl+Shift+A]</button>
+        <button id="menuSelectAll" onclick="execMenuAction('selectAll')">すべて選択 [Ctrl+A]</button>
         <div class="menu-divider"></div>
-        <button onclick="execMenuAction('undo')">↶ 元に戻す</button>
-        <button onclick="execMenuAction('redo')">↷ やり直し</button>
+        <button id="menuUndo" onclick="execMenuAction('undo')">元に戻す [Ctrl+Z]</button>
+        <button id="menuRedo" onclick="execMenuAction('redo')">やり直し [Ctrl+Y]</button>
         <div class="menu-divider"></div>
-        <button onclick="execMenuAction('cut')">切り取り</button>
-        <button onclick="execMenuAction('copy')">コピー</button>
-        <button onclick="execMenuAction('paste')">貼り付け</button>
-        <button onclick="execMenuAction('duplicate')">複製</button>
+        <button id="menuCut" onclick="execMenuAction('cut')">切り取り [Ctrl+X]</button>
+        <button id="menuCopy" onclick="execMenuAction('copy')">コピー [Ctrl+C]</button>
+        <button id="menuPaste" onclick="execMenuAction('paste')">貼り付け [Ctrl+V]</button>
+        <button id="menuDuplicate" onclick="execMenuAction('duplicate')">複製 [Ctrl+D]</button>
         <div class="menu-divider"></div>
-        <button onclick="execMenuAction('delete')" style="color: #c62828;">削除</button>
+        <button id="menuDelete" onclick="execMenuAction('delete')" style="color: #c62828;">削除 [Delete]</button>
     </div>
 
     <script>
-        const CODE_VERSION = "VER-AUTO-CONNECT-AC4";
+        const CODE_VERSION = "VER-AUTO-CONNECT-AC5";
         console.log("=========================================");
         console.log("ビュー（HTML）バージョン:", CODE_VERSION);
         console.log("=========================================");
@@ -140,13 +139,18 @@
         function initCameraControls() {
             if (!canvas) return;
             
-            // キャンバス上の最後のエレメント非選択クリック座標を記憶（オートコネクト非適用時のフォールバック位置）
+            // キャンバス上の最後のエレメント非選択クリック座標を記憶
             canvas.on('mouse:down', function(opt) {
                 if (opt.pointer && !opt.target) {
                     lastCanvasClickPos = { x: opt.pointer.x, y: opt.pointer.y };
                 }
                 hideContextMenu();
             });
+
+            // 選択状態変更時にUIの状態（ボタン無効化など）を同期更新
+            canvas.on('selection:created', () => { if (typeof updateUIState === 'function') updateUIState(); });
+            canvas.on('selection:updated', () => { if (typeof updateUIState === 'function') updateUIState(); });
+            canvas.on('selection:cleared', () => { if (typeof updateUIState === 'function') updateUIState(); });
 
             canvas.on('mouse:wheel', function(opt) {
                 if (!opt || !opt.e) return;
@@ -228,6 +232,7 @@
         }
 
         function showContextMenu(x, y) {
+            if (typeof updateUIState === 'function') updateUIState();
             const menu = document.getElementById('contextMenu');
             if (!menu) return;
             menu.style.left = `${x}px`;
@@ -277,6 +282,7 @@
                     if (typeof loadDebugSampleLayout === 'function') {
                         loadDebugSampleLayout();
                     }
+                    if (typeof updateUIState === 'function') updateUIState();
                 }).catch(err => {
                     console.error("初期ライブラリの読み込みに失敗しました:", err);
                 });
