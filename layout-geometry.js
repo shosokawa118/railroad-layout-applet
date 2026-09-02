@@ -246,6 +246,41 @@ function generateGenericRailData(catalogItem) {
     };
 }
 
+/**
+ * ノード定義に nodeOffsets (補正値) が存在する場合、適用後の relX, relY, facingAngle を返すヘルパー関数
+ * @param {Object} rail - Fabricオブジェクト
+ * @param {Object} catalogNode - カタログ上のノード定義オブジェクト
+ * @returns {{relX: number, relY: number, facingAngle: number}}
+ */
+function getEffectiveNodeDef(rail, catalogNode) {
+    if (!catalogNode) return { relX: 0, relY: 0, facingAngle: 0 };
+    
+    let relX = catalogNode.relX || 0;
+    let relY = catalogNode.relY || 0;
+    let facingAngle = catalogNode.facingAngle || 0;
+
+    const jointType = catalogNode.jointType || 'rail-end';
+    
+    // jointType: 'rail-end' の場合のみ nodeOffsets を適用
+    if (jointType === 'rail-end' && rail && rail.nodeOffsets && catalogNode.id !== undefined) {
+        const offset = rail.nodeOffsets[catalogNode.id];
+        if (offset) {
+            const forward = offset.forward || 0;
+            const sideways = offset.sideways || 0;
+            const angleOffset = offset.angle || 0;
+
+            facingAngle = (facingAngle + angleOffset) % 360;
+            if (facingAngle < 0) facingAngle += 360;
+
+            const rad = (catalogNode.facingAngle * Math.PI) / 180;
+            relX += forward * Math.cos(rad) - sideways * Math.sin(rad);
+            relY += forward * Math.sin(rad) + sideways * Math.cos(rad);
+        }
+    }
+
+    return { relX, relY, facingAngle };
+}
+
 function getAbsoluteNodePos(rail) {
     if (!rail || !rail.customData) return [];
     const catalog = railCatalog.items[rail.customData.partId];
@@ -257,26 +292,28 @@ function getAbsoluteNodePos(rail) {
     if (rail.group && rail.group.type === 'activeSelection') {
         const angleRad = (rail.angle * Math.PI) / 180;
         return catalog.nodes.map(node => {
-            const lx = node.relX - cx;
-            const ly = node.relY - cy;
+            const effDef = getEffectiveNodeDef(rail, node);
+            const lx = effDef.relX - cx;
+            const ly = effDef.relY - cy;
 
             const localX = rail.left + (lx * Math.cos(angleRad) - ly * Math.sin(angleRad));
             const localY = rail.top  + (lx * Math.sin(angleRad) + ly * Math.cos(angleRad));
             const point = new fabric.Point(localX, localY);
             const absPoint = fabric.util.transformPoint(point, rail.group.calcTransformMatrix());
-            const absAngle = (rail.group.angle + rail.angle + node.facingAngle) % 360;
+            const absAngle = (rail.group.angle + rail.angle + effDef.facingAngle) % 360;
             return { nodeId: node.id, x: absPoint.x, y: absPoint.y, angle: absAngle };
         });
     }
 
     const angleRad = (rail.angle * Math.PI) / 180;
     return catalog.nodes.map(node => {
-        const lx = node.relX - cx;
-        const ly = node.relY - cy;
+        const effDef = getEffectiveNodeDef(rail, node);
+        const lx = effDef.relX - cx;
+        const ly = effDef.relY - cy;
 
         const absX = rail.left + (lx * Math.cos(angleRad) - ly * Math.sin(angleRad));
         const absY = rail.top  + (lx * Math.sin(angleRad) + ly * Math.cos(angleRad));
-        const absAngle = (rail.angle + node.facingAngle) % 360;
+        const absAngle = (rail.angle + effDef.facingAngle) % 360;
         return { nodeId: node.id, x: absX, y: absY, angle: absAngle };
     });
 }
