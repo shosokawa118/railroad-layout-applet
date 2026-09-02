@@ -41,6 +41,8 @@ function recordAction(action) {
         historyUndoStack.shift();
     }
     historyRedoStack.length = 0; // 新規操作でRedoクリア
+    
+    if (typeof updateUIState === 'function') updateUIState();
 }
 
 /**
@@ -51,6 +53,7 @@ function undoLayout() {
     const action = historyUndoStack.pop();
     historyRedoStack.push(action);
     executeAction(action, true);
+    if (typeof updateUIState === 'function') updateUIState();
 }
 
 /**
@@ -61,6 +64,7 @@ function redoLayout() {
     const action = historyRedoStack.pop();
     historyUndoStack.push(action);
     executeAction(action, false);
+    if (typeof updateUIState === 'function') updateUIState();
 }
 
 /**
@@ -211,6 +215,7 @@ function selectAllRails() {
     }
 
     canvas.requestRenderAll();
+    if (typeof updateUIState === 'function') updateUIState();
 }
 
 /**
@@ -276,6 +281,49 @@ function selectConnectedRails() {
     }
 
     canvas.requestRenderAll();
+    if (typeof updateUIState === 'function') updateUIState();
+}
+
+/**
+ * UIの各ボタンや操作の有効/無効（グレーアウト）状態を一元更新する
+ */
+function updateUIState() {
+    if (!canvas) return;
+
+    const hasSelection = !!canvas.getActiveObject();
+    const canUndo = historyUndoStack.length > 0;
+    const canRedo = historyRedoStack.length > 0;
+    const hasRails = canvas.getObjects().some(o => o && o.customData && o.customData.isRail);
+
+    // 画面上部ボタン
+    const btnUndo = document.getElementById('btnUndo');
+    const btnCut = document.getElementById('btnCut');
+    const btnCopy = document.getElementById('btnCopy');
+    const btnDelete = document.getElementById('btnDelete');
+
+    if (btnUndo) btnUndo.disabled = !canUndo;
+    if (btnCut) btnCut.disabled = !hasSelection;
+    if (btnCopy) btnCopy.disabled = !hasSelection;
+    if (btnDelete) btnDelete.disabled = !hasSelection;
+
+    // コンテキストメニュー側ボタン
+    const menuSelectConnected = document.getElementById('menuSelectConnected');
+    const menuSelectAll = document.getElementById('menuSelectAll');
+    const menuUndo = document.getElementById('menuUndo');
+    const menuRedo = document.getElementById('menuRedo');
+    const menuCut = document.getElementById('menuCut');
+    const menuCopy = document.getElementById('menuCopy');
+    const menuDuplicate = document.getElementById('menuDuplicate');
+    const menuDelete = document.getElementById('menuDelete');
+
+    if (menuSelectConnected) menuSelectConnected.disabled = !hasSelection;
+    if (menuSelectAll) menuSelectAll.disabled = !hasRails;
+    if (menuUndo) menuUndo.disabled = !canUndo;
+    if (menuRedo) menuRedo.disabled = !canRedo;
+    if (menuCut) menuCut.disabled = !hasSelection;
+    if (menuCopy) menuCopy.disabled = !hasSelection;
+    if (menuDuplicate) menuDuplicate.disabled = !hasSelection;
+    if (menuDelete) menuDelete.disabled = !hasSelection;
 }
 
 
