@@ -126,6 +126,93 @@
         <button id="menuDelete" onclick="execMenuAction('delete')" style="color: #c62828;">削除 [Delete]</button>
     </div>
 
+    <!-- ノード補正オプションダイアログ -->
+    <dialog id="nodeOffsetDialog" style="border: 1px solid #ccc; border-radius: 8px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 280px;">
+        <h3 style="margin-top: 0; font-size: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px;">ノード位置補正</h3>
+        <form id="nodeOffsetForm" method="dialog" style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
+            <div>
+                <label style="display: block; margin-bottom: 4px;">前後 offset (mm):</label>
+                <input type="number" id="nodeOffsetForward" step="0.1" placeholder="0" style="width: 100%; box-sizing: border-box;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 4px;">左右 offset (mm):</label>
+                <input type="number" id="nodeOffsetSideways" step="0.1" placeholder="0" style="width: 100%; box-sizing: border-box;">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 4px;">角度 offset (deg):</label>
+                <input type="number" id="nodeOffsetAngle" step="0.1" placeholder="0" style="width: 100%; box-sizing: border-box;">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
+                <button type="button" onclick="closeNodeOffsetDialog()">キャンセル</button>
+                <button type="button" onclick="saveNodeOffset()">保存</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script>
+        // ダイアログ表示処理
+        function openNodeOffsetDialog() {
+            // 選択中のパーツがない場合はスキップ
+            if (!selectedRails || selectedRails.length === 0) return;
+            const rail = selectedRails[0];
+            
+            // 現在の選択ノードインデックス（未定義なら0）
+            const nodeIdx = rail.activeNodeIndex || 0;
+            const offsets = (rail.nodeOffsets && rail.nodeOffsets[nodeIdx]) || {};
+
+            // フォーム初期設定（未設定の場合は空文字）
+            document.getElementById('nodeOffsetForward').value = offsets.forward !== undefined ? offsets.forward : '';
+            document.getElementById('nodeOffsetSideways').value = offsets.sideways !== undefined ? offsets.sideways : '';
+            document.getElementById('nodeOffsetAngle').value = offsets.angle !== undefined ? offsets.angle : '';
+
+            const dialog = document.getElementById('nodeOffsetDialog');
+            if (dialog && typeof dialog.showModal === 'function') {
+                dialog.showModal();
+            }
+        }
+
+        function closeNodeOffsetDialog() {
+            const dialog = document.getElementById('nodeOffsetDialog');
+            if (dialog) dialog.close();
+        }
+
+        // 補正値の保存処理 (値がないプロパティは生成・保持しない仕様)
+        function saveNodeOffset() {
+            if (!selectedRails || selectedRails.length === 0) {
+                closeNodeOffsetDialog();
+                return;
+            }
+            const rail = selectedRails[0];
+            const nodeIdx = rail.activeNodeIndex || 0;
+
+            const fVal = parseFloat(document.getElementById('nodeOffsetForward').value);
+            const sVal = parseFloat(document.getElementById('nodeOffsetSideways').value);
+            const aVal = parseFloat(document.getElementById('nodeOffsetAngle').value);
+
+            const nodeObj = {};
+            if (!isNaN(fVal) && fVal !== 0) nodeObj.forward = fVal;
+            if (!isNaN(sVal) && sVal !== 0) nodeObj.sideways = sVal;
+            if (!isNaN(aVal) && aVal !== 0) nodeObj.angle = aVal;
+
+            if (!rail.nodeOffsets) {
+                rail.nodeOffsets = {};
+            }
+
+            // オブジェクトに値が1つでもある場合のみ保持、全空なら削除して軽量化
+            if (Object.keys(nodeObj).length > 0) {
+                rail.nodeOffsets[nodeIdx] = nodeObj;
+            } else {
+                delete rail.nodeOffsets[nodeIdx];
+                if (Object.keys(rail.nodeOffsets).length === 0) {
+                    delete rail.nodeOffsets;
+                }
+            }
+
+            closeNodeOffsetDialog();
+            if (typeof draw === 'function') draw(); // 再描画
+        }
+    </script>
+
     <script>
         const CODE_VERSION = "VER-AUTO-CONNECT-AC5";
         console.log("=========================================");
