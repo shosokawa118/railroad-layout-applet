@@ -110,11 +110,14 @@ function applyClusterSnapLogic(movedRail) {
         const mRail = bestSnap.movedRail;
         const mCatalogNode = railCatalog.items[mRail.customData.partId].nodes[bestSnap.mNode.nodeId];
         
-        let targetRailAngle = (bestSnap.oNode.angle - mCatalogNode.facingAngle + 180) % 360;
+        // --- 修正箇所: getEffectiveNodeDef を使用 ---
+        const mEffDef = getEffectiveNodeDef(mRail, mCatalogNode);
+        
+        let targetRailAngle = (bestSnap.oNode.angle - mEffDef.facingAngle + 180) % 360;
         if (targetRailAngle < 0) targetRailAngle += 360;
 
         if (movedRail.type === 'activeSelection') {
-            const currentRailAbsAngle = (movedRail.angle + mRail.angle + mCatalogNode.facingAngle) % 360;
+            const currentRailAbsAngle = (movedRail.angle + mRail.angle + mEffDef.facingAngle) % 360;
             let deltaAngle = (bestSnap.oNode.angle - currentRailAbsAngle + 180) % 360;
             if (deltaAngle > 180) deltaAngle -= 360;
             if (deltaAngle < -180) deltaAngle += 360;
@@ -133,8 +136,8 @@ function applyClusterSnapLogic(movedRail) {
         } else {
             const cx = mRail.customData.geoCenterX || 0;
             const cy = mRail.customData.geoCenterY || 0;
-            const lx = mCatalogNode.relX - cx;
-            const ly = mCatalogNode.relY - cy;
+            const lx = mEffDef.relX - cx;
+            const ly = mEffDef.relY - cy;
 
             const newAngleRad = (targetRailAngle * Math.PI) / 180;
             const newLeft = bestSnap.oNode.x - (lx * Math.cos(newAngleRad) - ly * Math.sin(newAngleRad));
