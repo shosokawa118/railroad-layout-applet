@@ -68,7 +68,6 @@ function redoLayout() {
  */
 function executeAction(action, isUndo) {
     if (!canvas) return;
-    console.log(`[Undo/Redo] 実行開始: type=${action.type}, isUndo=${isUndo}`, action);
     canvas.discardActiveObject();
 
     switch (action.type) {
@@ -96,19 +95,15 @@ function executeAction(action, isUndo) {
 
         case 'ADD': {
             if (isUndo) {
-                console.log("[Undo ADD] 削除前の globalJoints:", JSON.stringify(globalJoints));
                 action.rails.forEach(r => {
                     const obj = findRailByInstanceId(r.instanceId);
-                    console.log(`[Undo ADD] 削除対象レール検索 id=${r.instanceId}:`, obj ? "発見" : "未発見");
                     if (obj) canvas.remove(obj);
                 });
                 if (typeof globalJoints !== 'undefined' && action.jointsBefore) {
                     globalJoints = [...action.jointsBefore];
-                    console.log("[Undo ADD] 復元後の globalJoints:", JSON.stringify(globalJoints));
                 }
                 
                 // 追加前の選択状態（＝直前に繋げていた先端レール）を自動復元
-                console.log("[Undo ADD] 復元予定の選択ID(selectionBefore):", action.selectionBefore);
                 if (action.selectionBefore && action.selectionBefore.length > 0) {
                     restoreSelection(action.selectionBefore);
                 }
@@ -166,23 +161,16 @@ function executeAction(action, isUndo) {
 }
 
 /**
- * 指定されたinstanceId群のレールを選択状態にするヘルパー関数（デバッグ強化版）
+ * 指定されたinstanceId群のレールを選択状態にするヘルパー関数
  */
 function restoreSelection(instanceIds) {
     if (!canvas || !instanceIds || instanceIds.length === 0) {
-        console.warn("[restoreSelection] 対象IDが存在しません:", instanceIds);
         return;
     }
 
     const targetObjects = instanceIds
-        .map(id => {
-            const obj = findRailByInstanceId(id);
-            if (!obj) console.warn(`[restoreSelection] instanceId: ${id} に該当するオブジェクトがキャンバス内にありません`);
-            return obj;
-        })
+        .map(id => findRailByInstanceId(id))
         .filter(obj => obj !== null && obj !== undefined);
-
-    console.log(`[restoreSelection] 復元対象オブジェクト件数: ${targetObjects.length} / 元ID数: ${instanceIds.length}`);
 
     try {
         if (targetObjects.length === 1) {
@@ -192,7 +180,7 @@ function restoreSelection(instanceIds) {
             canvas.setActiveObject(sel);
         }
     } catch (err) {
-        console.error("[restoreSelection] setActiveObject 実行中に例外が発生しました:", err);
+        // 例外防止用ハンドラ
     }
 }
 
@@ -324,10 +312,8 @@ async function copySelectedRails() {
 
     try {
         await navigator.clipboard.writeText(jsonString);
-        console.log("クリップボードにJSONをコピーしました。");
     } catch (err) {
         clipboardDataMemory = exportData;
-        console.warn("API非対応のためメモリに保存しました。", err);
     }
 }
 
@@ -342,24 +328,7 @@ async function cutSelectedRails() {
     // 1. クリップボードへコピー
     await copySelectedRails();
 
-    // 2. 履歴（DELETEアクション）を記録してから削除を実行
-    const targetRails = (activeObject.type === 'activeSelection') ? activeObject.getObjects() : [activeObject];
-    const railsData = targetRails.filter(r => r && r.customData && r.customData.isRail);
-
-    if (railsData.length > 0 && typeof recordAction === 'function') {
-        recordAction({
-            type: 'DELETE',
-            rails: railsData.map(r => ({
-                instanceId: r.customData.instanceId,
-                partId: r.customData.partId,
-                x: r.left,
-                y: r.top,
-                angle: r.angle
-            })),
-            jointsBefore: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
-        });
-    }
-
+    // 2. 削除を実行（履歴記録は deleteSelectedRails 内で行われます）
     if (typeof deleteSelectedRails === 'function') {
         deleteSelectedRails();
     }
@@ -677,11 +646,7 @@ document.addEventListener('keydown', (e) => {
         switch (e.key.toLowerCase()) {
             case 'z':
                 e.preventDefault();
-                if (e.shiftKey) {
-                    undoLayout();
-                } else {
-                    undoLayout();
-                }
+                undoLayout();
                 break;
             case 'y':
                 e.preventDefault();
@@ -706,25 +671,7 @@ document.addEventListener('keydown', (e) => {
         }
     } else if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault();
-        const activeObj = canvas ? canvas.getActiveObject() : null;
-        if (activeObj) {
-            const targetRails = (activeObj.type === 'activeSelection') ? activeObj.getObjects() : [activeObj];
-            const railsData = targetRails.filter(r => r && r.customData && r.customData.isRail);
-            
-            if (railsData.length > 0) {
-                recordAction({
-                    type: 'DELETE',
-                    rails: railsData.map(r => ({
-                        instanceId: r.customData.instanceId,
-                        partId: r.customData.partId,
-                        x: r.left,
-                        y: r.top,
-                        angle: r.angle
-                    })),
-                    jointsBefore: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
-                });
-            }
-        }
+        // 履歴記録および削除処理は deleteSelectedRails() 側に一任します
         if (typeof deleteSelectedRails === 'function') deleteSelectedRails();
     }
 });
@@ -761,7 +708,6 @@ function setupFileDropZone(targetElement) {
                         const jsonData = JSON.parse(event.target.result);
                         if (typeof importLayoutData === 'function') {
                             await importLayoutData(jsonData, true);
-                            console.log("JSONファイルを読み込みました。");
                         }
                     } catch (err) {
                         alert("JSONの読み込みに失敗しました。ファイル形式を確認してください。");
