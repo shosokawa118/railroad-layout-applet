@@ -441,17 +441,30 @@ async function duplicateSelectedRails() {
  * @param {number} direction - +1 (アップ: [ ) または -1 (ダウン: ] )
  */
 function cycleSelectedRailNode(direction) {
-    if (!canvas) return;
+    if (!canvas) {
+        console.warn("[NodeCycle] canvasが存在しません");
+        return;
+    }
     const activeObj = canvas.getActiveObject();
-    if (!activeObj || !activeObj.customData || !activeObj.customData.isRail) return;
+    if (!activeObj || !activeObj.customData || !activeObj.customData.isRail) {
+        console.warn("[NodeCycle] 有効なレールオブジェクトが選択されていません", activeObj);
+        return;
+    }
 
     const selfId = activeObj.customData.instanceId;
     const partId = activeObj.customData.partId;
-    if (typeof globalJoints === 'undefined') return;
+    
+    if (typeof globalJoints === 'undefined') {
+        console.error("[NodeCycle] globalJoints が未定義です");
+        return;
+    }
 
-    // 現在の接続ジョイントを検索
+    // 1. 現在の接続ジョイントを検索
     const jointIndex = globalJoints.findIndex(j => j.railA === selfId || j.railB === selfId);
-    if (jointIndex === -1) return; // 接続されていないレールは対象外
+    if (jointIndex === -1) {
+        console.warn("[NodeCycle] 選択パーツのジョイント情報が見つかりません (未接続の可能性)", { selfId });
+        return;
+    }
 
     const joint = globalJoints[jointIndex];
     const isSelfA = joint.railA === selfId;
@@ -460,72 +473,117 @@ function cycleSelectedRailNode(direction) {
     const selfNodeId = isSelfA ? joint.nodeA : joint.nodeB;
 
     const targetRailObj = findRailByInstanceId(targetRailId);
-    if (!targetRailObj) return;
+    if (!targetRailObj) {
+        console.error("[NodeCycle] 接続相手のFabricオブジェクトが見つかりません", { targetRailId });
+        return;
+    }
 
-    // 定義データから全ノード一覧を取得
-    // ※ railCatalog の参照方法（グローバル変数名や取得関数）を確認
+    // 2. 定義データ（カタログ）の確認ログ
     const catalogData = (typeof railCatalog !== 'undefined') ? railCatalog : (window.railCatalog || null);
-    if (!catalogData || !catalogData.items) {
-        console.error("railCatalog が見つかりません。");
+    if (!catalogData) {
+        console.error("[NodeCycle] 【確定要因1】 railCatalog がグローバルに存在しません");
+        return;
+    }
+    if (!catalogData.items) {
+        console.error("[NodeCycle] 【確定要因2】 railCatalog.items が未定義です", catalogData);
         return;
     }
 
     const selfCatalog = catalogData.items[partId];
     const targetCatalog = catalogData.items[targetRailObj.customData.partId];
 
-    if (!selfCatalog || !selfCatalog.nodes || !targetCatalog || !targetCatalog.nodes) {
-        console.error("パーツ定義またはノード定義が存在しません:", partId);
+    if (!selfCatalog) {
+        console.error(`[NodeCycle] 【確定要因3】 自身のpartId (${partId}) が railCatalog.items に存在しません`);
+        return;
+    }
+    if (!targetCatalog) {
+        console.error(`[NodeCycle] 【確定要因4】 相手のpartId (${targetRailObj.customData.partId}) が railCatalog.items に存在しません`);
+        return;
+    }
+
+    if (!selfCatalog.nodes) {
+        console.error(`[NodeCycle] 【確定要因5】 自身のパーツ (${partId}) に nodes 定義がありません`, selfCatalog);
+        return;
+    }
+    if (!targetCatalog.nodes) {
+        console.error(`[NodeCycle] 【確定要因6】 相手のパーツ (${targetRailObj.customData.partId}) に nodes 定義がありません`, targetCatalog);
         return;
     }
 
     const nodeKeys = Object.keys(selfCatalog.nodes);
-    if (nodeKeys.length <= 1) return; // ノードが1つ以下なら切替不可
+    if (nodeKeys.length <= 1) {
+        console.info("[NodeCycle] 切替可能なノードが複数存在しません", nodeKeys);
+        return;
+    }
 
-    // 現在のノードインデックスを取得し、シフト
+    // 3. 次ノードインデックスの計算
     let currentIdx = nodeKeys.indexOf(selfNodeId);
-    if (currentIdx === -1) currentIdx = 0;
+    if (currentIdx === -1) {
+        console.warn(`[NodeCycle] 現在のノードID (${selfNodeId}) が nodes 定義に見つからないため0番目を使用します`, nodeKeys);
+        currentIdx = 0;
+    }
 
     let nextIdx = (currentIdx + direction) % nodeKeys.length;
     if (nextIdx < 0) nextIdx += nodeKeys.length;
 
     const nextSelfNodeId = nodeKeys[nextIdx];
 
-    // 相手側ノードの定義と位置を取得
     const targetNodeDef = targetCatalog.nodes[targetNodeId];
     const nextSelfNodeDef = selfCatalog.nodes[nextSelfNodeId];
 
-    if (!targetNodeDef || !nextSelfNodeDef) {
-        console.error("ノード定義の取得に失敗しました。");
+    if (!targetNodeDef) {
+        console.error(`[NodeCycle] 【確定要因7】 相手ノードID (${targetNodeId}) の座標定義がありません`, targetCatalog.nodes);
+        return;
+    }
+    if (!nextSelfNodeDef) {
+        console.error(`[NodeCycle] 【確定要因8】 次の自ノードID (${nextSelfNodeId}) の座標定義がありません`, selfCatalog.nodes);
         return;
     }
 
-    // 移動前の状態を保存
+    // 4. 座標計算と各変数のトレースログ
     const itemBefore = {
         instanceId: selfId,
         from: { x: activeObj.left, y: activeObj.top, angle: activeObj.angle }
     };
     const jointsBefore = [...globalJoints];
 
-    // 1. 相手ノードの世界角度を算出
+    // 角度計算
     const targetWorldAngle = (targetRailObj.angle + targetNodeDef.angle) % 360;
-
-    // 2. 新しい自ノードを相手ノードに対向（180度反転）させる自角度を計算
     const newSelfAngle = (targetWorldAngle + 180 - nextSelfNodeDef.angle + 360) % 360;
 
-    // 3. 位置合わせ計算
+    // 位置計算
     const targetNodeWorldPos = getAbsoluteNodePosition(targetRailObj, targetNodeDef);
     const selfNodeOffsetRotated = rotateVector(nextSelfNodeDef.x, nextSelfNodeDef.y, newSelfAngle);
 
     const newSelfX = targetNodeWorldPos.x - selfNodeOffsetRotated.x;
     const newSelfY = targetNodeWorldPos.y - selfNodeOffsetRotated.y;
 
-    // 計算結果が正常（NaNやnullでない）か検証
-    if (isNaN(newSelfX) || isNaN(newSelfY) || isNaN(newSelfAngle)) {
-        console.error("座標・角度の計算結果が数値ではありません:", { newSelfX, newSelfY, newSelfAngle });
+    // 計算過程の数値を出力して検証
+    console.log("[NodeCycle] 計算詳細ログ:", {
+        selfId,
+        partId,
+        selfNodeId,
+        nextSelfNodeId,
+        targetRailObjPos: { left: targetRailObj.left, top: targetRailObj.top, angle: targetRailObj.angle },
+        targetNodeDef,
+        nextSelfNodeDef,
+        targetNodeWorldPos,
+        selfNodeOffsetRotated,
+        resultPos: { x: newSelfX, y: newSelfY, angle: newSelfAngle }
+    });
+
+    // 数値が正しく計算できているか判定
+    if (isNaN(newSelfX) || isNaN(newSelfY) || isNaN(newSelfAngle) ||
+        newSelfX === null || newSelfY === null || newSelfAngle === null) {
+        console.error("[NodeCycle] 【確定要因9】 計算結果が NaN または null になりました。Fabricオブジェクトの更新を中止します。", {
+            newSelfX,
+            newSelfY,
+            newSelfAngle
+        });
         return;
     }
 
-    // 座標・角度の更新
+    // 5. 異常がない場合のみ座標・角度を反映
     activeObj.set({
         left: newSelfX,
         top: newSelfY,
@@ -533,14 +591,12 @@ function cycleSelectedRailNode(direction) {
     });
     activeObj.setCoords();
 
-    // globalJointsのノード割り当てを更新
     if (isSelfA) {
         globalJoints[jointIndex].nodeA = nextSelfNodeId;
     } else {
         globalJoints[jointIndex].nodeB = nextSelfNodeId;
     }
 
-    // 履歴へ記録
     itemBefore.to = { x: newSelfX, y: newSelfY, angle: newSelfAngle };
     recordAction({
         type: 'CYCLE_NODE',
