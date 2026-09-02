@@ -1,3 +1,117 @@
+FUNCTION: recordAction
+FILE: editor-actions.js
+PARAMS: action
+USAGE: 履歴アクションを記録（type: 'MOVE'|'ADD'|'DELETE'|'CYCLE_NODE'）し、Redoスタックをクリア
+---
+
+FUNCTION: undoLayout
+FILE: editor-actions.js
+PARAMS: なし
+USAGE: 操作を取り消す（Undoスタックから取り出し、executeAction で逆実行）
+---
+
+FUNCTION: redoLayout
+FILE: editor-actions.js
+PARAMS: なし
+USAGE: 操作をやり直す（Redoスタックから取り出し、executeAction で順実行）
+---
+
+FUNCTION: executeAction
+FILE: editor-actions.js
+PARAMS: action, isUndo
+USAGE: アクションを実行/逆実行する（MOVE、ADD、DELETE、CYCLE_NODE対応）
+---
+
+FUNCTION: restoreSelection
+FILE: editor-actions.js
+PARAMS: instanceIds
+USAGE: 指定されたinstanceId群のレールを選択状態に復元（単数/複数選択対応）
+---
+
+FUNCTION: findRailByInstanceId
+FILE: editor-actions.js
+PARAMS: instanceId
+USAGE: IDからFabricオブジェクト（レール）を検索
+---
+
+FUNCTION: selectAllRails
+FILE: editor-actions.js
+PARAMS: なし
+USAGE: キャンバス上のすべてのレールを一括選択
+---
+
+FUNCTION: selectConnectedRails
+FILE: editor-actions.js
+PARAMS: なし
+USAGE: 現在選択中のレールからジョイントで繋がっている全パーツ（連結ネットワーク全体）を一括選択（BFS探索）
+---
+
+FUNCTION: updateUIState
+FILE: editor-actions.js
+PARAMS: なし
+USAGE: UIの各ボタンや操作の有効/無効（グレーアウト）状態を一元更新
+---
+
+FUNCTION: captureDragStart
+FILE: editor-actions.js
+PARAMS: target
+USAGE: 移動開始時の状態を記録（mouse:down時）
+---
+
+FUNCTION: captureDragEnd
+FILE: editor-actions.js
+PARAMS: target
+USAGE: 移動完了時の差分判定と記録（mouse:up時）、位置・角度・ジョイント変化を検出
+---
+
+FUNCTION: copySelectedRails
+FILE: editor-actions.js
+PARAMS: なし
+USAGE: 選択中レールおよび関係するジョイント群をJSON形式でクリップボードへコピー（相対オフセット計算）
+---
+
+FUNCTION: cutSelectedRails
+FILE: editor-actions.js
+PARAMS: なし
+USAGE: 選択中レールをコピーした上で削除する（切り取り）
+---
+
+FUNCTION: pasteRails
+FILE: editor-actions.js
+PARAMS: なし
+USAGE: クリップボードのデータを importLayoutData(..., false) で復元（貼り付け）
+---
+
+FUNCTION: duplicateSelectedRails
+FILE: editor-actions.js
+PARAMS: なし
+USAGE: 選択中レールの複製（copy→paste の組み合わせ）
+---
+
+FUNCTION: cycleSelectedRailNode
+FILE: editor-actions.js
+PARAMS: direction
+USAGE: 選択中パーツの接続ノード番号を変更して回転・再配置する（[ / ] キーで操作）
+---
+
+FUNCTION: getAbsoluteNodePosition
+FILE: editor-actions.js
+PARAMS: railObj, nodeDef
+USAGE: ノードの絶対座標計算ヘルパー（回転・座標変換を適用）
+---
+
+FUNCTION: rotateVector
+FILE: editor-actions.js
+PARAMS: x, y, angleDeg
+USAGE: 2Dベクトルの回転計算ヘルパー（角度の正弦・余弦を使用）
+---
+
+FUNCTION: setupFileDropZone
+FILE: editor-actions.js
+PARAMS: targetElement
+USAGE: ドラッグ&ドロップでJSONファイルを読み込む機能を設定
+---
+
 FUNCTION: getEffectiveNodeDef
 FILE: layout-geometry.js
 PARAMS: rail, catalogNode
