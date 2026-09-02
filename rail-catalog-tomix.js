@@ -328,8 +328,8 @@ registerRailParts({
             { "id": 2, "jointType": "rail-end", "name": "内軌(C280)", "relX": 201.42, "relY": 85.50, "facingAngle": 46 }
         ],
         shapes: [
-            { "type": "arc", "radius": 317, "arcAngle": 45, "centerX": -5.53, "centerY": 316.95, "startAngle": 269 },
-            { "type": "arc", "radius": 280, "arcAngle": 45, "centerX": 4.89, "centerY": 279.96, "startAngle": 271 }
+            { "type": "arc", "radius": 317, "arcAngle": 45, "centerX":  5.53, "centerY": 316.95, "startAngle": 269 },
+            { "type": "arc", "radius": 280, "arcAngle": 45, "centerX": -4.89, "centerY": 279.96, "startAngle": 271 }
         ]
     },
     "TOMIX-5532": {
@@ -343,8 +343,8 @@ registerRailParts({
             { "id": 2, "jointType": "rail-end", "name": "内軌(C280)", "relX": 201.42, "relY": -85.50, "facingAngle": 314 }
         ],
         shapes: [
-            { "type": "arc", "radius": 317, "arcAngle": -45, "centerX": -5.53, "centerY": -316.95, "startAngle": 91 },
-            { "type": "arc", "radius": 280, "arcAngle": -45, "centerX": 4.89, "centerY": -279.96, "startAngle": 89 }
+            { "type": "arc", "radius": 317, "arcAngle": -45, "centerX":  5.53, "centerY": -316.95, "startAngle": 91 },
+            { "type": "arc", "radius": 280, "arcAngle": -45, "centerX": -4.89, "centerY": -279.96, "startAngle": 89 }
         ]
     }
 });
