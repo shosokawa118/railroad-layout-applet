@@ -193,15 +193,14 @@
                     // ノード自身の元IDを取得（ID未設定時はインデックス）
                     const nodeIndex = (nodeDef.id !== undefined) ? nodeDef.id : i;
                     const nodeData = offsets[nodeIndex] || {};
-                    const isSelected = nodeIndex === (currentEditingRail.activeNodeIndex || 0);
 
                     const nodeBlock = document.createElement('div');
                     nodeBlock.style.cssText = 'border-bottom: 1px dashed #eee; padding-bottom: 8px;';
                     if (i === nodeCount - 1) nodeBlock.style.borderBottom = 'none';
 
                     nodeBlock.innerHTML = `
-                        <div style="font-weight: bold; margin-bottom: 4px; color: ${isSelected ? '#0066cc' : '#333'};">
-                            ノード ${nodeIndex} ${nodeDef.name ? '(' + nodeDef.name + ')' : ''} ${isSelected ? '[選択中]' : ''}
+                        <div style="font-weight: bold; margin-bottom: 4px; color: #333;">
+                            ノード ${nodeIndex} ${nodeDef.name ? '(' + nodeDef.name + ')' : ''}
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;">
                             <div>
