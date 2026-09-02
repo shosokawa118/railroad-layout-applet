@@ -213,6 +213,71 @@ function selectAllRails() {
     canvas.requestRenderAll();
 }
 
+/**
+ * 現在選択中のレールからジョイントで繋がっている全パーツ（連結ネットワーク全体）を一括選択する
+ */
+function selectConnectedRails() {
+    if (!canvas || typeof globalJoints === 'undefined') return;
+
+    const activeObj = canvas.getActiveObject();
+    if (!activeObj) return;
+
+    let selectedRails = [];
+    if (activeObj.type === 'activeSelection') {
+        selectedRails = activeObj.getObjects().filter(o => o && o.customData && o.customData.isRail);
+    } else if (activeObj.customData && activeObj.customData.isRail) {
+        selectedRails = [activeObj];
+    }
+
+    if (selectedRails.length === 0) return;
+
+    // 隣接リスト（グラフ）の構築
+    const adjacencyList = new Map();
+    globalJoints.forEach(joint => {
+        const a = joint.railA;
+        const b = joint.railB;
+        if (!adjacencyList.has(a)) adjacencyList.set(a, []);
+        if (!adjacencyList.has(b)) adjacencyList.set(b, []);
+        adjacencyList.get(a).push(b);
+        adjacencyList.get(b).push(a);
+    });
+
+    // 幅優先探索 (BFS) で接続されているすべてのレールIDを収集
+    const visited = new Set();
+    const queue = selectedRails.map(r => r.customData.instanceId);
+
+    queue.forEach(id => visited.add(id));
+
+    while (queue.length > 0) {
+        const currentId = queue.shift();
+        const neighbors = adjacencyList.get(currentId) || [];
+        neighbors.forEach(neighborId => {
+            if (!visited.has(neighborId)) {
+                visited.add(neighborId);
+                queue.push(neighborId);
+            }
+        });
+    }
+
+    // 発見されたIDのオブジェクトを取得して一括選択
+    const connectedObjects = Array.from(visited)
+        .map(id => findRailByInstanceId(id))
+        .filter(obj => obj !== null && obj !== undefined);
+
+    if (connectedObjects.length === 0) return;
+
+    canvas.discardActiveObject();
+
+    if (connectedObjects.length === 1) {
+        canvas.setActiveObject(connectedObjects[0]);
+    } else {
+        const sel = new fabric.ActiveSelection(connectedObjects, { canvas: canvas });
+        canvas.setActiveObject(sel);
+    }
+
+    canvas.requestRenderAll();
+}
+
 
 // =========================================================
 // 2. ドラッグ移動（mouse:down / mouse:up）の記録フック
@@ -667,7 +732,13 @@ document.addEventListener('keydown', (e) => {
         switch (e.key.toLowerCase()) {
             case 'a':
                 e.preventDefault();
-                selectAllRails();
+                if (e.shiftKey) {
+                    // Ctrl + Shift + A で接続レール全体を選択
+                    selectConnectedRails();
+                } else {
+                    // Ctrl + A で画面上の全レールを選択
+                    selectAllRails();
+                }
                 break;
             case 'z':
                 e.preventDefault();
