@@ -152,8 +152,16 @@
 
         // ダイアログを開く処理
         function openRailOptionsDialog() {
-            if (!selectedRails || selectedRails.length === 0) return;
-            currentEditingRail = selectedRails[0];
+            if (!canvas) return;
+            const activeObj = canvas.getActiveObject();
+
+            // 何も選択されていない、または複数選択（範囲選択）の場合は処理しない
+            if (!activeObj || activeObj.type === 'activeSelection') return;
+
+            // 選択されているオブジェクトがレール単体でない場合は処理しない
+            if (!activeObj.customData || !activeObj.customData.isRail) return;
+
+            currentEditingRail = activeObj;
 
             const container = document.getElementById('nodeOffsetsContainer');
             container.innerHTML = ''; // 前回生成した入力欄をクリア
