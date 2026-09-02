@@ -562,31 +562,10 @@ function cycleSelectedRailNode(direction) {
             }
         }
 
-        // B. 回転後に新たに接触した近傍ノードの自動検出と結合
-        const allRails = canvas.getObjects().filter(obj => obj && obj.customData && obj.customData.isRail && obj.customData.instanceId !== selfId);
-
-        currentSelfAbsNodes.forEach(sNode => {
-            if (typeof isNodeOccupied === 'function' && isNodeOccupied(selfId, sNode.nodeId)) return;
-
-            allRails.forEach(otherRail => {
-                const otherId = otherRail.customData.instanceId;
-                const otherAbsNodes = getAbsoluteNodePos(otherRail);
-
-                otherAbsNodes.forEach(oNode => {
-                    if (typeof isNodeOccupied === 'function' && isNodeOccupied(otherId, oNode.nodeId)) return;
-                    
-                    const canConnect = (typeof canConnectNodes === 'function') 
-                        ? canConnectNodes(activeObj, sNode.nodeId, otherRail, oNode.nodeId) 
-                        : true;
-
-                    if (canConnect && isNodePositionCompatible(sNode, oNode, 8, 5)) {
-                        if (typeof addGlobalJointIfFree === 'function') {
-                            addGlobalJointIfFree(selfId, sNode.nodeId, otherId, oNode.nodeId);
-                        }
-                    }
-                });
-            });
-        });
+        // B. 回転後に新たに接触した近傍ノードの自動結合（共通関数呼出）
+        if (typeof autoConnectNearbyNodes === 'function') {
+            autoConnectNearbyNodes(activeObj, 8, 10);
+        }
     }
 
     // 8. 履歴記録と表示更新
