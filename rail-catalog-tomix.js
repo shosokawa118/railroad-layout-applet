@@ -324,8 +324,8 @@ registerRailParts({
         description: "カーブポイント C317/280-45 (右)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": 0, "relY": 0, "facingAngle": 180 },
-            { "id": 1, "jointType": "rail-end", "name": "外軌(C317)", "relX": 220.20, "relY": 88.98, "facingAngle": 44 },
-            { "id": 2, "jointType": "rail-end", "name": "内軌(C280)", "relX": 201.42, "relY": 85.50, "facingAngle": 46 }
+            { "id": 1, "jointType": "rail-end", "name": "外軌(C317)", "relX": 225.74, "relY": 88.98, "facingAngle": 44 },
+            { "id": 2, "jointType": "rail-end", "name": "内軌(C280)", "relX": 196.52, "relY": 85.50, "facingAngle": 46 }
         ],
         shapes: [
             { "type": "arc", "radius": 317, "arcAngle": 45, "centerX":  5.53, "centerY": 316.95, "startAngle": 269 },
@@ -339,8 +339,8 @@ registerRailParts({
         description: "カーブポイント C317/280-45 (左)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": 0, "relY": 0, "facingAngle": 180 },
-            { "id": 1, "jointType": "rail-end", "name": "外軌(C317)", "relX": 220.20, "relY": -88.98, "facingAngle": 316 },
-            { "id": 2, "jointType": "rail-end", "name": "内軌(C280)", "relX": 201.42, "relY": -85.50, "facingAngle": 314 }
+            { "id": 1, "jointType": "rail-end", "name": "外軌(C317)", "relX": 225.74, "relY": -88.98, "facingAngle": 316 },
+            { "id": 2, "jointType": "rail-end", "name": "内軌(C280)", "relX": 196.52, "relY": -85.50, "facingAngle": 314 }
         ],
         shapes: [
             { "type": "arc", "radius": 317, "arcAngle": -45, "centerX":  5.53, "centerY": -316.95, "startAngle": 91 },
