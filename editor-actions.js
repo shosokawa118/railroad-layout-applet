@@ -20,9 +20,22 @@ let clipboardDataMemory = null;
 
 /**
  * 履歴アクションを記録する
- * @param {Object} action - { type: 'MOVE'|'ADD'|'DELETE', ... }
+ * @param {Object} action - { type: 'MOVE'|'ADD'|'DELETE'|'CYCLE_NODE', ... }
  */
 function recordAction(action) {
+    // 操作直前の選択状態（instanceId一覧）を自動記録
+    if (!action.selectionBefore && canvas) {
+        const activeObj = canvas.getActiveObject();
+        if (activeObj) {
+            const selectedRails = (activeObj.type === 'activeSelection') ? activeObj.getObjects() : [activeObj];
+            action.selectionBefore = selectedRails
+                .filter(r => r && r.customData && r.customData.isRail)
+                .map(r => r.customData.instanceId);
+        } else {
+            action.selectionBefore = [];
+        }
+    }
+
     historyUndoStack.push(action);
     if (historyUndoStack.length > MAX_HISTORY) {
         historyUndoStack.shift();
@@ -58,8 +71,10 @@ function executeAction(action, isUndo) {
     canvas.discardActiveObject();
 
     switch (action.type) {
-        case 'MOVE': {
-            action.items.forEach(item => {
+        case 'MOVE':
+        case 'CYCLE_NODE': {
+            const items = isUndo ? action.items : (action.itemsTo || action.items);
+            items.forEach(item => {
                 const railObj = findRailByInstanceId(item.instanceId);
                 if (railObj) {
                     const targetState = isUndo ? item.from : item.to;
@@ -74,6 +89,7 @@ function executeAction(action, isUndo) {
             if (typeof globalJoints !== 'undefined') {
                 globalJoints = isUndo ? [...action.jointsFrom] : [...action.jointsTo];
             }
+            restoreSelection(action.items.map(i => i.instanceId));
             break;
         }
 
@@ -85,6 +101,10 @@ function executeAction(action, isUndo) {
                 });
                 if (typeof globalJoints !== 'undefined' && action.jointsBefore) {
                     globalJoints = [...action.jointsBefore];
+                }
+                // 追加前の選択状態（＝直前に繋げていた先端レール）を自動復元
+                if (action.selectionBefore && action.selectionBefore.length > 0) {
+                    restoreSelection(action.selectionBefore);
                 }
             } else {
                 action.rails.forEach(r => {
@@ -100,6 +120,7 @@ function executeAction(action, isUndo) {
                 if (typeof globalJoints !== 'undefined' && action.jointsAfter) {
                     globalJoints = [...action.jointsAfter];
                 }
+                restoreSelection(action.rails.map(r => r.instanceId));
             }
             break;
         }
@@ -119,6 +140,7 @@ function executeAction(action, isUndo) {
                 if (typeof globalJoints !== 'undefined' && action.jointsBefore) {
                     globalJoints = [...action.jointsBefore];
                 }
+                restoreSelection(action.rails.map(r => r.instanceId));
             } else {
                 action.rails.forEach(r => {
                     const obj = findRailByInstanceId(r.instanceId);
@@ -135,6 +157,23 @@ function executeAction(action, isUndo) {
 
     if (typeof updateJointIndicators === 'function') updateJointIndicators();
     canvas.requestRenderAll();
+}
+
+/**
+ * 指定されたinstanceId群のレールを選択状態にするヘルパー関数
+ */
+function restoreSelection(instanceIds) {
+    if (!canvas || !instanceIds || instanceIds.length === 0) return;
+    const targetObjects = instanceIds
+        .map(id => findRailByInstanceId(id))
+        .filter(obj => obj !== null);
+
+    if (targetObjects.length === 1) {
+        canvas.setActiveObject(targetObjects[0]);
+    } else if (targetObjects.length > 1) {
+        const sel = new fabric.ActiveSelection(targetObjects, { canvas: canvas });
+        canvas.setActiveObject(sel);
+    }
 }
 
 /**
@@ -365,13 +404,7 @@ async function pasteRails() {
     );
 
     if (newlyAddedRails.length > 0) {
-        canvas.discardActiveObject();
-        if (newlyAddedRails.length === 1) {
-            canvas.setActiveObject(newlyAddedRails[0]);
-        } else {
-            const sel = new fabric.ActiveSelection(newlyAddedRails, { canvas: canvas });
-            canvas.setActiveObject(sel);
-        }
+        restoreSelection(newlyAddedRails.map(o => o.customData.instanceId));
 
         recordAction({
             type: 'ADD',
@@ -400,13 +433,144 @@ async function duplicateSelectedRails() {
 
 
 // =========================================================
-// 4. キーボードショートカットイベントの管理
+// 4. ノード接続の切り替え（[ / ] キー）
+// =========================================================
+
+/**
+ * 選択中パーツの接続ノード番号を変更して回転・再配置する
+ * @param {number} direction - +1 (アップ: [ ) または -1 (ダウン: ] )
+ */
+function cycleSelectedRailNode(direction) {
+    if (!canvas) return;
+    const activeObj = canvas.getActiveObject();
+    if (!activeObj || !activeObj.customData || !activeObj.customData.isRail) return;
+
+    const selfId = activeObj.customData.instanceId;
+    if (typeof globalJoints === 'undefined') return;
+
+    // 現在の接続ジョイントを検索
+    const jointIndex = globalJoints.findIndex(j => j.railA === selfId || j.railB === selfId);
+    if (jointIndex === -1) return; // 接続されていないレールは対象外
+
+    const joint = globalJoints[jointIndex];
+    const isSelfA = joint.railA === selfId;
+    const targetRailId = isSelfA ? joint.railB : joint.railA;
+    const targetNodeId = isSelfA ? joint.nodeB : joint.nodeA;
+    const selfNodeId = isSelfA ? joint.nodeA : joint.nodeB;
+
+    const targetRailObj = findRailByInstanceId(targetRailId);
+    if (!targetRailObj) return;
+
+    // 定義データから全ノード一覧を取得
+    const selfCatalog = railCatalog.items[activeObj.customData.partId];
+    if (!selfCatalog || !selfCatalog.nodes) return;
+    const nodeKeys = Object.keys(selfCatalog.nodes);
+    if (nodeKeys.length <= 1) return; // ノードが1つ以下なら切替不可
+
+    // 現在のノードインデックスを取得し、シフト
+    let currentIdx = nodeKeys.indexOf(selfNodeId);
+    if (currentIdx === -1) currentIdx = 0;
+
+    let nextIdx = (currentIdx + direction) % nodeKeys.length;
+    if (nextIdx < 0) nextIdx += nodeKeys.length;
+
+    const nextSelfNodeId = nodeKeys[nextIdx];
+
+    // 移動前の状態を保存
+    const itemBefore = {
+        instanceId: selfId,
+        from: { x: activeObj.left, y: activeObj.top, angle: activeObj.angle }
+    };
+    const jointsBefore = [...globalJoints];
+
+    // 相手側ノードの絶対座標・角度を算出
+    const targetCatalog = railCatalog.items[targetRailObj.customData.partId];
+    const targetNodeDef = targetCatalog.nodes[targetNodeId];
+    const targetWorldAngle = (targetRailObj.angle + targetNodeDef.angle) % 360;
+
+    // 新しい自ノードを相手ノードに対向（180度反転）させる自角度を計算
+    const nextSelfNodeDef = selfCatalog.nodes[nextSelfNodeId];
+    const newSelfAngle = (targetWorldAngle + 180 - nextSelfNodeDef.angle + 360) % 360;
+
+    // 位置合わせ計算
+    const targetNodeWorldPos = getAbsoluteNodePosition(targetRailObj, targetNodeDef);
+    const selfNodeOffsetRotated = rotateVector(nextSelfNodeDef.x, nextSelfNodeDef.y, newSelfAngle);
+
+    const newSelfX = targetNodeWorldPos.x - selfNodeOffsetRotated.x;
+    const newSelfY = targetNodeWorldPos.y - selfNodeOffsetRotated.y;
+
+    // 座標・角度の更新
+    activeObj.set({
+        left: newSelfX,
+        top: newSelfY,
+        angle: newSelfAngle
+    });
+    activeObj.setCoords();
+
+    // globalJointsのノード割り当てを更新
+    if (isSelfA) {
+        globalJoints[jointIndex].nodeA = nextSelfNodeId;
+    } else {
+        globalJoints[jointIndex].nodeB = nextSelfNodeId;
+    }
+
+    // 履歴へ記録
+    itemBefore.to = { x: newSelfX, y: newSelfY, angle: newSelfAngle };
+    recordAction({
+        type: 'CYCLE_NODE',
+        items: [itemBefore],
+        jointsFrom: jointsBefore,
+        jointsTo: [...globalJoints]
+    });
+
+    if (typeof updateJointIndicators === 'function') updateJointIndicators();
+    canvas.requestRenderAll();
+}
+
+/**
+ * 2Dベクトルの回転計算ヘルパー
+ */
+function rotateVector(x, y, angleDeg) {
+    const rad = (angleDeg * Math.PI) / 180;
+    return {
+        x: x * Math.cos(rad) - y * Math.sin(rad),
+        y: x * Math.sin(rad) + y * Math.cos(rad)
+    };
+}
+
+/**
+ * ノードの絶対座標計算ヘルパー
+ */
+function getAbsoluteNodePosition(railObj, nodeDef) {
+    const rotated = rotateVector(nodeDef.x, nodeDef.y, railObj.angle);
+    return {
+        x: railObj.left + rotated.x,
+        y: railObj.top + rotated.y
+    };
+}
+
+
+// =========================================================
+// 5. キーボードショートカットイベントの管理
 // =========================================================
 document.addEventListener('keydown', (e) => {
     // 入力フォーム等での操作時はショートカットを無効化
     if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
 
     const isCtrl = e.ctrlKey || e.metaKey;
+
+    // ノード番号の単体切替（ [ でアップ、] でダウン ）
+    if (!isCtrl) {
+        if (e.key === '[') {
+            e.preventDefault();
+            cycleSelectedRailNode(1);
+            return;
+        } else if (e.key === ']') {
+            e.preventDefault();
+            cycleSelectedRailNode(-1);
+            return;
+        }
+    }
 
     if (isCtrl) {
         switch (e.key.toLowerCase()) {
@@ -466,7 +630,7 @@ document.addEventListener('keydown', (e) => {
 
 
 // =========================================================
-// 5. ブラウザ画面内へのファイルドラッグ＆ドロップ
+// 6. ブラウザ画面内へのファイルドラッグ＆ドロップ
 // =========================================================
 
 /**
