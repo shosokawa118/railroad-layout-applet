@@ -1,5 +1,5 @@
 // =========================================================
-// フェーズ1: 編集基本機能（Undo/Redo, Copy/Paste, File D&D）
+// フェーズ1: 編集基本機能（Undo/Redo, Copy/Cut/Paste, File D&D）
 // =========================================================
 
 // --- 履歴（Undo/Redo）管理変数 ---
@@ -211,7 +211,7 @@ function captureDragEnd(target) {
 
 
 // =========================================================
-// 3. クリップボード（Copy / Paste / Duplicate）
+// 3. クリップボード（Copy / Cut / Paste / Duplicate）
 // =========================================================
 
 /**
@@ -269,6 +269,40 @@ async function copySelectedRails() {
     } catch (err) {
         clipboardDataMemory = exportData;
         console.warn("API非対応のためメモリに保存しました。", err);
+    }
+}
+
+/**
+ * 選択中レールをコピーした上で削除する（切り取り）
+ */
+async function cutSelectedRails() {
+    if (!canvas) return;
+    const activeObject = canvas.getActiveObject();
+    if (!activeObject) return;
+
+    // 1. クリップボードへコピー
+    await copySelectedRails();
+
+    // 2. 履歴（DELETEアクション）を記録してから削除を実行
+    const targetRails = (activeObject.type === 'activeSelection') ? activeObject.getObjects() : [activeObject];
+    const railsData = targetRails.filter(r => r && r.customData && r.customData.isRail);
+
+    if (railsData.length > 0 && typeof recordAction === 'function') {
+        recordAction({
+            type: 'DELETE',
+            rails: railsData.map(r => ({
+                instanceId: r.customData.instanceId,
+                partId: r.customData.partId,
+                x: r.left,
+                y: r.top,
+                angle: r.angle
+            })),
+            jointsBefore: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
+        });
+    }
+
+    if (typeof deleteSelectedRails === 'function') {
+        deleteSelectedRails();
     }
 }
 
@@ -366,7 +400,73 @@ async function duplicateSelectedRails() {
 
 
 // =========================================================
-// 4. ブラウザ画面内へのファイルドラッグ＆ドロップ
+// 4. キーボードショートカットイベントの管理
+// =========================================================
+document.addEventListener('keydown', (e) => {
+    // 入力フォーム等での操作時はショートカットを無効化
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+
+    const isCtrl = e.ctrlKey || e.metaKey;
+
+    if (isCtrl) {
+        switch (e.key.toLowerCase()) {
+            case 'z':
+                e.preventDefault();
+                if (e.shiftKey) {
+                    undoLayout();
+                } else {
+                    undoLayout();
+                }
+                break;
+            case 'y':
+                e.preventDefault();
+                redoLayout();
+                break;
+            case 'x':
+                e.preventDefault();
+                cutSelectedRails();
+                break;
+            case 'c':
+                e.preventDefault();
+                copySelectedRails();
+                break;
+            case 'v':
+                e.preventDefault();
+                pasteRails();
+                break;
+            case 'd':
+                e.preventDefault();
+                duplicateSelectedRails();
+                break;
+        }
+    } else if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault();
+        const activeObj = canvas ? canvas.getActiveObject() : null;
+        if (activeObj) {
+            const targetRails = (activeObj.type === 'activeSelection') ? activeObj.getObjects() : [activeObj];
+            const railsData = targetRails.filter(r => r && r.customData && r.customData.isRail);
+            
+            if (railsData.length > 0) {
+                recordAction({
+                    type: 'DELETE',
+                    rails: railsData.map(r => ({
+                        instanceId: r.customData.instanceId,
+                        partId: r.customData.partId,
+                        x: r.left,
+                        y: r.top,
+                        angle: r.angle
+                    })),
+                    jointsBefore: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
+                });
+            }
+        }
+        if (typeof deleteSelectedRails === 'function') deleteSelectedRails();
+    }
+});
+
+
+// =========================================================
+// 5. ブラウザ画面内へのファイルドラッグ＆ドロップ
 // =========================================================
 
 /**
