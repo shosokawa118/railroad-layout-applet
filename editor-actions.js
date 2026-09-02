@@ -68,6 +68,7 @@ function redoLayout() {
  */
 function executeAction(action, isUndo) {
     if (!canvas) return;
+    console.log(`[Undo/Redo] 実行開始: type=${action.type}, isUndo=${isUndo}`, action);
     canvas.discardActiveObject();
 
     switch (action.type) {
@@ -95,14 +96,19 @@ function executeAction(action, isUndo) {
 
         case 'ADD': {
             if (isUndo) {
+                console.log("[Undo ADD] 削除前の globalJoints:", JSON.stringify(globalJoints));
                 action.rails.forEach(r => {
                     const obj = findRailByInstanceId(r.instanceId);
+                    console.log(`[Undo ADD] 削除対象レール検索 id=${r.instanceId}:`, obj ? "発見" : "未発見");
                     if (obj) canvas.remove(obj);
                 });
                 if (typeof globalJoints !== 'undefined' && action.jointsBefore) {
                     globalJoints = [...action.jointsBefore];
+                    console.log("[Undo ADD] 復元後の globalJoints:", JSON.stringify(globalJoints));
                 }
+                
                 // 追加前の選択状態（＝直前に繋げていた先端レール）を自動復元
+                console.log("[Undo ADD] 復元予定の選択ID(selectionBefore):", action.selectionBefore);
                 if (action.selectionBefore && action.selectionBefore.length > 0) {
                     restoreSelection(action.selectionBefore);
                 }
@@ -160,19 +166,33 @@ function executeAction(action, isUndo) {
 }
 
 /**
- * 指定されたinstanceId群のレールを選択状態にするヘルパー関数
+ * 指定されたinstanceId群のレールを選択状態にするヘルパー関数（デバッグ強化版）
  */
 function restoreSelection(instanceIds) {
-    if (!canvas || !instanceIds || instanceIds.length === 0) return;
-    const targetObjects = instanceIds
-        .map(id => findRailByInstanceId(id))
-        .filter(obj => obj !== null);
+    if (!canvas || !instanceIds || instanceIds.length === 0) {
+        console.warn("[restoreSelection] 対象IDが存在しません:", instanceIds);
+        return;
+    }
 
-    if (targetObjects.length === 1) {
-        canvas.setActiveObject(targetObjects[0]);
-    } else if (targetObjects.length > 1) {
-        const sel = new fabric.ActiveSelection(targetObjects, { canvas: canvas });
-        canvas.setActiveObject(sel);
+    const targetObjects = instanceIds
+        .map(id => {
+            const obj = findRailByInstanceId(id);
+            if (!obj) console.warn(`[restoreSelection] instanceId: ${id} に該当するオブジェクトがキャンバス内にありません`);
+            return obj;
+        })
+        .filter(obj => obj !== null && obj !== undefined);
+
+    console.log(`[restoreSelection] 復元対象オブジェクト件数: ${targetObjects.length} / 元ID数: ${instanceIds.length}`);
+
+    try {
+        if (targetObjects.length === 1) {
+            canvas.setActiveObject(targetObjects[0]);
+        } else if (targetObjects.length > 1) {
+            const sel = new fabric.ActiveSelection(targetObjects, { canvas: canvas });
+            canvas.setActiveObject(sel);
+        }
+    } catch (err) {
+        console.error("[restoreSelection] setActiveObject 実行中に例外が発生しました:", err);
     }
 }
 
