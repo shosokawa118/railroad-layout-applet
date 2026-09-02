@@ -208,11 +208,14 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
     const newCx = newRail.customData.geoCenterX || 0;
     const newCy = newRail.customData.geoCenterY || 0;
 
-    const targetAngle = (parentNode.angle + 180 - targetNewNode.facingAngle + 360) % 360;
+    // --- 修正箇所: getEffectiveNodeDef を使用 ---
+    const targetEffDef = getEffectiveNodeDef(newRail, targetNewNode);
+
+    const targetAngle = (parentNode.angle + 180 - targetEffDef.facingAngle + 360) % 360;
     newRail.set({ angle: targetAngle });
 
-    const lx = targetNewNode.relX - newCx;
-    const ly = targetNewNode.relY - newCy;
+    const lx = targetEffDef.relX - newCx;
+    const ly = targetEffDef.relY - newCy;
     const rad = (targetAngle * Math.PI) / 180;
 
     const newLeft = parentNode.x - (lx * Math.cos(rad) - ly * Math.sin(rad));
