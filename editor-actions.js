@@ -476,14 +476,6 @@ function cycleSelectedRailNode(direction) {
     const nodeKeys = Object.keys(selfCatalog.nodes);
     if (nodeKeys.length <= 1) return;
 
-    // --- 【検証用ログ出力】 geoCenterX / geoCenterY の保持状態チェック ---
-    console.log("[NodeCycle:geoCenter検証]", {
-        activeObj_customData: activeObj.customData,
-        targetRailObj_customData: targetRailObj.customData,
-        hasSelfGeoCenterX: 'geoCenterX' in activeObj.customData,
-        hasTargetGeoCenterX: 'geoCenterX' in targetRailObj.customData
-    });
-
     // 3. 次ノードインデックスの計算
     let currentIdx = nodeKeys.indexOf(selfNodeId);
     if (currentIdx === -1) currentIdx = 0;
@@ -498,39 +490,31 @@ function cycleSelectedRailNode(direction) {
 
     if (!targetNodeDef || !nextSelfNodeDef) return;
 
-    // 4. 座標・角度計算（geoCenterによるオフセット補正付き）
+    // 4. 座標・角度計算（geoCenter補正付き）
     const itemBefore = {
         instanceId: selfId,
         from: { x: activeObj.left, y: activeObj.top, angle: activeObj.angle }
     };
-    const jointsBefore = [...globalJoints];
+    const jointsBefore = JSON.parse(JSON.stringify(globalJoints));
 
-    // 角度計算
     const targetWorldAngle = (targetRailObj.angle + targetNodeDef.facingAngle) % 360;
     const newSelfAngle = (targetWorldAngle + 180 - nextSelfNodeDef.facingAngle + 360) % 360;
 
-    // 相手ノードの絶対位置を取得（getAbsoluteNodePositionを補正版へ更新）
     const targetNodeWorldPos = getAbsoluteNodePosition(targetRailObj, targetNodeDef);
 
-    // 自身ノードのローカル座標（geoCenterからのオフセット）算出
     const selfGeoCX = activeObj.customData.geoCenterX || 0;
     const selfGeoCY = activeObj.customData.geoCenterY || 0;
     const selfLx = nextSelfNodeDef.relX - selfGeoCX;
     const selfLy = nextSelfNodeDef.relY - selfGeoCY;
 
-    // 算出された回転角度に基づくノードオフセット計算
     const selfNodeOffsetRotated = rotateVector(selfLx, selfLy, newSelfAngle);
 
-    // 最終座標（Fabricオブジェクトの中心位置）の算出
     const newSelfX = targetNodeWorldPos.x - selfNodeOffsetRotated.x;
     const newSelfY = targetNodeWorldPos.y - selfNodeOffsetRotated.y;
 
-    if (isNaN(newSelfX) || isNaN(newSelfY) || isNaN(newSelfAngle)) {
-        console.error("[NodeCycle] 計算結果が NaN になりました", { newSelfX, newSelfY, newSelfAngle });
-        return;
-    }
+    if (isNaN(newSelfX) || isNaN(newSelfY) || isNaN(newSelfAngle)) return;
 
-    // 5. Fabricオブジェクトおよびジョイント定義の更新
+    // 5. Fabricオブジェクトの更新
     activeObj.set({
         left: newSelfX,
         top: newSelfY,
@@ -538,18 +522,55 @@ function cycleSelectedRailNode(direction) {
     });
     activeObj.setCoords();
 
+    // 6. ジョイント情報の再構築（位置ズレした古いジョイントの破棄と更新）
+    // 主対象ジョイントのノードIDを更新
     if (isSelfA) {
         globalJoints[jointIndex].nodeA = nextSelfNodeId;
     } else {
         globalJoints[jointIndex].nodeB = nextSelfNodeId;
     }
 
+    // 回転によって繋がらなくなった自パーツの他ジョイントを判定・クリーンアップ
+    if (typeof getAbsoluteNodePos === 'function' && typeof isNodePositionCompatible === 'function') {
+        const currentSelfAbsNodes = getAbsoluteNodePos(activeObj);
+        
+        // 自パーツが関わるジョイントのうち、回転後に位置が離れてしまったものを削除
+        for (let i = globalJoints.length - 1; i >= 0; i--) {
+            const j = globalJoints[i];
+            if (j.railA !== selfId && j.railB !== selfId) continue;
+            
+            // 今回切替を行った主接続は維持
+            if (i === jointIndex) continue;
+
+            const checkSelfIsA = (j.railA === selfId);
+            const checkSelfNodeId = checkSelfIsA ? j.nodeA : j.nodeB;
+            const checkOtherRailId = checkSelfIsA ? j.railB : j.railA;
+            const checkOtherNodeId = checkSelfIsA ? j.nodeB : j.nodeA;
+
+            const otherObj = findRailByInstanceId(checkOtherRailId);
+            if (!otherObj) {
+                globalJoints.splice(i, 1);
+                continue;
+            }
+
+            const otherAbsNodes = getAbsoluteNodePos(otherObj);
+            const selfNodeAbs = currentSelfAbsNodes.find(n => String(n.nodeId) === String(checkSelfNodeId));
+            const otherNodeAbs = otherAbsNodes.find(n => String(n.nodeId) === String(checkOtherNodeId));
+
+            // ノードの位置・角度が不適合になった場合はジョイントを解除
+            if (!isNodePositionCompatible(selfNodeAbs, otherNodeAbs)) {
+                globalJoints.splice(i, 1);
+            }
+        }
+    }
+
+    // 7. 履歴記録と再描画
     itemBefore.to = { x: newSelfX, y: newSelfY, angle: newSelfAngle };
     recordAction({
         type: 'CYCLE_NODE',
         items: [itemBefore],
         jointsFrom: jointsBefore,
-        jointsTo: [...globalJoints]
+        jointsTo: JSON.parse(JSON.stringify(globalJoints))
     });
 
     if (typeof updateJointIndicators === 'function') updateJointIndicators();
@@ -557,7 +578,7 @@ function cycleSelectedRailNode(direction) {
 }
 
 /**
- * ノードの絶対座標計算ヘルパー（geoCenterを考慮した正しい計算）
+ * ノードの絶対座標計算ヘルパー
  */
 function getAbsoluteNodePosition(railObj, nodeDef) {
     const cx = railObj.customData ? (railObj.customData.geoCenterX || 0) : 0;
