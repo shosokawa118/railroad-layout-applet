@@ -192,6 +192,27 @@ function findRailByInstanceId(instanceId) {
     return canvas.getObjects().find(obj => obj && obj.customData && obj.customData.instanceId === instanceId);
 }
 
+/**
+ * キャンバス上のすべてのレールを一括選択する
+ */
+function selectAllRails() {
+    if (!canvas) return;
+
+    const allRails = canvas.getObjects().filter(o => o && o.customData && o.customData.isRail);
+    if (allRails.length === 0) return;
+
+    canvas.discardActiveObject();
+
+    if (allRails.length === 1) {
+        canvas.setActiveObject(allRails[0]);
+    } else {
+        const sel = new fabric.ActiveSelection(allRails, { canvas: canvas });
+        canvas.setActiveObject(sel);
+    }
+
+    canvas.requestRenderAll();
+}
+
 
 // =========================================================
 // 2. ドラッグ移動（mouse:down / mouse:up）の記録フック
@@ -644,6 +665,10 @@ document.addEventListener('keydown', (e) => {
 
     if (isCtrl) {
         switch (e.key.toLowerCase()) {
+            case 'a':
+                e.preventDefault();
+                selectAllRails();
+                break;
             case 'z':
                 e.preventDefault();
                 undoLayout();
