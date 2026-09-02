@@ -166,29 +166,34 @@
             const container = document.getElementById('nodeOffsetsContainer');
             container.innerHTML = ''; // 前回生成した入力欄をクリア
 
-            // カタログデータからノード定義を厳密に取得（フォールバックなし）
+            // カタログデータからノード定義を取得
             const partId = currentEditingRail.customData.partId;
             const catalogData = (typeof railCatalog !== 'undefined') ? railCatalog : (window.railCatalog || null);
-            let nodesList = [];
+            let rawNodes = [];
 
             if (catalogData && catalogData.items && catalogData.items[partId] && catalogData.items[partId].nodes) {
                 const nodesDef = catalogData.items[partId].nodes;
-                nodesList = Array.isArray(nodesDef) ? nodesDef : Object.values(nodesDef);
+                rawNodes = Array.isArray(nodesDef) ? nodesDef : Object.values(nodesDef);
             }
 
-            const nodeCount = nodesList.length; // カタログ通りの要素数（0個含む）
+            // "jointType": "rail-end" のノードのみを抽出
+            const railEndNodes = rawNodes.filter(n => n && n.jointType === 'rail-end');
+
+            const nodeCount = railEndNodes.length;
             const offsets = currentEditingRail.nodeOffsets || {};
 
             if (nodeCount === 0) {
                 const emptyMsg = document.createElement('div');
                 emptyMsg.style.cssText = 'color: #666; font-size: 12px; padding: 4px 0;';
-                emptyMsg.textContent = '調整可能なノードがありません。';
+                emptyMsg.textContent = '調整可能なレール端ノードがありません。';
                 container.appendChild(emptyMsg);
             } else {
-                // 全ノード分の入力欄を生成（0始まり）
-                for (let i = 0; i < nodeCount; i++) {
-                    const nodeData = offsets[i] || {};
-                    const isSelected = i === (currentEditingRail.activeNodeIndex || 0);
+                // "rail-end" ノードのみ入力欄を生成
+                railEndNodes.forEach((nodeDef, i) => {
+                    // ノード自身の元IDを取得（ID未設定時はインデックス）
+                    const nodeIndex = (nodeDef.id !== undefined) ? nodeDef.id : i;
+                    const nodeData = offsets[nodeIndex] || {};
+                    const isSelected = nodeIndex === (currentEditingRail.activeNodeIndex || 0);
 
                     const nodeBlock = document.createElement('div');
                     nodeBlock.style.cssText = 'border-bottom: 1px dashed #eee; padding-bottom: 8px;';
@@ -196,25 +201,25 @@
 
                     nodeBlock.innerHTML = `
                         <div style="font-weight: bold; margin-bottom: 4px; color: ${isSelected ? '#0066cc' : '#333'};">
-                            ノード ${i} ${isSelected ? '(選択中)' : ''}
+                            ノード ${nodeIndex} ${nodeDef.name ? '(' + nodeDef.name + ')' : ''} ${isSelected ? '[選択中]' : ''}
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;">
                             <div>
                                 <label style="font-size: 11px; display: block;">前後(mm)</label>
-                                <input type="number" id="opt_f_${i}" step="0.1" placeholder="0" value="${nodeData.forward !== undefined ? nodeData.forward : ''}" style="width: 100%; box-sizing: border-box;">
+                                <input type="number" id="opt_f_${nodeIndex}" step="0.1" placeholder="0" value="${nodeData.forward !== undefined ? nodeData.forward : ''}" style="width: 100%; box-sizing: border-box;">
                             </div>
                             <div>
                                 <label style="font-size: 11px; display: block;">左右(mm)</label>
-                                <input type="number" id="opt_s_${i}" step="0.1" placeholder="0" value="${nodeData.sideways !== undefined ? nodeData.sideways : ''}" style="width: 100%; box-sizing: border-box;">
+                                <input type="number" id="opt_s_${nodeIndex}" step="0.1" placeholder="0" value="${nodeData.sideways !== undefined ? nodeData.sideways : ''}" style="width: 100%; box-sizing: border-box;">
                             </div>
                             <div>
                                 <label style="font-size: 11px; display: block;">角度(deg)</label>
-                                <input type="number" id="opt_a_${i}" step="0.1" placeholder="0" value="${nodeData.angle !== undefined ? nodeData.angle : ''}" style="width: 100%; box-sizing: border-box;">
+                                <input type="number" id="opt_a_${nodeIndex}" step="0.1" placeholder="0" value="${nodeData.angle !== undefined ? nodeData.angle : ''}" style="width: 100%; box-sizing: border-box;">
                             </div>
                         </div>
                     `;
                     container.appendChild(nodeBlock);
-                }
+                });
             }
 
             const dialog = document.getElementById('railOptionsDialog');
@@ -234,15 +239,27 @@
         function saveRailOptions() {
             if (!currentEditingRail) return;
 
-            const nodeCount = (currentEditingRail.nodes && currentEditingRail.nodes.length) || 2;
+            // カタログデータから "jointType": "rail-end" のノードのみを抽出
+            const partId = currentEditingRail.customData.partId;
+            const catalogData = (typeof railCatalog !== 'undefined') ? railCatalog : (window.railCatalog || null);
+            let rawNodes = [];
+
+            if (catalogData && catalogData.items && catalogData.items[partId] && catalogData.items[partId].nodes) {
+                const nodesDef = catalogData.items[partId].nodes;
+                rawNodes = Array.isArray(nodesDef) ? nodesDef : Object.values(nodesDef);
+            }
+
+            const railEndNodes = rawNodes.filter(n => n && n.jointType === 'rail-end');
             const newOffsets = {};
 
-            for (let i = 0; i < nodeCount; i++) {
-                const fEl = document.getElementById(`opt_f_${i}`);
-                const sEl = document.getElementById(`opt_s_${i}`);
-                const aEl = document.getElementById(`opt_a_${i}`);
+            railEndNodes.forEach((nodeDef, i) => {
+                const nodeIndex = (nodeDef.id !== undefined) ? nodeDef.id : i;
 
-                if (!fEl || !sEl || !aEl) continue;
+                const fEl = document.getElementById(`opt_f_${nodeIndex}`);
+                const sEl = document.getElementById(`opt_s_${nodeIndex}`);
+                const aEl = document.getElementById(`opt_a_${nodeIndex}`);
+
+                if (!fEl || !sEl || !aEl) return;
 
                 const fVal = parseFloat(fEl.value);
                 const sVal = parseFloat(sEl.value);
@@ -254,9 +271,9 @@
                 if (!isNaN(aVal) && aVal !== 0) nodeObj.angle = aVal;
 
                 if (Object.keys(nodeObj).length > 0) {
-                    newOffsets[i] = nodeObj;
+                    newOffsets[nodeIndex] = nodeObj;
                 }
-            }
+            });
 
             // 全ノードの補正値が空なら nodeOffsets 自体を削除して軽量化
             if (Object.keys(newOffsets).length > 0) {
@@ -268,6 +285,7 @@
             closeRailOptionsDialog();
             if (typeof draw === 'function') draw(); // 描画更新
         }
+
     </script>
 
     <script>
