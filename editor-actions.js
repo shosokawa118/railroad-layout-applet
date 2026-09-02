@@ -458,8 +458,8 @@ function cycleSelectedRailNode(direction) {
     const isSelfA = joint.railA === selfId;
     const targetRailId = isSelfA ? joint.railB : joint.railA;
     
-    const targetNodeId = String(isSelfA ? joint.nodeB : joint.nodeA);
-    const selfNodeId = String(isSelfA ? joint.nodeA : joint.nodeB);
+    const targetNodeId = isSelfA ? joint.nodeB : joint.nodeA;
+    const selfNodeId = isSelfA ? joint.nodeA : joint.nodeB;
 
     const targetRailObj = findRailByInstanceId(targetRailId);
     if (!targetRailObj) return;
@@ -473,20 +473,23 @@ function cycleSelectedRailNode(direction) {
 
     if (!selfCatalog || !targetCatalog || !selfCatalog.nodes || !targetCatalog.nodes) return;
 
-    const nodeKeys = Object.keys(selfCatalog.nodes);
-    if (nodeKeys.length <= 1) return;
+    // 配列・オブジェクトどちらの型にも対応してノードリストとIDを取得
+    const isSelfArray = Array.isArray(selfCatalog.nodes);
+    const selfNodesList = isSelfArray ? selfCatalog.nodes : Object.values(selfCatalog.nodes);
+    if (selfNodesList.length <= 1) return;
 
-    // 3. 次ノードインデックスの計算
-    let currentIdx = nodeKeys.indexOf(selfNodeId);
-    if (currentIdx === -1) currentIdx = 0;
+    const isTargetArray = Array.isArray(targetCatalog.nodes);
+    const targetNodesList = isTargetArray ? targetCatalog.nodes : Object.values(targetCatalog.nodes);
 
-    let nextIdx = (currentIdx + direction) % nodeKeys.length;
-    if (nextIdx < 0) nextIdx += nodeKeys.length;
+    // 3. 次ノードの計算
+    const currentIdx = selfNodesList.findIndex(n => String(n.id) === String(selfNodeId));
+    let baseIdx = currentIdx === -1 ? 0 : currentIdx;
 
-    const nextSelfNodeId = nodeKeys[nextIdx];
+    let nextIdx = (baseIdx + direction) % selfNodesList.length;
+    if (nextIdx < 0) nextIdx += selfNodesList.length;
 
-    const targetNodeDef = targetCatalog.nodes[targetNodeId];
-    const nextSelfNodeDef = selfCatalog.nodes[nextSelfNodeId];
+    const nextSelfNodeDef = selfNodesList[nextIdx];
+    const targetNodeDef = targetNodesList.find(n => String(n.id) === String(targetNodeId));
 
     if (!targetNodeDef || !nextSelfNodeDef) return;
 
@@ -522,25 +525,21 @@ function cycleSelectedRailNode(direction) {
     });
     activeObj.setCoords();
 
-    // 6. ジョイント情報の再構築（位置ズレした古いジョイントの破棄と更新）
-    // 主対象ジョイントのノードIDを更新
+    // 6. 主対象ジョイントのノードIDを更新（カタログの定義型をそのまま設定）
     if (isSelfA) {
-        globalJoints[jointIndex].nodeA = nextSelfNodeId;
+        globalJoints[jointIndex].nodeA = nextSelfNodeDef.id;
     } else {
-        globalJoints[jointIndex].nodeB = nextSelfNodeId;
+        globalJoints[jointIndex].nodeB = nextSelfNodeDef.id;
     }
 
-    // 回転によって繋がらなくなった自パーツの他ジョイントを判定・クリーンアップ
+    // 7. 位置不整合ジョイントのクリーンアップ
     if (typeof getAbsoluteNodePos === 'function' && typeof isNodePositionCompatible === 'function') {
         const currentSelfAbsNodes = getAbsoluteNodePos(activeObj);
         
-        // 自パーツが関わるジョイントのうち、回転後に位置が離れてしまったものを削除
         for (let i = globalJoints.length - 1; i >= 0; i--) {
             const j = globalJoints[i];
             if (j.railA !== selfId && j.railB !== selfId) continue;
-            
-            // 今回切替を行った主接続は維持
-            if (i === jointIndex) continue;
+            if (i === jointIndex) continue; // 切り替えた主ジョイントは削除対象外
 
             const checkSelfIsA = (j.railA === selfId);
             const checkSelfNodeId = checkSelfIsA ? j.nodeA : j.nodeB;
@@ -557,21 +556,22 @@ function cycleSelectedRailNode(direction) {
             const selfNodeAbs = currentSelfAbsNodes.find(n => String(n.nodeId) === String(checkSelfNodeId));
             const otherNodeAbs = otherAbsNodes.find(n => String(n.nodeId) === String(checkOtherNodeId));
 
-            // ノードの位置・角度が不適合になった場合はジョイントを解除
             if (!isNodePositionCompatible(selfNodeAbs, otherNodeAbs)) {
                 globalJoints.splice(i, 1);
             }
         }
     }
 
-    // 7. 履歴記録と再描画
+    // 8. 履歴記録と表示更新
     itemBefore.to = { x: newSelfX, y: newSelfY, angle: newSelfAngle };
-    recordAction({
-        type: 'CYCLE_NODE',
-        items: [itemBefore],
-        jointsFrom: jointsBefore,
-        jointsTo: JSON.parse(JSON.stringify(globalJoints))
-    });
+    if (typeof recordAction === 'function') {
+        recordAction({
+            type: 'CYCLE_NODE',
+            items: [itemBefore],
+            jointsFrom: jointsBefore,
+            jointsTo: JSON.parse(JSON.stringify(globalJoints))
+        });
+    }
 
     if (typeof updateJointIndicators === 'function') updateJointIndicators();
     canvas.requestRenderAll();
