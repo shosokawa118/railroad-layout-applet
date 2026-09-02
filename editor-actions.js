@@ -435,6 +435,7 @@ async function duplicateSelectedRails() {
 // =========================================================
 // 4. ノード接続の切り替え（[ / ] キー）
 // =========================================================
+
 /**
  * 選択中パーツの接続ノード番号を変更して回転・再配置する
  * @param {number} direction - +1 (アップ: [ ) または -1 (ダウン: ] )
@@ -489,14 +490,7 @@ function cycleSelectedRailNode(direction) {
 
     if (!targetNodeDef || !nextSelfNodeDef) return;
 
-    // --- 【追加検証ログ1】 定義データ自体の生の値をそのまま出力 ---
-    console.log("[NodeCycle:RAWデータ検証]", {
-        targetRailObj_left_top: { left: targetRailObj.left, top: targetRailObj.top, angle: targetRailObj.angle },
-        targetNodeDef_raw: targetNodeDef,
-        nextSelfNodeDef_raw: nextSelfNodeDef
-    });
-
-    // 4. 座標・角度計算
+    // 4. 座標・角度計算（geoCenterによるオフセット補正付き）
     const itemBefore = {
         instanceId: selfId,
         from: { x: activeObj.left, y: activeObj.top, angle: activeObj.angle }
@@ -507,21 +501,24 @@ function cycleSelectedRailNode(direction) {
     const targetWorldAngle = (targetRailObj.angle + targetNodeDef.facingAngle) % 360;
     const newSelfAngle = (targetWorldAngle + 180 - nextSelfNodeDef.facingAngle + 360) % 360;
 
-    // --- 【追加検証ログ2】 計算途中の数値を分解出力 ---
+    // 相手ノードの絶対位置を取得（getAbsoluteNodePositionを補正版へ更新）
     const targetNodeWorldPos = getAbsoluteNodePosition(targetRailObj, targetNodeDef);
-    const selfNodeOffsetRotated = rotateVector(nextSelfNodeDef.relX, nextSelfNodeDef.relY, newSelfAngle);
 
-    console.log("[NodeCycle:中間計算出力]", {
-        targetNodeWorldPos,       // 相手ノードの位置が NaN になっていないか？
-        selfNodeOffsetRotated,   // 自ノードの回転オフセットが NaN になっていないか？
-        newSelfAngle             // 157.5 などの正常値
-    });
+    // 自身ノードのローカル座標（geoCenterからのオフセット）算出
+    const selfGeoCX = activeObj.customData.geoCenterX || 0;
+    const selfGeoCY = activeObj.customData.geoCenterY || 0;
+    const selfLx = nextSelfNodeDef.relX - selfGeoCX;
+    const selfLy = nextSelfNodeDef.relY - selfGeoCY;
 
+    // 算出された回転角度に基づくノードオフセット計算
+    const selfNodeOffsetRotated = rotateVector(selfLx, selfLy, newSelfAngle);
+
+    // 最終座標（Fabricオブジェクトの中心位置）の算出
     const newSelfX = targetNodeWorldPos.x - selfNodeOffsetRotated.x;
     const newSelfY = targetNodeWorldPos.y - selfNodeOffsetRotated.y;
 
     if (isNaN(newSelfX) || isNaN(newSelfY) || isNaN(newSelfAngle)) {
-        console.error("[NodeCycle] 中断: 最終座標が NaN になりました", { newSelfX, newSelfY, newSelfAngle });
+        console.error("[NodeCycle] 計算結果が NaN になりました", { newSelfX, newSelfY, newSelfAngle });
         return;
     }
 
@@ -549,22 +546,19 @@ function cycleSelectedRailNode(direction) {
 
     if (typeof updateJointIndicators === 'function') updateJointIndicators();
     canvas.requestRenderAll();
-    console.log("[NodeCycle] 成功");
 }
 
 /**
- * ノードの絶対座標計算ヘルパー
+ * ノードの絶対座標計算ヘルパー（geoCenterを考慮した正しい計算）
  */
 function getAbsoluteNodePosition(railObj, nodeDef) {
-    // nodeDef のプロパティが欠落していないか検証用の安全・ログ出力
-    const nodeX = nodeDef ? nodeDef.relX : undefined;
-    const nodeY = nodeDef ? nodeDef.relY : undefined;
+    const cx = railObj.customData ? (railObj.customData.geoCenterX || 0) : 0;
+    const cy = railObj.customData ? (railObj.customData.geoCenterY || 0) : 0;
     
-    if (typeof nodeX !== 'number' || typeof nodeY !== 'number') {
-        console.error("[getAbsoluteNodePosition] 引数 nodeDef の relX/relY が数値ではありません:", { nodeDef, nodeX, nodeY });
-    }
-
-    const rotated = rotateVector(nodeX, nodeY, railObj.angle);
+    const lx = nodeDef.relX - cx;
+    const ly = nodeDef.relY - cy;
+    
+    const rotated = rotateVector(lx, ly, railObj.angle);
     return {
         x: railObj.left + rotated.x,
         y: railObj.top + rotated.y
