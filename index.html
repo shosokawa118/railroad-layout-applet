@@ -45,7 +45,7 @@
             border-radius: 6px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             padding: 4px 0;
-            min-width: 140px;
+            min-width: 160px;
         }
         #contextMenu button {
             display: block;
@@ -113,6 +113,7 @@
 
     <!-- コンテキストメニュー（右クリック / 長押し用ポップアップ） -->
     <div id="contextMenu">
+        <button onclick="execMenuAction('selectConnected')">連結レールを選択 [Ctrl+Shift+A]</button>
         <button onclick="execMenuAction('selectAll')">すべて選択 [Ctrl+A]</button>
         <div class="menu-divider"></div>
         <button onclick="execMenuAction('undo')">↶ 元に戻す</button>
@@ -241,6 +242,7 @@
 
         function execMenuAction(action) {
             hideContextMenu();
+            if (action === 'selectConnected' && typeof selectConnectedRails === 'function') selectConnectedRails();
             if (action === 'selectAll' && typeof selectAllRails === 'function') selectAllRails();
             if (action === 'undo' && typeof undoLayout === 'function') undoLayout();
             if (action === 'redo' && typeof redoLayout === 'function') redoLayout();
