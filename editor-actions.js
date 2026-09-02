@@ -441,70 +441,45 @@ async function duplicateSelectedRails() {
  * @param {number} direction - +1 (アップ: [ ) または -1 (ダウン: ] )
  */
 function cycleSelectedRailNode(direction) {
-    if (!canvas) {
-        console.warn("[NodeCycle] canvasが存在しません");
-        return;
-    }
+    if (!canvas) return;
     const activeObj = canvas.getActiveObject();
-    if (!activeObj || !activeObj.customData || !activeObj.customData.isRail) {
-        console.warn("[NodeCycle] 有効なレールオブジェクトが選択されていません", activeObj);
-        return;
-    }
+    if (!activeObj || !activeObj.customData || !activeObj.customData.isRail) return;
 
     const selfId = activeObj.customData.instanceId;
     const partId = activeObj.customData.partId;
     
-    if (typeof globalJoints === 'undefined') {
-        console.error("[NodeCycle] globalJoints が未定義です");
-        return;
-    }
+    if (typeof globalJoints === 'undefined') return;
 
     // 1. 現在の接続ジョイントを検索
     const jointIndex = globalJoints.findIndex(j => j.railA === selfId || j.railB === selfId);
-    if (jointIndex === -1) {
-        console.warn("[NodeCycle] 中断: 選択パーツのジョイント情報が見つかりません (未接続の可能性)", { selfId, globalJoints });
-        return;
-    }
+    if (jointIndex === -1) return;
 
     const joint = globalJoints[jointIndex];
     const isSelfA = joint.railA === selfId;
     const targetRailId = isSelfA ? joint.railB : joint.railA;
+    
+    // ジョイント内のIDとカタログキー（文字列）の型を統一
     const targetNodeId = String(isSelfA ? joint.nodeB : joint.nodeA);
     const selfNodeId = String(isSelfA ? joint.nodeA : joint.nodeB);
 
     const targetRailObj = findRailByInstanceId(targetRailId);
-    if (!targetRailObj) {
-        console.error("[NodeCycle] 中断: 接続相手のFabricオブジェクトが見つかりません", { targetRailId });
-        return;
-    }
+    if (!targetRailObj) return;
 
-    // 2. 定義データ（カタログ）の取得
+    // 2. カタログデータおよびノード定義の取得
     const catalogData = (typeof railCatalog !== 'undefined') ? railCatalog : (window.railCatalog || null);
-    if (!catalogData || !catalogData.items) {
-        console.error("[NodeCycle] 中断: railCatalog または items が存在しません", catalogData);
-        return;
-    }
+    if (!catalogData || !catalogData.items) return;
 
     const selfCatalog = catalogData.items[partId];
     const targetCatalog = catalogData.items[targetRailObj.customData.partId];
 
-    if (!selfCatalog || !targetCatalog || !selfCatalog.nodes || !targetCatalog.nodes) {
-        console.error("[NodeCycle] 中断: パーツまたはノード定義が見つかりません", { selfCatalog, targetCatalog });
-        return;
-    }
+    if (!selfCatalog || !targetCatalog || !selfCatalog.nodes || !targetCatalog.nodes) return;
 
     const nodeKeys = Object.keys(selfCatalog.nodes);
-    if (nodeKeys.length <= 1) {
-        console.info("[NodeCycle] 中断: 切替可能なノードが複数存在しません (ノード数: " + nodeKeys.length + ")", nodeKeys);
-        return;
-    }
+    if (nodeKeys.length <= 1) return;
 
     // 3. 次ノードインデックスの計算
     let currentIdx = nodeKeys.indexOf(selfNodeId);
-    if (currentIdx === -1) {
-        console.warn(`[NodeCycle] 現在のノードID (${selfNodeId}) が nodes キー内に見つかりません。0番目として処理します。`, nodeKeys);
-        currentIdx = 0;
-    }
+    if (currentIdx === -1) currentIdx = 0;
 
     let nextIdx = (currentIdx + direction) % nodeKeys.length;
     if (nextIdx < 0) nextIdx += nodeKeys.length;
@@ -514,42 +489,29 @@ function cycleSelectedRailNode(direction) {
     const targetNodeDef = targetCatalog.nodes[targetNodeId];
     const nextSelfNodeDef = selfCatalog.nodes[nextSelfNodeId];
 
-    if (!targetNodeDef || !nextSelfNodeDef) {
-        console.error("[NodeCycle] 中断: ノード詳細定義が見つかりません", { targetNodeId, targetNodeDef, nextSelfNodeId, nextSelfNodeDef });
-        return;
-    }
+    if (!targetNodeDef || !nextSelfNodeDef) return;
 
-    // 4. 座標・角度計算
+    // 4. 座標・角度計算（ノード仕様: relX, relY, facingAngle を使用）
     const itemBefore = {
         instanceId: selfId,
         from: { x: activeObj.left, y: activeObj.top, angle: activeObj.angle }
     };
     const jointsBefore = [...globalJoints];
 
-    // 角度計算 (facingAngle を使用)
+    // 相手ノードの絶対角度と自ノードの対向角度の算出
     const targetWorldAngle = (targetRailObj.angle + targetNodeDef.facingAngle) % 360;
     const newSelfAngle = (targetWorldAngle + 180 - nextSelfNodeDef.facingAngle + 360) % 360;
 
-    // 位置計算 (relX, relY を使用)
+    // ノードの絶対位置とオフセット回転の算出
     const targetNodeWorldPos = getAbsoluteNodePosition(targetRailObj, targetNodeDef);
     const selfNodeOffsetRotated = rotateVector(nextSelfNodeDef.relX, nextSelfNodeDef.relY, newSelfAngle);
 
     const newSelfX = targetNodeWorldPos.x - selfNodeOffsetRotated.x;
     const newSelfY = targetNodeWorldPos.y - selfNodeOffsetRotated.y;
 
-    console.log("[NodeCycle] 計算実行結果:", {
-        selfNodeId,
-        nextSelfNodeId,
-        currentPos: { x: activeObj.left, y: activeObj.top, angle: activeObj.angle },
-        calculatedPos: { x: newSelfX, y: newSelfY, angle: newSelfAngle }
-    });
+    if (isNaN(newSelfX) || isNaN(newSelfY) || isNaN(newSelfAngle)) return;
 
-    if (isNaN(newSelfX) || isNaN(newSelfY) || isNaN(newSelfAngle)) {
-        console.error("[NodeCycle] 中断: 計算結果が NaN になりました");
-        return;
-    }
-
-    // 5. オブジェクトとジョイント情報の更新
+    // 5. Fabricオブジェクトおよびジョイント定義の更新
     activeObj.set({
         left: newSelfX,
         top: newSelfY,
@@ -573,11 +535,10 @@ function cycleSelectedRailNode(direction) {
 
     if (typeof updateJointIndicators === 'function') updateJointIndicators();
     canvas.requestRenderAll();
-    console.log("[NodeCycle] 再配置完了");
 }
 
 /**
- * ノードの絶対座標計算ヘルパー（relX, relY を正として使用）
+ * ノードの絶対座標計算ヘルパー（仕様通り relX, relY のみを使用）
  */
 function getAbsoluteNodePosition(railObj, nodeDef) {
     const rotated = rotateVector(nodeDef.relX, nodeDef.relY, railObj.angle);
@@ -586,7 +547,6 @@ function getAbsoluteNodePosition(railObj, nodeDef) {
         y: railObj.top + rotated.y
     };
 }
-
 
 /**
  * ノードの絶対座標計算ヘルパー（relX, relY を正として使用）
@@ -620,7 +580,6 @@ function getAbsoluteNodePosition(railObj, nodeDef) {
         y: railObj.top + rotated.y
     };
 }
-
 
 // =========================================================
 // 5. キーボードショートカットイベントの管理
