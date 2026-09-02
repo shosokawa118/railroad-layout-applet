@@ -315,6 +315,9 @@ function updateUIState() {
     const menuCopy = document.getElementById('menuCopy');
     const menuDuplicate = document.getElementById('menuDuplicate');
     const menuDelete = document.getElementById('menuDelete');
+    const menuOptions = document.getElementById('menuOptions');
+    const activeObj = canvas ? canvas.getActiveObject() : null;
+    const isSingleRailSelected = !!(activeObj && activeObj.type !== 'activeSelection' && activeObj.customData && activeObj.customData.isRail);
 
     if (menuSelectConnected) menuSelectConnected.disabled = !hasSelection;
     if (menuSelectAll) menuSelectAll.disabled = !hasRails;
@@ -324,6 +327,8 @@ function updateUIState() {
     if (menuCopy) menuCopy.disabled = !hasSelection;
     if (menuDuplicate) menuDuplicate.disabled = !hasSelection;
     if (menuDelete) menuDelete.disabled = !hasSelection;
+    if (menuOptions) menuOptions.disabled = !isSingleRailSelected;
+
 }
 
 
