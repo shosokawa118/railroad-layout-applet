@@ -215,10 +215,11 @@ function captureDragEnd(target) {
 // =========================================================
 
 /**
- * 選択中レールおよび選択レール間のジョイント情報群をOSクリップボードへJSONコピー
+ * 選択中レールおよび関係するジョイント群をJSON形式でクリップボードへコピー
  */
 async function copySelectedRails() {
-    if (!canvas) return;
+    if (!canvas || typeof exportLayoutData !== 'function') return;
+
     const activeObject = canvas.getActiveObject();
     if (!activeObject) return;
 
@@ -231,37 +232,33 @@ async function copySelectedRails() {
 
     if (targetRails.length === 0) return;
 
+    // 全レイアウトデータを取得し、選択対象のみを抽出
+    const fullData = exportLayoutData();
+    if (!fullData) return;
+
+    const selectedIds = targetRails.map(r => r.customData.instanceId);
     const baseRail = targetRails[0];
     const baseX = baseRail.left;
     const baseY = baseRail.top;
 
-    const targetInstanceIds = targetRails.map(r => r.customData.instanceId);
+    const filteredRails = fullData.rails
+        .filter(r => selectedIds.includes(r.instanceId))
+        .map(r => ({
+            ...r,
+            offsetX: r.x - baseX,
+            offsetY: r.y - baseY
+        }));
 
-    // 選択レール同士を結ぶジョイント情報のみを抽出
-    const copiedJoints = [];
-    if (typeof globalJoints !== 'undefined' && Array.isArray(globalJoints)) {
-        globalJoints.forEach(j => {
-            if (targetInstanceIds.includes(j.railA) && targetInstanceIds.includes(j.railB)) {
-                copiedJoints.push({
-                    railA: j.railA,
-                    jointA: j.jointA,
-                    railB: j.railB,
-                    jointB: j.jointB
-                });
-            }
-        });
-    }
+    const filteredJoints = (fullData.joints || []).filter(j => 
+        selectedIds.includes(j.railA) && selectedIds.includes(j.railB)
+    );
 
     const exportData = {
         type: "RAIL_LAYOUT_CLIPBOARD",
-        rails: targetRails.map(rail => ({
-            instanceId: rail.customData.instanceId,
-            partId: rail.customData.partId,
-            offsetX: rail.left - baseX,
-            offsetY: rail.top - baseY,
-            angle: rail.angle
-        })),
-        joints: copiedJoints
+        version: fullData.version,
+        systems: fullData.systems,
+        rails: filteredRails,
+        joints: filteredJoints
     };
 
     const jsonString = JSON.stringify(exportData, null, 2);
@@ -276,9 +273,11 @@ async function copySelectedRails() {
 }
 
 /**
- * クリップボードから貼り付け（ジョイント関係も再現）
+ * クリップボードのデータを importLayoutData(..., false) で復元
  */
 async function pasteRails() {
+    if (typeof importLayoutData !== 'function') return;
+
     let clipboardData = null;
 
     try {
@@ -295,10 +294,7 @@ async function pasteRails() {
 
     if (!clipboardData || !clipboardData.rails || clipboardData.rails.length === 0) return;
 
-    canvas.discardActiveObject();
-    const newAddedObjects = [];
-    const instanceIdMap = {}; // 旧InstanceID -> 新InstanceIDの変換マップ
-
+    // 貼り付け先の基準オフセット位置を計算
     let targetBaseX = 250;
     let targetBaseY = 250;
     const activeObj = canvas.getActiveObject();
@@ -308,58 +304,44 @@ async function pasteRails() {
     }
 
     const jointsBefore = typeof globalJoints !== 'undefined' ? [...globalJoints] : [];
+    const railsBeforeIds = canvas.getObjects()
+        .filter(o => o && o.customData && o.customData.isRail)
+        .map(o => o.customData.instanceId);
 
-    // 1. レールの生成と位置セット
-    for (const item of clipboardData.rails) {
-        if (typeof addRailToCanvas === 'function') {
-            const newObj = addRailToCanvas(item.partId, { skipAutoConnect: true, skipSelect: true });
-            if (newObj) {
-                newObj.set({
-                    left: targetBaseX + item.offsetX,
-                    top: targetBaseY + item.offsetY,
-                    angle: item.angle
-                });
-                newObj.setCoords();
-                
-                // IDマッピング登録
-                if (item.instanceId) {
-                    instanceIdMap[item.instanceId] = newObj.customData.instanceId;
-                }
-                
-                newAddedObjects.push(newObj);
-            }
-        }
-    }
+    // オフセット計算を実座標(x, y)に適用した一時データを作成
+    const importPayload = {
+        version: clipboardData.version,
+        systems: clipboardData.systems,
+        rails: clipboardData.rails.map(r => ({
+            instanceId: r.instanceId,
+            partId: r.partId,
+            x: targetBaseX + (r.offsetX !== undefined ? r.offsetX : 0),
+            y: targetBaseY + (r.offsetY !== undefined ? r.offsetY : 0),
+            angle: r.angle
+        })),
+        joints: clipboardData.joints
+    };
 
-    // 2. コピー元に含まれていた選択間ジョイントの復元
-    if (clipboardData.joints && Array.isArray(clipboardData.joints) && typeof globalJoints !== 'undefined') {
-        clipboardData.joints.forEach(j => {
-            const newRailA = instanceIdMap[j.railA];
-            const newRailB = instanceIdMap[j.railB];
+    // importLayoutDataの追加モード (isOverwrite = false) を呼び出して安全に復元
+    await importLayoutData(importPayload, false);
 
-            if (newRailA && newRailB) {
-                globalJoints.push({
-                    railA: newRailA,
-                    jointA: j.jointA,
-                    railB: newRailB,
-                    jointB: j.jointB
-                });
-            }
-        });
-    }
+    // 新規追加されたオブジェクト群の特定と選択状態・Undo履歴の登録
+    const newlyAddedRails = canvas.getObjects().filter(o => 
+        o && o.customData && o.customData.isRail && !railsBeforeIds.includes(o.customData.instanceId)
+    );
 
-    // 3. 選択状態および履歴の記録
-    if (newAddedObjects.length > 0) {
-        if (newAddedObjects.length === 1) {
-            canvas.setActiveObject(newAddedObjects[0]);
+    if (newlyAddedRails.length > 0) {
+        canvas.discardActiveObject();
+        if (newlyAddedRails.length === 1) {
+            canvas.setActiveObject(newlyAddedRails[0]);
         } else {
-            const sel = new fabric.ActiveSelection(newAddedObjects, { canvas: canvas });
+            const sel = new fabric.ActiveSelection(newlyAddedRails, { canvas: canvas });
             canvas.setActiveObject(sel);
         }
 
         recordAction({
             type: 'ADD',
-            rails: newAddedObjects.map(obj => ({
+            rails: newlyAddedRails.map(obj => ({
                 instanceId: obj.customData.instanceId,
                 partId: obj.customData.partId,
                 x: obj.left,
@@ -371,7 +353,6 @@ async function pasteRails() {
         });
     }
 
-    if (typeof updateJointIndicators === 'function') updateJointIndicators();
     canvas.requestRenderAll();
 }
 
