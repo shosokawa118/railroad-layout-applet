@@ -316,5 +316,35 @@ registerRailParts({
             { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
             { "type": "arc", "radius": 541, "arcAngle": -15, "centerX": -70.0, "centerY": -541.0, "startAngle": 90 }
         ]
+    },
+    "TOMIX-5531": {
+        systemId: "TOMIX-FINETRACK-N",
+        category: "turnout",
+        name: "N-CPR317/280-45-PC(F)",
+        description: "カーブポイント C317/280-45 (右)",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": 0, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "外軌(C317)", "relX": 220.20, "relY": 88.98, "facingAngle": 44 },
+            { "id": 2, "jointType": "rail-end", "name": "内軌(C280)", "relX": 201.42, "relY": 85.50, "facingAngle": 46 }
+        ],
+        shapes: [
+            { "type": "arc", "radius": 317, "arcAngle": 45, "centerX": -5.53, "centerY": 316.95, "startAngle": 269 },
+            { "type": "arc", "radius": 280, "arcAngle": 45, "centerX": 4.89, "centerY": 279.96, "startAngle": 271 }
+        ]
+    },
+    "TOMIX-5532": {
+        systemId: "TOMIX-FINETRACK-N",
+        category: "turnout",
+        name: "N-CPL317/280-45-PC(F)",
+        description: "カーブポイント C317/280-45 (左)",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": 0, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "外軌(C317)", "relX": 220.20, "relY": -88.98, "facingAngle": 316 },
+            { "id": 2, "jointType": "rail-end", "name": "内軌(C280)", "relX": 201.42, "relY": -85.50, "facingAngle": 314 }
+        ],
+        shapes: [
+            { "type": "arc", "radius": 317, "arcAngle": -45, "centerX": -5.53, "centerY": -316.95, "startAngle": 91 },
+            { "type": "arc", "radius": 280, "arcAngle": -45, "centerX": 4.89, "centerY": -279.96, "startAngle": 89 }
+        ]
     }
 });
