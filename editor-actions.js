@@ -493,7 +493,7 @@ function cycleSelectedRailNode(direction) {
 
     if (!selfCatalog || !targetCatalog || !selfCatalog.nodes || !targetCatalog.nodes) return;
 
-    // 配列・オブジェクトどちらの型にも対応してノードリストとIDを取得
+    // 配列・オブジェクトどちらの型にも対応してノードリストを取得
     const isSelfArray = Array.isArray(selfCatalog.nodes);
     const selfNodesList = isSelfArray ? selfCatalog.nodes : Object.values(selfCatalog.nodes);
     if (selfNodesList.length <= 1) return;
@@ -501,17 +501,36 @@ function cycleSelectedRailNode(direction) {
     const isTargetArray = Array.isArray(targetCatalog.nodes);
     const targetNodesList = isTargetArray ? targetCatalog.nodes : Object.values(targetCatalog.nodes);
 
-    // 3. 次ノードの計算
+    const targetNodeDef = targetNodesList.find(n => String(n.id) === String(targetNodeId));
+    if (!targetNodeDef) return;
+
+    // 3. 次の接続可能ノードを探索（互換性がないノードはスキップ）
     const currentIdx = selfNodesList.findIndex(n => String(n.id) === String(selfNodeId));
     let baseIdx = currentIdx === -1 ? 0 : currentIdx;
 
-    let nextIdx = (baseIdx + direction) % selfNodesList.length;
-    if (nextIdx < 0) nextIdx += selfNodesList.length;
+    let nextIdx = baseIdx;
+    let nextSelfNodeDef = null;
 
-    const nextSelfNodeDef = selfNodesList[nextIdx];
-    const targetNodeDef = targetNodesList.find(n => String(n.id) === String(targetNodeId));
+    for (let i = 0; i < selfNodesList.length; i++) {
+        nextIdx = (nextIdx + direction) % selfNodesList.length;
+        if (nextIdx < 0) nextIdx += selfNodesList.length;
 
-    if (!targetNodeDef || !nextSelfNodeDef) return;
+        const candidateNode = selfNodesList[nextIdx];
+        
+        // canConnectNodes を用いて接続互換性を確認（親と子を正しく判定）
+        const canConnect = (typeof canConnectNodes === 'function')
+            ? (isSelfA 
+                ? canConnectNodes(activeObj, candidateNode.id, targetRailObj, targetNodeId)
+                : canConnectNodes(targetRailObj, targetNodeId, activeObj, candidateNode.id))
+            : true;
+
+        if (canConnect) {
+            nextSelfNodeDef = candidateNode;
+            break;
+        }
+    }
+
+    if (!nextSelfNodeDef) return;
 
     // 4. 座標・角度計算
     const itemBefore = {
