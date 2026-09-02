@@ -406,7 +406,9 @@ function deleteSelectedRails() {
     if (!activeObject) return;
 
     let targetRails = [];
-    if (activeObject.type === 'activeSelection') {
+    const isSelectionGroup = activeObject.type === 'activeSelection';
+
+    if (isSelectionGroup) {
         targetRails = activeObject.getObjects().filter(o => o && o.customData && o.customData.isRail);
     } else if (activeObject.customData && activeObject.customData.isRail) {
         targetRails = [activeObject];
@@ -418,13 +420,28 @@ function deleteSelectedRails() {
     if (typeof recordAction === 'function') {
         recordAction({
             type: 'DELETE',
-            rails: targetRails.map(r => ({
-                instanceId: r.customData.instanceId,
-                partId: r.customData.partId,
-                x: r.left,
-                y: r.top,
-                angle: r.angle
-            })),
+            rails: targetRails.map(r => {
+                let absX = r.left;
+                let absY = r.top;
+                let absAngle = r.angle;
+
+                // 範囲選択時は相対座標になっているため、キャンバス絶対座標に変換する
+                if (isSelectionGroup) {
+                    const matrix = r.calcTransformMatrix();
+                    const options = fabric.util.qrDecompose(matrix);
+                    absX = options.translateX;
+                    absY = options.translateY;
+                    absAngle = options.angle;
+                }
+
+                return {
+                    instanceId: r.customData.instanceId,
+                    partId: r.customData.partId,
+                    x: absX,
+                    y: absY,
+                    angle: absAngle
+                };
+            }),
             jointsBefore: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
         });
     }
@@ -438,7 +455,9 @@ function deleteSelectedRails() {
     targetRails.forEach(r => canvas.remove(r));
     canvas.discardActiveObject();
 
-    updateJointIndicators();
+    if (typeof updateJointIndicators === 'function') {
+        updateJointIndicators();
+    }
     canvas.requestRenderAll();
 }
 
