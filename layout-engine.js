@@ -373,11 +373,7 @@ function addRailToCanvas(partId, options = {}) {
 
     registerGlobalCanvasEvents();
 
-    if (!options.skipSelect) {
-        canvas.setActiveObject(railObject);
-    }
-
-    // --- 【追加】手動操作による追加時にUndo履歴へ記録 ---
+    // --- 【修正】追加前の選択状態を記録するため、ActiveObject 切り替え前に記録を実行 ---
     if (!options.skipAutoConnect && !options.skipSelect && typeof recordAction === 'function') {
         recordAction({
             type: 'ADD',
@@ -391,6 +387,10 @@ function addRailToCanvas(partId, options = {}) {
             jointsBefore: jointsBefore,
             jointsAfter: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
         });
+    }
+
+    if (!options.skipSelect) {
+        canvas.setActiveObject(railObject);
     }
 
     updateJointIndicators();
