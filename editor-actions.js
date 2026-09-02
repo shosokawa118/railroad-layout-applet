@@ -446,6 +446,7 @@ function cycleSelectedRailNode(direction) {
     if (!activeObj || !activeObj.customData || !activeObj.customData.isRail) return;
 
     const selfId = activeObj.customData.instanceId;
+    const partId = activeObj.customData.partId;
     if (typeof globalJoints === 'undefined') return;
 
     // 現在の接続ジョイントを検索
@@ -462,8 +463,21 @@ function cycleSelectedRailNode(direction) {
     if (!targetRailObj) return;
 
     // 定義データから全ノード一覧を取得
-    const selfCatalog = railCatalog.items[activeObj.customData.partId];
-    if (!selfCatalog || !selfCatalog.nodes) return;
+    // ※ railCatalog の参照方法（グローバル変数名や取得関数）を確認
+    const catalogData = (typeof railCatalog !== 'undefined') ? railCatalog : (window.railCatalog || null);
+    if (!catalogData || !catalogData.items) {
+        console.error("railCatalog が見つかりません。");
+        return;
+    }
+
+    const selfCatalog = catalogData.items[partId];
+    const targetCatalog = catalogData.items[targetRailObj.customData.partId];
+
+    if (!selfCatalog || !selfCatalog.nodes || !targetCatalog || !targetCatalog.nodes) {
+        console.error("パーツ定義またはノード定義が存在しません:", partId);
+        return;
+    }
+
     const nodeKeys = Object.keys(selfCatalog.nodes);
     if (nodeKeys.length <= 1) return; // ノードが1つ以下なら切替不可
 
@@ -476,6 +490,15 @@ function cycleSelectedRailNode(direction) {
 
     const nextSelfNodeId = nodeKeys[nextIdx];
 
+    // 相手側ノードの定義と位置を取得
+    const targetNodeDef = targetCatalog.nodes[targetNodeId];
+    const nextSelfNodeDef = selfCatalog.nodes[nextSelfNodeId];
+
+    if (!targetNodeDef || !nextSelfNodeDef) {
+        console.error("ノード定義の取得に失敗しました。");
+        return;
+    }
+
     // 移動前の状態を保存
     const itemBefore = {
         instanceId: selfId,
@@ -483,21 +506,24 @@ function cycleSelectedRailNode(direction) {
     };
     const jointsBefore = [...globalJoints];
 
-    // 相手側ノードの絶対座標・角度を算出
-    const targetCatalog = railCatalog.items[targetRailObj.customData.partId];
-    const targetNodeDef = targetCatalog.nodes[targetNodeId];
+    // 1. 相手ノードの世界角度を算出
     const targetWorldAngle = (targetRailObj.angle + targetNodeDef.angle) % 360;
 
-    // 新しい自ノードを相手ノードに対向（180度反転）させる自角度を計算
-    const nextSelfNodeDef = selfCatalog.nodes[nextSelfNodeId];
+    // 2. 新しい自ノードを相手ノードに対向（180度反転）させる自角度を計算
     const newSelfAngle = (targetWorldAngle + 180 - nextSelfNodeDef.angle + 360) % 360;
 
-    // 位置合わせ計算
+    // 3. 位置合わせ計算
     const targetNodeWorldPos = getAbsoluteNodePosition(targetRailObj, targetNodeDef);
     const selfNodeOffsetRotated = rotateVector(nextSelfNodeDef.x, nextSelfNodeDef.y, newSelfAngle);
 
     const newSelfX = targetNodeWorldPos.x - selfNodeOffsetRotated.x;
     const newSelfY = targetNodeWorldPos.y - selfNodeOffsetRotated.y;
+
+    // 計算結果が正常（NaNやnullでない）か検証
+    if (isNaN(newSelfX) || isNaN(newSelfY) || isNaN(newSelfAngle)) {
+        console.error("座標・角度の計算結果が数値ではありません:", { newSelfX, newSelfY, newSelfAngle });
+        return;
+    }
 
     // 座標・角度の更新
     activeObj.set({
