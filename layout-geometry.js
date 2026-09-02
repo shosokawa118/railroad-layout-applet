@@ -269,7 +269,7 @@ function getEffectiveNodeDef(rail, catalogNode) {
             const sideways = offset.sideways || 0;
             const angleOffset = offset.angle || 0;
 
-            facingAngle = (facingAngle + angleOffset) % 360;
+            facingAngle = (facingAngle - angleOffset) % 360;
             if (facingAngle < 0) facingAngle += 360;
 
             const rad = (catalogNode.facingAngle * Math.PI) / 180;
