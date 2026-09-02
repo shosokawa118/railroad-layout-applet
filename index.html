@@ -76,9 +76,10 @@
             <select id="systemSelect"></select>
             <span style="border-left: 1px solid #ccc; height: 16px; margin: 0 4px;"></span>
 
-            <!-- 画面上部の操作ボタン群（キーボードなし環境向け追加） -->
+            <!-- 画面上部の操作ボタン群（Undo/Redo -> Cut -> Copy -> Paste -> Duplicate の順） -->
             <button onclick="undoLayout()">↶ 元に戻す</button>
             <button onclick="redoLayout()">↷ やり直し</button>
+            <button onclick="cutSelectedRails()">切り取り</button>
             <button onclick="copySelectedRails()">コピー</button>
             <button onclick="pasteRails()">貼り付け</button>
             <button onclick="duplicateSelectedRails()">複製</button>
@@ -115,6 +116,7 @@
         <button onclick="execMenuAction('undo')">↶ 元に戻す</button>
         <button onclick="execMenuAction('redo')">↷ やり直し</button>
         <div class="menu-divider"></div>
+        <button onclick="execMenuAction('cut')">切り取り</button>
         <button onclick="execMenuAction('copy')">コピー</button>
         <button onclick="execMenuAction('paste')">貼り付け</button>
         <button onclick="execMenuAction('duplicate')">複製</button>
@@ -239,6 +241,7 @@
             hideContextMenu();
             if (action === 'undo' && typeof undoLayout === 'function') undoLayout();
             if (action === 'redo' && typeof redoLayout === 'function') redoLayout();
+            if (action === 'cut' && typeof cutSelectedRails === 'function') cutSelectedRails();
             if (action === 'copy' && typeof copySelectedRails === 'function') copySelectedRails();
             if (action === 'paste' && typeof pasteRails === 'function') pasteRails();
             if (action === 'duplicate' && typeof duplicateSelectedRails === 'function') duplicateSelectedRails();
@@ -253,18 +256,7 @@
                     allowTouchScrolling: false
                 });
 
-                // ユーザー操作のスナップは layout-engine.js の mouse:up イベント側に一本化しているため、
-                // Fabric の object:modified による直接呼び出しは不要（重複発火・ループ防止のためコメントアウト）
-                /* 
-                canvas.on('object:modified', function(options) {
-                    if (options && options.target && typeof applyClusterSnapLogic === 'function') {
-                        applyClusterSnapLogic(options.target);
-                    }
-                }); 
-                */
-
                 if (typeof initCameraControls === 'function') initCameraControls();
-                if (typeof initKeyControls === 'function') initKeyControls();
                 if (typeof initTouchControls === 'function') initTouchControls();
                 if (typeof initContextMenu === 'function') initContextMenu();
                 
@@ -354,56 +346,6 @@
                 btn.title = item.description || item.name;
                 btn.onclick = () => addRailToCanvas(partId);
                 paletteContainer.appendChild(btn);
-            });
-        }
-
-        function initKeyControls() {
-            window.addEventListener('keydown', e => {
-                if (isInputFocused()) return;
-
-                // 削除操作 (履歴ログ付き)
-                if (e.key === 'Delete' || e.key === 'Backspace') {
-                    const activeObj = canvas ? canvas.getActiveObject() : null;
-                    if (activeObj) {
-                        const targetRails = (activeObj.type === 'activeSelection') ? activeObj.getObjects() : [activeObj];
-                        const railsData = targetRails.filter(r => r && r.customData && r.customData.isRail);
-                        
-                        if (railsData.length > 0 && typeof recordAction === 'function') {
-                            recordAction({
-                                type: 'DELETE',
-                                rails: railsData.map(r => ({
-                                    instanceId: r.customData.instanceId,
-                                    partId: r.customData.partId,
-                                    x: r.left,
-                                    y: r.top,
-                                    angle: r.angle
-                                })),
-                                jointsBefore: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
-                            });
-                        }
-                    }
-                    deleteSelectedRails();
-                }
-
-                // Undo / Redo / Copy / Paste / Duplicate
-                if (e.ctrlKey || e.metaKey) {
-                    if (e.key === 'z' && !e.shiftKey) {
-                        e.preventDefault();
-                        if (typeof undoLayout === 'function') undoLayout();
-                    } else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
-                        e.preventDefault();
-                        if (typeof redoLayout === 'function') redoLayout();
-                    } else if (e.key === 'c') {
-                        e.preventDefault();
-                        if (typeof copySelectedRails === 'function') copySelectedRails();
-                    } else if (e.key === 'v') {
-                        e.preventDefault();
-                        if (typeof pasteRails === 'function') pasteRails();
-                    } else if (e.key === 'd') {
-                        e.preventDefault();
-                        if (typeof duplicateSelectedRails === 'function') duplicateSelectedRails();
-                    }
-                }
             });
         }
 
