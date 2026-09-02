@@ -128,90 +128,121 @@
         <button id="menuOptions" onclick="execMenuAction('options')">オプション... [Ctrl+,]</button>
     </div>
 
-    <!-- ノード補正オプションダイアログ -->
-    <dialog id="nodeOffsetDialog" style="border: 1px solid #ccc; border-radius: 8px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 280px;">
-        <h3 style="margin-top: 0; font-size: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px;">ノード位置補正</h3>
-        <form id="nodeOffsetForm" method="dialog" style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
-            <div>
-                <label style="display: block; margin-bottom: 4px;">前後 offset (mm):</label>
-                <input type="number" id="nodeOffsetForward" step="0.1" placeholder="0" style="width: 100%; box-sizing: border-box;">
-            </div>
-            <div>
-                <label style="display: block; margin-bottom: 4px;">左右 offset (mm):</label>
-                <input type="number" id="nodeOffsetSideways" step="0.1" placeholder="0" style="width: 100%; box-sizing: border-box;">
-            </div>
-            <div>
-                <label style="display: block; margin-bottom: 4px;">角度 offset (deg):</label>
-                <input type="number" id="nodeOffsetAngle" step="0.1" placeholder="0" style="width: 100%; box-sizing: border-box;">
-            </div>
+    <!-- パーツオプションダイアログ (標準 <dialog> を使用) -->
+    <dialog id="railOptionsDialog" style="border: 1px solid #ccc; border-radius: 8px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 320px; max-height: 80vh; overflow-y: auto;">
+        <h3 style="margin-top: 0; font-size: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px;">パーツオプション</h3>
+        <form id="railOptionsForm" method="dialog" style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
+            
+            <fieldset style="border: 1px solid #ddd; border-radius: 4px; padding: 8px;">
+                <legend style="font-weight: bold; padding: 0 4px;">ノード位置・角度補正</legend>
+                
+                <!-- 選択中のパーツのノード数に合わせて、入力項目が動的に挿入される領域 -->
+                <div id="nodeOffsetsContainer" style="display: flex; flex-direction: column; gap: 12px;"></div>
+            </fieldset>
+
             <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
-                <button type="button" onclick="closeNodeOffsetDialog()">キャンセル</button>
-                <button type="button" onclick="saveNodeOffset()">保存</button>
+                <button type="button" onclick="closeRailOptionsDialog()">キャンセル</button>
+                <button type="button" onclick="saveRailOptions()">保存</button>
             </div>
         </form>
     </dialog>
 
     <script>
-        // ダイアログ表示処理
-        function openNodeOffsetDialog() {
-            // 選択中のパーツがない場合はスキップ
+        let currentEditingRail = null;
+
+        // ダイアログを開く処理
+        function openRailOptionsDialog() {
             if (!selectedRails || selectedRails.length === 0) return;
-            const rail = selectedRails[0];
-            
-            // 現在の選択ノードインデックス（未定義なら0）
-            const nodeIdx = rail.activeNodeIndex || 0;
-            const offsets = (rail.nodeOffsets && rail.nodeOffsets[nodeIdx]) || {};
+            currentEditingRail = selectedRails[0];
 
-            // フォーム初期設定（未設定の場合は空文字）
-            document.getElementById('nodeOffsetForward').value = offsets.forward !== undefined ? offsets.forward : '';
-            document.getElementById('nodeOffsetSideways').value = offsets.sideways !== undefined ? offsets.sideways : '';
-            document.getElementById('nodeOffsetAngle').value = offsets.angle !== undefined ? offsets.angle : '';
+            const container = document.getElementById('nodeOffsetsContainer');
+            container.innerHTML = ''; // 前回生成した入力欄をクリア
 
-            const dialog = document.getElementById('nodeOffsetDialog');
+            // パーツが持つノード数を自動取得（未定義ならデフォルト2）
+            const nodeCount = (currentEditingRail.nodes && currentEditingRail.nodes.length) || 2;
+            const offsets = currentEditingRail.nodeOffsets || {};
+
+            // 全ノード分の入力欄を自動生成
+            for (let i = 0; i < nodeCount; i++) {
+                const nodeData = offsets[i] || {};
+                const isSelected = i === (currentEditingRail.activeNodeIndex || 0);
+
+                const nodeBlock = document.createElement('div');
+                nodeBlock.style.cssText = 'border-bottom: 1px dashed #eee; padding-bottom: 8px;';
+                if (i === nodeCount - 1) nodeBlock.style.borderBottom = 'none';
+
+                nodeBlock.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 4px; color: ${isSelected ? '#0066cc' : '#333'};">
+                        ノード ${i + 1} ${isSelected ? '(選択中)' : ''}
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;">
+                        <div>
+                            <label style="font-size: 11px; display: block;">前後(mm)</label>
+                            <input type="number" id="opt_f_${i}" step="0.1" placeholder="0" value="${nodeData.forward !== undefined ? nodeData.forward : ''}" style="width: 100%; box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; display: block;">左右(mm)</label>
+                            <input type="number" id="opt_s_${i}" step="0.1" placeholder="0" value="${nodeData.sideways !== undefined ? nodeData.sideways : ''}" style="width: 100%; box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; display: block;">角度(deg)</label>
+                            <input type="number" id="opt_a_${i}" step="0.1" placeholder="0" value="${nodeData.angle !== undefined ? nodeData.angle : ''}" style="width: 100%; box-sizing: border-box;">
+                        </div>
+                    </div>
+                `;
+                container.appendChild(nodeBlock);
+            }
+
+            const dialog = document.getElementById('railOptionsDialog');
             if (dialog && typeof dialog.showModal === 'function') {
                 dialog.showModal();
             }
         }
 
-        function closeNodeOffsetDialog() {
-            const dialog = document.getElementById('nodeOffsetDialog');
+        // ダイアログを閉じる処理
+        function closeRailOptionsDialog() {
+            const dialog = document.getElementById('railOptionsDialog');
             if (dialog) dialog.close();
+            currentEditingRail = null;
         }
 
-        // 補正値の保存処理 (値がないプロパティは生成・保持しない仕様)
-        function saveNodeOffset() {
-            if (!selectedRails || selectedRails.length === 0) {
-                closeNodeOffsetDialog();
-                return;
-            }
-            const rail = selectedRails[0];
-            const nodeIdx = rail.activeNodeIndex || 0;
+        // 保存処理 (入力がない・0のデータは保持せず自動省略)
+        function saveRailOptions() {
+            if (!currentEditingRail) return;
 
-            const fVal = parseFloat(document.getElementById('nodeOffsetForward').value);
-            const sVal = parseFloat(document.getElementById('nodeOffsetSideways').value);
-            const aVal = parseFloat(document.getElementById('nodeOffsetAngle').value);
+            const nodeCount = (currentEditingRail.nodes && currentEditingRail.nodes.length) || 2;
+            const newOffsets = {};
 
-            const nodeObj = {};
-            if (!isNaN(fVal) && fVal !== 0) nodeObj.forward = fVal;
-            if (!isNaN(sVal) && sVal !== 0) nodeObj.sideways = sVal;
-            if (!isNaN(aVal) && aVal !== 0) nodeObj.angle = aVal;
+            for (let i = 0; i < nodeCount; i++) {
+                const fEl = document.getElementById(`opt_f_${i}`);
+                const sEl = document.getElementById(`opt_s_${i}`);
+                const aEl = document.getElementById(`opt_a_${i}`);
 
-            if (!rail.nodeOffsets) {
-                rail.nodeOffsets = {};
-            }
+                if (!fEl || !sEl || !aEl) continue;
 
-            // オブジェクトに値が1つでもある場合のみ保持、全空なら削除して軽量化
-            if (Object.keys(nodeObj).length > 0) {
-                rail.nodeOffsets[nodeIdx] = nodeObj;
-            } else {
-                delete rail.nodeOffsets[nodeIdx];
-                if (Object.keys(rail.nodeOffsets).length === 0) {
-                    delete rail.nodeOffsets;
+                const fVal = parseFloat(fEl.value);
+                const sVal = parseFloat(sEl.value);
+                const aVal = parseFloat(aEl.value);
+
+                const nodeObj = {};
+                if (!isNaN(fVal) && fVal !== 0) nodeObj.forward = fVal;
+                if (!isNaN(sVal) && sVal !== 0) nodeObj.sideways = sVal;
+                if (!isNaN(aVal) && aVal !== 0) nodeObj.angle = aVal;
+
+                if (Object.keys(nodeObj).length > 0) {
+                    newOffsets[i] = nodeObj;
                 }
             }
 
-            closeNodeOffsetDialog();
-            if (typeof draw === 'function') draw(); // 再描画
+            // 全ノードの補正値が空なら nodeOffsets 自体を削除して軽量化
+            if (Object.keys(newOffsets).length > 0) {
+                currentEditingRail.nodeOffsets = newOffsets;
+            } else {
+                delete currentEditingRail.nodeOffsets;
+            }
+
+            closeRailOptionsDialog();
+            if (typeof draw === 'function') draw(); // 描画更新
         }
     </script>
 
