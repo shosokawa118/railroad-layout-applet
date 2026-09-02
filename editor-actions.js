@@ -493,7 +493,7 @@ function cycleSelectedRailNode(direction) {
 
     if (!targetNodeDef || !nextSelfNodeDef) return;
 
-    // 4. 座標・角度計算（geoCenter補正付き）
+    // 4. 座標・角度計算
     const itemBefore = {
         instanceId: selfId,
         from: { x: activeObj.left, y: activeObj.top, angle: activeObj.angle }
@@ -525,21 +525,22 @@ function cycleSelectedRailNode(direction) {
     });
     activeObj.setCoords();
 
-    // 6. 主対象ジョイントのノードIDを更新（カタログの定義型をそのまま設定）
+    // 6. 主対象ジョイントのノードIDを更新
     if (isSelfA) {
         globalJoints[jointIndex].nodeA = nextSelfNodeDef.id;
     } else {
         globalJoints[jointIndex].nodeB = nextSelfNodeDef.id;
     }
 
-    // 7. 位置不整合ジョイントのクリーンアップ
+    // 7. 位置不整合ジョイントの削除 ＆ 接触した近傍ノードの自動結合
     if (typeof getAbsoluteNodePos === 'function' && typeof isNodePositionCompatible === 'function') {
         const currentSelfAbsNodes = getAbsoluteNodePos(activeObj);
         
+        // A. 回転後に離れた不整合ジョイントを削除
         for (let i = globalJoints.length - 1; i >= 0; i--) {
             const j = globalJoints[i];
             if (j.railA !== selfId && j.railB !== selfId) continue;
-            if (i === jointIndex) continue; // 切り替えた主ジョイントは削除対象外
+            if (i === jointIndex) continue;
 
             const checkSelfIsA = (j.railA === selfId);
             const checkSelfNodeId = checkSelfIsA ? j.nodeA : j.nodeB;
@@ -560,6 +561,32 @@ function cycleSelectedRailNode(direction) {
                 globalJoints.splice(i, 1);
             }
         }
+
+        // B. 回転後に新たに接触した近傍ノードの自動検出と結合
+        const allRails = canvas.getObjects().filter(obj => obj && obj.customData && obj.customData.isRail && obj.customData.instanceId !== selfId);
+
+        currentSelfAbsNodes.forEach(sNode => {
+            if (typeof isNodeOccupied === 'function' && isNodeOccupied(selfId, sNode.nodeId)) return;
+
+            allRails.forEach(otherRail => {
+                const otherId = otherRail.customData.instanceId;
+                const otherAbsNodes = getAbsoluteNodePos(otherRail);
+
+                otherAbsNodes.forEach(oNode => {
+                    if (typeof isNodeOccupied === 'function' && isNodeOccupied(otherId, oNode.nodeId)) return;
+                    
+                    const canConnect = (typeof canConnectNodes === 'function') 
+                        ? canConnectNodes(activeObj, sNode.nodeId, otherRail, oNode.nodeId) 
+                        : true;
+
+                    if (canConnect && isNodePositionCompatible(sNode, oNode, 8, 5)) {
+                        if (typeof addGlobalJointIfFree === 'function') {
+                            addGlobalJointIfFree(selfId, sNode.nodeId, otherId, oNode.nodeId);
+                        }
+                    }
+                });
+            });
+        });
     }
 
     // 8. 履歴記録と表示更新
@@ -567,6 +594,7 @@ function cycleSelectedRailNode(direction) {
     if (typeof recordAction === 'function') {
         recordAction({
             type: 'CYCLE_NODE',
+            selectedInstanceIds: [selfId], // Undo時の選択復元用IDを追加
             items: [itemBefore],
             jointsFrom: jointsBefore,
             jointsTo: JSON.parse(JSON.stringify(globalJoints))
