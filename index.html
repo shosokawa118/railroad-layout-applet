@@ -376,6 +376,7 @@
             if (action === 'paste' && typeof pasteRails === 'function') pasteRails();
             if (action === 'duplicate' && typeof duplicateSelectedRails === 'function') duplicateSelectedRails();
             if (action === 'delete' && typeof deleteSelectedRails === 'function') deleteSelectedRails();
+            if (action === 'options' && typeof openRailOptionsDialog === 'function') openRailOptionsDialog();
         }
 
         function startApplication() {
