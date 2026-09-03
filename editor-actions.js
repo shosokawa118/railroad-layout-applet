@@ -400,6 +400,23 @@ function captureDragEnd(target) {
 // 3. クリップボード（Copy / Cut / Paste / Duplicate）
 // =========================================================
 
+/*
+ * 選択中レールをコピーした上で削除する（切り取り）
+ */
+async function cutSelectedRails() {
+    if (!canvas) return;
+    const activeObject = canvas.getActiveObject();
+    if (!activeObject) return;
+
+    // 1. クリップボードへコピー
+    await copySelectedRails();
+
+    // 2. 削除を実行（履歴記録は deleteSelectedRails 内で行われます）
+    if (typeof deleteSelectedRails === 'function') {
+        deleteSelectedRails();
+    }
+}
+
 /**
  * 選択中レールおよび関係するジョイント群をJSON形式でクリップボードへコピー
  */
@@ -430,7 +447,7 @@ async function copySelectedRails() {
     const filteredRails = fullData.rails
         .filter(r => selectedIds.includes(r.instanceId))
         .map(r => ({
-            ...r,
+            ...JSON.parse(JSON.stringify(r)), // 配下の拡張データを含むすべてのプロパティを丸ごと透過ディープコピー
             offsetX: r.x - baseX,
             offsetY: r.y - baseY
         }));
@@ -453,23 +470,6 @@ async function copySelectedRails() {
         await navigator.clipboard.writeText(jsonString);
     } catch (err) {
         clipboardDataMemory = exportData;
-    }
-}
-
-/**
- * 選択中レールをコピーした上で削除する（切り取り）
- */
-async function cutSelectedRails() {
-    if (!canvas) return;
-    const activeObject = canvas.getActiveObject();
-    if (!activeObject) return;
-
-    // 1. クリップボードへコピー
-    await copySelectedRails();
-
-    // 2. 削除を実行（履歴記録は deleteSelectedRails 内で行われます）
-    if (typeof deleteSelectedRails === 'function') {
-        deleteSelectedRails();
     }
 }
 
@@ -509,17 +509,18 @@ async function pasteRails() {
         .filter(o => o && o.customData && o.customData.isRail)
         .map(o => o.customData.instanceId);
 
-    // オフセット計算を実座標(x, y)に適用した一時データを作成
+    // オフセット計算用のキーのみ抽出し、それ以外のすべての配下プロパティをそのまま透過
     const importPayload = {
         version: clipboardData.version,
         systems: clipboardData.systems,
-        rails: clipboardData.rails.map(r => ({
-            instanceId: r.instanceId,
-            partId: r.partId,
-            x: targetBaseX + (r.offsetX !== undefined ? r.offsetX : 0),
-            y: targetBaseY + (r.offsetY !== undefined ? r.offsetY : 0),
-            angle: r.angle
-        })),
+        rails: clipboardData.rails.map(r => {
+            const { offsetX, offsetY, ...restData } = r;
+            return {
+                ...restData, // 配下の全プロパティ（nodeOffsetsや将来の拡張キー）をすべて維持
+                x: targetBaseX + (offsetX !== undefined ? offsetX : 0),
+                y: targetBaseY + (offsetY !== undefined ? offsetY : 0)
+            };
+        }),
         joints: clipboardData.joints
     };
 
@@ -536,13 +537,25 @@ async function pasteRails() {
 
         recordAction({
             type: 'ADD',
-            rails: newlyAddedRails.map(obj => ({
-                instanceId: obj.customData.instanceId,
-                partId: obj.customData.partId,
-                x: obj.left,
-                y: obj.top,
-                angle: obj.angle
-            })),
+            rails: newlyAddedRails.map(obj => {
+                // オブジェクトに保持されているすべての拡張プロパティを自動収集
+                const reservedKeys = ['canvas', 'top', 'left'];
+                const railData = {
+                    instanceId: obj.customData.instanceId,
+                    partId: obj.customData.partId,
+                    x: obj.left,
+                    y: obj.top,
+                    angle: obj.angle
+                };
+
+                Object.keys(obj).forEach(key => {
+                    if (!reservedKeys.includes(key) && obj[key] !== undefined && typeof obj[key] !== 'function') {
+                        railData[key] = JSON.parse(JSON.stringify(obj[key]));
+                    }
+                });
+
+                return railData;
+            }),
             jointsBefore: jointsBefore,
             jointsAfter: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
         });
