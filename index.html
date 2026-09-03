@@ -151,6 +151,7 @@
         let currentEditingRail = null;
 
         // ダイアログを開く処理
+        // partOptions.nodeOffsets のみを参照
         function openRailOptionsDialog() {
             if (!canvas) return;
             const activeObj = canvas.getActiveObject();
@@ -180,7 +181,8 @@
             const railEndNodes = rawNodes.filter(n => n && n.jointType === 'rail-end');
 
             const nodeCount = railEndNodes.length;
-            const offsets = currentEditingRail.nodeOffsets || {};
+            // partOptions.nodeOffsets のみをオプショナルチェイニングで安全に取得
+            const offsets = currentEditingRail.partOptions?.nodeOffsets || {};
 
             if (nodeCount === 0) {
                 const emptyMsg = document.createElement('div');
@@ -234,7 +236,7 @@
             currentEditingRail = null;
         }
 
-        // 保存処理 (入力がない・0のデータは保持せず自動省略)
+        // 保存処理 (partOptions コンテナに保存し、値がすべて空の場合は delete で完全削除)
         function saveRailOptions() {
             if (!currentEditingRail) return;
 
@@ -274,14 +276,18 @@
                 }
             });
 
-            // 全ノードの補正値が空なら nodeOffsets 自体を削除して軽量化
             if (Object.keys(newOffsets).length > 0) {
-                currentEditingRail.nodeOffsets = newOffsets;
+                if (!currentEditingRail.partOptions) {
+                    currentEditingRail.partOptions = {};
+                }
+                currentEditingRail.partOptions.nodeOffsets = newOffsets;
             } else {
-                delete currentEditingRail.nodeOffsets;
+                // オプションが空になった場合は partOptions コンテナごと削除
+                delete currentEditingRail.partOptions;
             }
 
             closeRailOptionsDialog();
+            if (typeof updateJointIndicators === 'function') updateJointIndicators();
             if (typeof draw === 'function') draw(); // 描画更新
         }
 

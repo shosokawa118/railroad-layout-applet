@@ -337,7 +337,8 @@ function addRailToCanvas(partId, options = {}) {
         geoCenterY: geoData.centerY
     };
 
-    const jointsBefore = typeof globalJoints !== 'undefined' ? [...globalJoints] : [];
+    // ===== 修正: partOptions は必要時のみ生成（初期時点では undefined）=====
+    // const jointsBefore = typeof globalJoints !== 'undefined' ? [...globalJoints] : [];
 
     if (!options.skipAutoConnect) {
         const activeObj = canvas.getActiveObject();
@@ -376,7 +377,6 @@ function addRailToCanvas(partId, options = {}) {
 
     registerGlobalCanvasEvents();
 
-    // --- 【修正】追加前の選択状態を記録するため、ActiveObject 切り替え前に記録を実行 ---
     if (!options.skipAutoConnect && !options.skipSelect && typeof recordAction === 'function') {
         recordAction({
             type: 'ADD',
@@ -386,6 +386,7 @@ function addRailToCanvas(partId, options = {}) {
                 x: railObject.left,
                 y: railObject.top,
                 angle: railObject.angle
+                // partOptions は必要時のみ recordAction 側で参照
             }],
             jointsBefore: jointsBefore,
             jointsAfter: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
@@ -479,15 +480,21 @@ function exportLayoutData() {
             systemSet.add(catalogItem.systemId);
         }
 
-        railList.push({
+        // ===== 修正: 基本座標のみを明示的に抽出 =====
+        const railData = {
             instanceId: rail.customData.instanceId,
             partId: partId,
             x: Math.round(rail.left * 100) / 100,
             y: Math.round(rail.top * 100) / 100,
-            angle: Math.round(rail.angle * 100) / 100,
-            // 独自拡張データは partOptions 配下を丸ごと抽出（未定義なら空オブジェクト）
-            partOptions: rail.partOptions ? JSON.parse(JSON.stringify(rail.partOptions)) : {}
-        });
+            angle: Math.round(rail.angle * 100) / 100
+        };
+
+        // ===== 修正: partOptions が存在する場合のみ追加 =====
+        if (rail.partOptions && typeof rail.partOptions === 'object') {
+            railData.partOptions = JSON.parse(JSON.stringify(rail.partOptions));
+        }
+
+        railList.push(railData);
     });
 
     return {
@@ -536,8 +543,10 @@ async function importLayoutData(layoutData, isOverwrite = true) {
         if (newObj) {
             newObj.set({ left: r.x, top: r.y, angle: r.angle });
             
-            // partOptions 配下のオブジェクトをそのまま復元して代入
-            newObj.partOptions = r.partOptions ? JSON.parse(JSON.stringify(r.partOptions)) : {};
+            // ===== 修正: partOptions が存在する場合のみ復元 =====
+            if (r.partOptions && typeof r.partOptions === 'object') {
+                newObj.partOptions = JSON.parse(JSON.stringify(r.partOptions));
+            }
 
             newObj.setCoords();
             createdObjects.push(newObj);

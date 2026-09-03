@@ -118,6 +118,12 @@ function executeAction(action, isUndo) {
                         if (newObj) {
                             newObj.customData.instanceId = r.instanceId;
                             newObj.set({ left: r.x, top: r.y, angle: r.angle });
+                            
+                            // ===== 修正: partOptions が存在する場合のみ復元 =====
+                            if (r.partOptions && typeof r.partOptions === 'object') {
+                                newObj.partOptions = JSON.parse(JSON.stringify(r.partOptions));
+                            }
+                            
                             newObj.setCoords();
                         }
                     }
@@ -138,6 +144,12 @@ function executeAction(action, isUndo) {
                         if (newObj) {
                             newObj.customData.instanceId = r.instanceId;
                             newObj.set({ left: r.x, top: r.y, angle: r.angle });
+                            
+                            // ===== 修正: partOptions が存在する場合のみ復元 =====
+                            if (r.partOptions && typeof r.partOptions === 'object') {
+                                newObj.partOptions = JSON.parse(JSON.stringify(r.partOptions));
+                            }
+                            
                             newObj.setCoords();
                         }
                     }
@@ -546,11 +558,8 @@ async function pasteRails() {
     if (newlyAddedRails.length > 0) {
         restoreSelection(newlyAddedRails.map(o => o.customData.instanceId));
 
-        // エラーが発生していた recordAction 直前のデータ生成部をステップ実行＆ログ出力
         const actionRails = [];
         newlyAddedRails.forEach((obj, idx) => {
-            console.log(`[DEBUG] オブジェクト #${idx} (ID: ${obj.customData?.instanceId}) のプロパティ検査開始`);
-            
             const railData = {
                 instanceId: obj.customData.instanceId,
                 partId: obj.customData.partId,
@@ -559,38 +568,20 @@ async function pasteRails() {
                 angle: obj.angle
             };
 
-            Object.keys(obj).forEach(key => {
-                if (['canvas', 'top', 'left', '_objects', 'group'].includes(key)) return;
+            // ===== 修正: partOptions が存在する場合のみ含める =====
+            if (obj.partOptions && typeof obj.partOptions === 'object') {
+                railData.partOptions = JSON.parse(JSON.stringify(obj.partOptions));
+            }
 
-                try {
-                    const val = obj[key];
-                    if (val !== undefined && typeof val !== 'function') {
-                        // シリアライズ可能か個別にテスト検証
-                        JSON.stringify(val);
-                        railData[key] = JSON.parse(JSON.stringify(val));
-                    }
-                } catch (e) {
-                    console.error(`[DEBUG] プロパティ "${key}" のシリアライズに失敗しました:`, e, obj[key]);
-                }
-            });
-
-            console.log(`[DEBUG] オブジェクト #${idx} 抽出結果:`, railData);
             actionRails.push(railData);
         });
 
-        console.log('[DEBUG] recordAction に渡す rails 配列:', actionRails);
-
-        try {
-            recordAction({
-                type: 'ADD',
-                rails: actionRails,
-                jointsBefore: jointsBefore,
-                jointsAfter: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
-            });
-            console.log('[DEBUG] recordAction 正常完了');
-        } catch (e) {
-            console.error('[DEBUG] recordAction 実行中に例外発生:', e);
-        }
+        recordAction({
+            type: 'ADD',
+            rails: actionRails,
+            jointsBefore: jointsBefore,
+            jointsAfter: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
+        });
     }
 
     canvas.requestRenderAll();
