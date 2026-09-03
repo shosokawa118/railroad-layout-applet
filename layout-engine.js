@@ -471,20 +471,6 @@ function exportLayoutData() {
     const systemSet = new Set();
     const railList = [];
 
-    // Fabric.js オブジェクト標準の内部プロパティおよび参照系プロパティの除外リスト
-    const reservedKeys = [
-        'type', 'originX', 'originY', 'top', 'left', 'width', 'height', 'scaleX', 'scaleY', 
-        'flipX', 'flipY', 'opacity', 'angle', 'skewX', 'skewY', 'cornerSize', 'touchCornerSize', 
-        'transparentCorners', 'hoverCursor', 'moveCursor', 'defaultCursor', 'padding', 'borderColor', 
-        'cornerColor', 'cornerStrokeColor', 'cornerStyle', 'cornerDashArray', 'borderDashArray', 
-        'selectionBackgroundColor', 'stroke', 'strokeWidth', 'strokeDashArray', 'strokeLineCap', 
-        'strokeLineJoin', 'strokeMiterLimit', 'fill', 'fillRule', 'globalCompositeOperation', 
-        'backgroundColor', 'selectable', 'hasControls', 'hasBorders', 'hasRotatingPoint', 
-        'lockMovementX', 'lockMovementY', 'lockRotation', 'lockScalingX', 'lockScalingY', 
-        'lockSkewingX', 'lockSkewingY', 'lockScalingFlip', 'lockUniScaling', 'dirty', 'matrixCache', 
-        'ownMatrixCache', 'oCoords', 'aCoords', 'lineCoords', 'canvas', 'customData', 'group'
-    ];
-
     rails.forEach((rail) => {
         const partId = rail.customData ? rail.customData.partId : null;
         const catalogItem = (railCatalog && railCatalog.items) ? railCatalog.items[partId] : null;
@@ -493,22 +479,15 @@ function exportLayoutData() {
             systemSet.add(catalogItem.systemId);
         }
 
-        const railData = {
+        railList.push({
             instanceId: rail.customData.instanceId,
             partId: partId,
             x: Math.round(rail.left * 100) / 100,
             y: Math.round(rail.top * 100) / 100,
-            angle: Math.round(rail.angle * 100) / 100
-        };
-
-        // アンダースコア(_)から始まるFabricプライベートプロパティおよび予約キーを除外して抽出
-        Object.keys(rail).forEach(key => {
-            if (!key.startsWith('_') && !reservedKeys.includes(key) && rail[key] !== undefined && typeof rail[key] !== 'function') {
-                railData[key] = JSON.parse(JSON.stringify(rail[key]));
-            }
+            angle: Math.round(rail.angle * 100) / 100,
+            // 独自拡張データは partOptions 配下を丸ごと抽出（未定義なら空オブジェクト）
+            partOptions: rail.partOptions ? JSON.parse(JSON.stringify(rail.partOptions)) : {}
         });
-
-        railList.push(railData);
     });
 
     return {
@@ -557,13 +536,8 @@ async function importLayoutData(layoutData, isOverwrite = true) {
         if (newObj) {
             newObj.set({ left: r.x, top: r.y, angle: r.angle });
             
-            // 基本キー・Fabric内部用キー・プライベートプロパティ(_で始まるもの)を除外し、純粋な独自オプションのみ復元
-            const baseKeys = ['instanceId', 'partId', 'x', 'y', 'angle', 'group', 'canvas', 'customData'];
-            Object.keys(r).forEach(key => {
-                if (!key.startsWith('_') && !baseKeys.includes(key) && r[key] !== undefined) {
-                    newObj[key] = JSON.parse(JSON.stringify(r[key]));
-                }
-            });
+            // partOptions 配下のオブジェクトをそのまま復元して代入
+            newObj.partOptions = r.partOptions ? JSON.parse(JSON.stringify(r.partOptions)) : {};
 
             newObj.setCoords();
             createdObjects.push(newObj);
