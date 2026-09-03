@@ -471,7 +471,7 @@ function exportLayoutData() {
     const systemSet = new Set();
     const railList = [];
 
-    // Fabric.js オブジェクト標準の内部プロパティ・メソッド等の除外リスト
+    // Fabric.js オブジェクト標準の内部プロパティ・メソッドおよび参照系プロパティの除外リスト
     const reservedKeys = [
         'type', 'originX', 'originY', 'top', 'left', 'width', 'height', 'scaleX', 'scaleY', 
         'flipX', 'flipY', 'opacity', 'angle', 'skewX', 'skewY', 'cornerSize', 'touchCornerSize', 
@@ -482,7 +482,7 @@ function exportLayoutData() {
         'backgroundColor', 'selectable', 'hasControls', 'hasBorders', 'hasRotatingPoint', 
         'lockMovementX', 'lockMovementY', 'lockRotation', 'lockScalingX', 'lockScalingY', 
         'lockSkewingX', 'lockSkewingY', 'lockScalingFlip', 'lockUniScaling', 'dirty', 'matrixCache', 
-        'ownMatrixCache', 'oCoords', 'aCoords', 'lineCoords', 'canvas', 'customData'
+        'ownMatrixCache', 'oCoords', 'aCoords', 'lineCoords', 'canvas', 'customData', 'group'
     ];
 
     rails.forEach((rail) => {
@@ -557,8 +557,8 @@ async function importLayoutData(layoutData, isOverwrite = true) {
         if (newObj) {
             newObj.set({ left: r.x, top: r.y, angle: r.angle });
             
-            // 基本座標以外のすべての拡張プロパティ（nodeOffsets等）を全自動で生成オブジェクトへ代入
-            const baseKeys = ['instanceId', 'partId', 'x', 'y', 'angle'];
+            // 基本座標および Fabric 内部予約キー以外の拡張プロパティ（nodeOffsets等）を安全に復元
+            const baseKeys = ['instanceId', 'partId', 'x', 'y', 'angle', 'group', 'canvas', 'customData'];
             Object.keys(r).forEach(key => {
                 if (!baseKeys.includes(key) && r[key] !== undefined) {
                     newObj[key] = JSON.parse(JSON.stringify(r[key]));
