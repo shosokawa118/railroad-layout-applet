@@ -261,9 +261,12 @@ function getEffectiveNodeDef(rail, catalogNode) {
 
     const jointType = catalogNode.jointType || 'rail-end';
     
+    // PartOption 配下の nodeOffsets を安全に参照
+    const nodeOffsets = rail && rail.partOptions ? rail.partOptions.nodeOffsets : null;
+
     // jointType: 'rail-end' の場合のみ nodeOffsets を適用
-    if (jointType === 'rail-end' && rail && rail.nodeOffsets && catalogNode.id !== undefined) {
-        const offset = rail.nodeOffsets[catalogNode.id];
+    if (jointType === 'rail-end' && nodeOffsets && catalogNode.id !== undefined) {
+        const offset = nodeOffsets[catalogNode.id];
         if (offset) {
             const forward = offset.forward || 0;
             const sideways = offset.sideways || 0;
