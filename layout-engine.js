@@ -471,7 +471,7 @@ function exportLayoutData() {
     const systemSet = new Set();
     const railList = [];
 
-    // Fabric.js オブジェクト標準の内部プロパティ・メソッドおよび参照系プロパティの除外リスト
+    // Fabric.js オブジェクト標準の内部プロパティおよび参照系プロパティの除外リスト
     const reservedKeys = [
         'type', 'originX', 'originY', 'top', 'left', 'width', 'height', 'scaleX', 'scaleY', 
         'flipX', 'flipY', 'opacity', 'angle', 'skewX', 'skewY', 'cornerSize', 'touchCornerSize', 
@@ -501,9 +501,9 @@ function exportLayoutData() {
             angle: Math.round(rail.angle * 100) / 100
         };
 
-        // オブジェクトに付与されている独自・拡張プロパティ（nodeOffsets等）を全自動で丸ごと抽出
+        // アンダースコア(_)から始まるFabricプライベートプロパティおよび予約キーを除外して抽出
         Object.keys(rail).forEach(key => {
-            if (!reservedKeys.includes(key) && rail[key] !== undefined && typeof rail[key] !== 'function') {
+            if (!key.startsWith('_') && !reservedKeys.includes(key) && rail[key] !== undefined && typeof rail[key] !== 'function') {
                 railData[key] = JSON.parse(JSON.stringify(rail[key]));
             }
         });
@@ -557,10 +557,10 @@ async function importLayoutData(layoutData, isOverwrite = true) {
         if (newObj) {
             newObj.set({ left: r.x, top: r.y, angle: r.angle });
             
-            // 基本座標および Fabric 内部予約キー以外の拡張プロパティ（nodeOffsets等）を安全に復元
+            // 基本キー・Fabric内部用キー・プライベートプロパティ(_で始まるもの)を除外し、純粋な独自オプションのみ復元
             const baseKeys = ['instanceId', 'partId', 'x', 'y', 'angle', 'group', 'canvas', 'customData'];
             Object.keys(r).forEach(key => {
-                if (!baseKeys.includes(key) && r[key] !== undefined) {
+                if (!key.startsWith('_') && !baseKeys.includes(key) && r[key] !== undefined) {
                     newObj[key] = JSON.parse(JSON.stringify(r[key]));
                 }
             });
