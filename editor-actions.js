@@ -477,25 +477,35 @@ async function copySelectedRails() {
  * クリップボードのデータを importLayoutData(..., false) で復元
  */
 async function pasteRails() {
-    if (typeof importLayoutData !== 'function') return;
+    console.log('[DEBUG] --- pasteRails 開始 ---');
+    if (typeof importLayoutData !== 'function') {
+        console.error('[DEBUG] importLayoutData が存在しません');
+        return;
+    }
 
     let clipboardData = null;
 
     try {
         const text = await navigator.clipboard.readText();
+        console.log('[DEBUG] クリップボードテキスト:', text);
         const parsed = JSON.parse(text);
         if (parsed && parsed.type === "RAIL_LAYOUT_CLIPBOARD" && Array.isArray(parsed.rails)) {
             clipboardData = parsed;
         }
     } catch (err) {
-        if (clipboardDataMemory) {
+        console.warn('[DEBUG] クリップボード読み込み失敗、メモリ参照を試みます:', err);
+        if (typeof clipboardDataMemory !== 'undefined' && clipboardDataMemory) {
             clipboardData = clipboardDataMemory;
         }
     }
 
-    if (!clipboardData || !clipboardData.rails || clipboardData.rails.length === 0) return;
+    console.log('[DEBUG] 解析済み clipboardData:', clipboardData);
 
-    // 貼り付け先の基準オフセット位置を計算
+    if (!clipboardData || !clipboardData.rails || clipboardData.rails.length === 0) {
+        console.warn('[DEBUG] 貼り付け対象のデータが空です');
+        return;
+    }
+
     let targetBaseX = 250;
     let targetBaseY = 250;
     const activeObj = canvas.getActiveObject();
@@ -509,14 +519,13 @@ async function pasteRails() {
         .filter(o => o && o.customData && o.customData.isRail)
         .map(o => o.customData.instanceId);
 
-    // オフセット計算用のキーのみ抽出し、それ以外のすべての配下プロパティをそのまま透過
     const importPayload = {
         version: clipboardData.version,
         systems: clipboardData.systems,
         rails: clipboardData.rails.map(r => {
             const { offsetX, offsetY, ...restData } = r;
             return {
-                ...restData, // 配下の全プロパティ（nodeOffsetsや将来の拡張キー）をすべて維持
+                ...restData,
                 x: targetBaseX + (offsetX !== undefined ? offsetX : 0),
                 y: targetBaseY + (offsetY !== undefined ? offsetY : 0)
             };
@@ -524,44 +533,68 @@ async function pasteRails() {
         joints: clipboardData.joints
     };
 
-    // importLayoutDataの追加モード (isOverwrite = false) を呼び出して安全に復元
+    console.log('[DEBUG] importLayoutData に渡す Payload:', importPayload);
+
     await importLayoutData(importPayload, false);
 
-    // 新規追加されたオブジェクト群の特定と選択状態・Undo履歴の登録
     const newlyAddedRails = canvas.getObjects().filter(o => 
         o && o.customData && o.customData.isRail && !railsBeforeIds.includes(o.customData.instanceId)
     );
 
+    console.log('[DEBUG] 新規追加された Fabric オブジェクト一覧:', newlyAddedRails);
+
     if (newlyAddedRails.length > 0) {
         restoreSelection(newlyAddedRails.map(o => o.customData.instanceId));
 
-        recordAction({
-            type: 'ADD',
-            rails: newlyAddedRails.map(obj => {
-                // オブジェクトに保持されているすべての拡張プロパティを自動収集
-                const reservedKeys = ['canvas', 'top', 'left'];
-                const railData = {
-                    instanceId: obj.customData.instanceId,
-                    partId: obj.customData.partId,
-                    x: obj.left,
-                    y: obj.top,
-                    angle: obj.angle
-                };
+        // エラーが発生していた recordAction 直前のデータ生成部をステップ実行＆ログ出力
+        const actionRails = [];
+        newlyAddedRails.forEach((obj, idx) => {
+            console.log(`[DEBUG] オブジェクト #${idx} (ID: ${obj.customData?.instanceId}) のプロパティ検査開始`);
+            
+            const railData = {
+                instanceId: obj.customData.instanceId,
+                partId: obj.customData.partId,
+                x: obj.left,
+                y: obj.top,
+                angle: obj.angle
+            };
 
-                Object.keys(obj).forEach(key => {
-                    if (!reservedKeys.includes(key) && obj[key] !== undefined && typeof obj[key] !== 'function') {
-                        railData[key] = JSON.parse(JSON.stringify(obj[key]));
+            Object.keys(obj).forEach(key => {
+                if (['canvas', 'top', 'left', '_objects', 'group'].includes(key)) return;
+
+                try {
+                    const val = obj[key];
+                    if (val !== undefined && typeof val !== 'function') {
+                        // シリアライズ可能か個別にテスト検証
+                        JSON.stringify(val);
+                        railData[key] = JSON.parse(JSON.stringify(val));
                     }
-                });
+                } catch (e) {
+                    console.error(`[DEBUG] プロパティ "${key}" のシリアライズに失敗しました:`, e, obj[key]);
+                }
+            });
 
-                return railData;
-            }),
-            jointsBefore: jointsBefore,
-            jointsAfter: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
+            console.log(`[DEBUG] オブジェクト #${idx} 抽出結果:`, railData);
+            actionRails.push(railData);
         });
+
+        console.log('[DEBUG] recordAction に渡す rails 配列:', actionRails);
+
+        try {
+            recordAction({
+                type: 'ADD',
+                rails: actionRails,
+                jointsBefore: jointsBefore,
+                jointsAfter: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
+            });
+            console.log('[DEBUG] recordAction 正常完了');
+        } catch (e) {
+            console.error('[DEBUG] recordAction 実行中に例外発生:', e);
+        }
     }
 
     canvas.requestRenderAll();
+    console.log('[DEBUG] --- pasteRails 終了 ---');
 }
 
 /**
