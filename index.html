@@ -12,6 +12,7 @@
     <script src="layout-engine.js"></script>
     <script src="snap-manager.js"></script>
     <script src="sample-data.js"></script>
+    <script src="editor-actions.js"></script>
 
     <style>
         body { margin: 0; padding: 10px; background-color: #f0f0f0; font-family: sans-serif; touch-action: none; }
@@ -21,7 +22,8 @@
         canvas { position: absolute !important; left: 0 !important; top: 0 !important; width: 800px !important; height: 600px !important; }
         
         button { padding: 4px 10px; border-radius: 4px; border: 1px solid #ccc; background-color: #fff; cursor: pointer; font-size: 13px; }
-        button:hover { background-color: #f0f0f0; }
+        button:hover:not(:disabled) { background-color: #f0f0f0; }
+        button:disabled { opacity: 0.4; cursor: not-allowed; }
         
         select { padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; background-color: #fff; font-size: 13px; font-weight: bold; }
         
@@ -29,10 +31,41 @@
         .tab-btn.active { border-bottom-color: #0288d1; color: #0288d1; }
         
         .part-btn { background-color: #e3f2fd; border-color: #90caf9; }
-        .part-btn:hover { background-color: #bbdefb; }
+        .part-btn:hover:not(:disabled) { background-color: #bbdefb; }
 
         .btn-danger { background-color: #ffebee; color: #c62828; border-color: #ef9a9a; font-weight: bold; }
-        .btn-danger:hover { background-color: #ffcdd2; }
+        .btn-danger:hover:not(:disabled) { background-color: #ffcdd2; }
+
+        /* コンテキストメニュー（右クリック / タップホールド用）のスタイル */
+        #contextMenu {
+            display: none;
+            position: absolute;
+            z-index: 10000;
+            background: #ffffff;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            padding: 4px 0;
+            min-width: 180px;
+        }
+        #contextMenu button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            font-size: 13px;
+        }
+        #contextMenu button:hover:not(:disabled) {
+            background-color: #e3f2fd;
+        }
+        #contextMenu .menu-divider {
+            height: 1px;
+            background-color: #eee;
+            margin: 4px 0;
+        }
     </style>
 </head>
 <body>
@@ -43,8 +76,16 @@
             <label for="systemSelect" style="font-size: 12px; font-weight: bold; color: #555;">レール規格:</label>
             <select id="systemSelect"></select>
             <span style="border-left: 1px solid #ccc; height: 16px; margin: 0 4px;"></span>
-            <button onclick="deleteSelectedRails()" class="btn-danger">選択削除 [Del]</button>
-            <label for="jointDisplaySelect" style="font-size: 12px; font-weight: bold; color: #555; margin-left: 8px;">ジョイント表示:</label>
+
+            <!-- 画面上部の基本編集ボタン群（Undo -> Cut -> Copy -> Paste -> Delete） -->
+            <button id="btnUndo" onclick="undoLayout()" title="元に戻す [Ctrl+Z]">元に戻す</button>
+            <button id="btnCut" onclick="cutSelectedRails()" title="切り取り [Ctrl+X]">切り取り</button>
+            <button id="btnCopy" onclick="copySelectedRails()" title="コピー [Ctrl+C]">コピー</button>
+            <button id="btnPaste" onclick="pasteRails()" title="貼り付け [Ctrl+V]">貼り付け</button>
+            <button id="btnDelete" onclick="deleteSelectedRails()" class="btn-danger" title="削除 [Delete]">削除</button>
+
+            <span style="border-left: 1px solid #ccc; height: 16px; margin: 0 4px;"></span>
+            <label for="jointDisplaySelect" style="font-size: 12px; font-weight: bold; color: #555;">ジョイント表示:</label>
             <select id="jointDisplaySelect" onchange="setJointDisplayMode(this.value)">
                 <option value="all">全表示</option>
                 <option value="rail-end" selected>レール端のみ</option>
@@ -69,8 +110,191 @@
 
     <canvas id="layoutCanvas" width="800" height="600"></canvas>
 
+    <!-- コンテキストメニュー（右クリック / 長押し用ポップアップ） -->
+    <div id="contextMenu">
+        <button id="menuSelectConnected" onclick="execMenuAction('selectConnected')">連結レールを選択 [Ctrl+Shift+A]</button>
+        <button id="menuSelectAll" onclick="execMenuAction('selectAll')">すべて選択 [Ctrl+A]</button>
+        <div class="menu-divider"></div>
+        <button id="menuUndo" onclick="execMenuAction('undo')">元に戻す [Ctrl+Z]</button>
+        <button id="menuRedo" onclick="execMenuAction('redo')">やり直し [Ctrl+Y]</button>
+        <div class="menu-divider"></div>
+        <button id="menuCut" onclick="execMenuAction('cut')">切り取り [Ctrl+X]</button>
+        <button id="menuCopy" onclick="execMenuAction('copy')">コピー [Ctrl+C]</button>
+        <button id="menuPaste" onclick="execMenuAction('paste')">貼り付け [Ctrl+V]</button>
+        <button id="menuDuplicate" onclick="execMenuAction('duplicate')">複製 [Ctrl+D]</button>
+        <div class="menu-divider"></div>
+        <button id="menuDelete" onclick="execMenuAction('delete')" style="color: #c62828;">削除 [Delete]</button>
+        <div class="menu-divider"></div>
+        <button id="menuOptions" onclick="execMenuAction('options')">オプション... [Ctrl+,]</button>
+    </div>
+
+    <!-- パーツオプションダイアログ (標準 <dialog> を使用) -->
+    <dialog id="railOptionsDialog" style="border: 1px solid #ccc; border-radius: 8px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 320px; max-height: 80vh; overflow-y: auto;">
+        <h3 style="margin-top: 0; font-size: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px;">パーツオプション</h3>
+        <form id="railOptionsForm" method="dialog" style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
+            
+            <fieldset style="border: 1px solid #ddd; border-radius: 4px; padding: 8px;">
+                <legend style="font-weight: bold; padding: 0 4px;">ノード位置・角度補正</legend>
+                
+                <!-- 選択中のパーツのノード数に合わせて、入力項目が動的に挿入される領域 -->
+                <div id="nodeOffsetsContainer" style="display: flex; flex-direction: column; gap: 12px;"></div>
+            </fieldset>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
+                <button type="button" onclick="closeRailOptionsDialog()">キャンセル</button>
+                <button type="button" onclick="saveRailOptions()">保存</button>
+            </div>
+        </form>
+    </dialog>
+
     <script>
-        const CODE_VERSION = "VER-AUTO-CONNECT-AC2";
+        let currentEditingRail = null;
+
+        // ダイアログを開く処理
+        // partOptions.nodeOffsets のみを参照
+        function openRailOptionsDialog() {
+            if (!canvas) return;
+            const activeObj = canvas.getActiveObject();
+
+            // 何も選択されていない、または複数選択（範囲選択）の場合は処理しない
+            if (!activeObj || activeObj.type === 'activeSelection') return;
+
+            // 選択されているオブジェクトがレール単体でない場合は処理しない
+            if (!activeObj.customData || !activeObj.customData.isRail) return;
+
+            currentEditingRail = activeObj;
+
+            const container = document.getElementById('nodeOffsetsContainer');
+            container.innerHTML = ''; // 前回生成した入力欄をクリア
+
+            // カタログデータからノード定義を取得
+            const partId = currentEditingRail.customData.partId;
+            const catalogData = (typeof railCatalog !== 'undefined') ? railCatalog : (window.railCatalog || null);
+            let rawNodes = [];
+
+            if (catalogData && catalogData.items && catalogData.items[partId] && catalogData.items[partId].nodes) {
+                const nodesDef = catalogData.items[partId].nodes;
+                rawNodes = Array.isArray(nodesDef) ? nodesDef : Object.values(nodesDef);
+            }
+
+            // "jointType": "rail-end" のノードのみを抽出
+            const railEndNodes = rawNodes.filter(n => n && n.jointType === 'rail-end');
+
+            const nodeCount = railEndNodes.length;
+            // partOptions.nodeOffsets のみをオプショナルチェイニングで安全に取得
+            const offsets = currentEditingRail.partOptions?.nodeOffsets || {};
+
+            if (nodeCount === 0) {
+                const emptyMsg = document.createElement('div');
+                emptyMsg.style.cssText = 'color: #666; font-size: 12px; padding: 4px 0;';
+                emptyMsg.textContent = '調整可能なレール端ノードがありません。';
+                container.appendChild(emptyMsg);
+            } else {
+                // "rail-end" ノードのみ入力欄を生成
+                railEndNodes.forEach((nodeDef, i) => {
+                    // ノード自身の元IDを取得（ID未設定時はインデックス）
+                    const nodeIndex = (nodeDef.id !== undefined) ? nodeDef.id : i;
+                    const nodeData = offsets[nodeIndex] || {};
+
+                    const nodeBlock = document.createElement('div');
+                    nodeBlock.style.cssText = 'border-bottom: 1px dashed #eee; padding-bottom: 8px;';
+                    if (i === nodeCount - 1) nodeBlock.style.borderBottom = 'none';
+
+                    nodeBlock.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 4px; color: #333;">
+                            ノード ${nodeIndex} ${nodeDef.name ? '(' + nodeDef.name + ')' : ''}
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;">
+                            <div>
+                                <label style="font-size: 11px; display: block;">前後(mm)</label>
+                                <input type="number" id="opt_f_${nodeIndex}" step="0.1" placeholder="0" value="${nodeData.forward !== undefined ? nodeData.forward : ''}" style="width: 100%; box-sizing: border-box;">
+                            </div>
+                            <div>
+                                <label style="font-size: 11px; display: block;">左右(mm)</label>
+                                <input type="number" id="opt_s_${nodeIndex}" step="0.1" placeholder="0" value="${nodeData.sideways !== undefined ? nodeData.sideways : ''}" style="width: 100%; box-sizing: border-box;">
+                            </div>
+                            <div>
+                                <label style="font-size: 11px; display: block;">角度(deg)</label>
+                                <input type="number" id="opt_a_${nodeIndex}" step="0.1" placeholder="0" value="${nodeData.angle !== undefined ? nodeData.angle : ''}" style="width: 100%; box-sizing: border-box;">
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(nodeBlock);
+                });
+            }
+
+            const dialog = document.getElementById('railOptionsDialog');
+            if (dialog && typeof dialog.showModal === 'function') {
+                dialog.showModal();
+            }
+        }
+
+        // ダイアログを閉じる処理
+        function closeRailOptionsDialog() {
+            const dialog = document.getElementById('railOptionsDialog');
+            if (dialog) dialog.close();
+            currentEditingRail = null;
+        }
+
+        // 保存処理 (partOptions コンテナに保存し、値がすべて空の場合は delete で完全削除)
+        function saveRailOptions() {
+            if (!currentEditingRail) return;
+
+            // カタログデータから "jointType": "rail-end" のノードのみを抽出
+            const partId = currentEditingRail.customData.partId;
+            const catalogData = (typeof railCatalog !== 'undefined') ? railCatalog : (window.railCatalog || null);
+            let rawNodes = [];
+
+            if (catalogData && catalogData.items && catalogData.items[partId] && catalogData.items[partId].nodes) {
+                const nodesDef = catalogData.items[partId].nodes;
+                rawNodes = Array.isArray(nodesDef) ? nodesDef : Object.values(nodesDef);
+            }
+
+            const railEndNodes = rawNodes.filter(n => n && n.jointType === 'rail-end');
+            const newOffsets = {};
+
+            railEndNodes.forEach((nodeDef, i) => {
+                const nodeIndex = (nodeDef.id !== undefined) ? nodeDef.id : i;
+
+                const fEl = document.getElementById(`opt_f_${nodeIndex}`);
+                const sEl = document.getElementById(`opt_s_${nodeIndex}`);
+                const aEl = document.getElementById(`opt_a_${nodeIndex}`);
+
+                if (!fEl || !sEl || !aEl) return;
+
+                const fVal = parseFloat(fEl.value);
+                const sVal = parseFloat(sEl.value);
+                const aVal = parseFloat(aEl.value);
+
+                const nodeObj = {};
+                if (!isNaN(fVal) && fVal !== 0) nodeObj.forward = fVal;
+                if (!isNaN(sVal) && sVal !== 0) nodeObj.sideways = sVal;
+                if (!isNaN(aVal) && aVal !== 0) nodeObj.angle = aVal;
+
+                if (Object.keys(nodeObj).length > 0) {
+                    newOffsets[nodeIndex] = nodeObj;
+                }
+            });
+
+            if (Object.keys(newOffsets).length > 0) {
+                if (!currentEditingRail.partOptions) {
+                    currentEditingRail.partOptions = {};
+                }
+                currentEditingRail.partOptions.nodeOffsets = newOffsets;
+            } else {
+                // オプションが空になった場合は partOptions コンテナごと削除
+                delete currentEditingRail.partOptions;
+            }
+
+            closeRailOptionsDialog();
+            if (typeof updateJointIndicators === 'function') updateJointIndicators();
+            if (typeof draw === 'function') draw(); // 描画更新
+        }
+
+    </script>
+
+    <script>
+        const CODE_VERSION = "VER-AUTO-CONNECT-AC5";
         console.log("=========================================");
         console.log("ビュー（HTML）バージョン:", CODE_VERSION);
         console.log("=========================================");
@@ -82,12 +306,18 @@
         function initCameraControls() {
             if (!canvas) return;
             
-            // キャンバス上の最後のエレメント非選択クリック座標を記憶（オートコネクト非適用時のフォールバック位置）
+            // キャンバス上の最後のエレメント非選択クリック座標を記憶
             canvas.on('mouse:down', function(opt) {
                 if (opt.pointer && !opt.target) {
                     lastCanvasClickPos = { x: opt.pointer.x, y: opt.pointer.y };
                 }
+                hideContextMenu();
             });
+
+            // 選択状態変更時にUIの状態（ボタン無効化など）を同期更新
+            canvas.on('selection:created', () => { if (typeof updateUIState === 'function') updateUIState(); });
+            canvas.on('selection:updated', () => { if (typeof updateUIState === 'function') updateUIState(); });
+            canvas.on('selection:cleared', () => { if (typeof updateUIState === 'function') updateUIState(); });
 
             canvas.on('mouse:wheel', function(opt) {
                 if (!opt || !opt.e) return;
@@ -139,6 +369,63 @@
             });
         }
 
+        // --- コンテキストメニュー（右クリック / 長押し）制御 ---
+        function initContextMenu() {
+            const container = document.querySelector('.canvas-container') || document.body;
+
+            // 右クリック制御
+            container.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                showContextMenu(e.clientX, e.clientY);
+            });
+
+            // タップホールド（長押し）制御
+            let touchTimer = null;
+            container.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    const touch = e.touches[0];
+                    touchTimer = setTimeout(() => {
+                        showContextMenu(touch.clientX, touch.clientY);
+                    }, 600); // 0.6秒長押しで表示
+                }
+            }, { passive: true });
+
+            container.addEventListener('touchend', () => { if (touchTimer) clearTimeout(touchTimer); });
+            container.addEventListener('touchmove', () => { if (touchTimer) clearTimeout(touchTimer); });
+            
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('#contextMenu')) hideContextMenu();
+            });
+        }
+
+        function showContextMenu(x, y) {
+            if (typeof updateUIState === 'function') updateUIState();
+            const menu = document.getElementById('contextMenu');
+            if (!menu) return;
+            menu.style.left = `${x}px`;
+            menu.style.top = `${y}px`;
+            menu.style.display = 'block';
+        }
+
+        function hideContextMenu() {
+            const menu = document.getElementById('contextMenu');
+            if (menu) menu.style.display = 'none';
+        }
+
+        function execMenuAction(action) {
+            hideContextMenu();
+            if (action === 'selectConnected' && typeof selectConnectedRails === 'function') selectConnectedRails();
+            if (action === 'selectAll' && typeof selectAllRails === 'function') selectAllRails();
+            if (action === 'undo' && typeof undoLayout === 'function') undoLayout();
+            if (action === 'redo' && typeof redoLayout === 'function') redoLayout();
+            if (action === 'cut' && typeof cutSelectedRails === 'function') cutSelectedRails();
+            if (action === 'copy' && typeof copySelectedRails === 'function') copySelectedRails();
+            if (action === 'paste' && typeof pasteRails === 'function') pasteRails();
+            if (action === 'duplicate' && typeof duplicateSelectedRails === 'function') duplicateSelectedRails();
+            if (action === 'delete' && typeof deleteSelectedRails === 'function') deleteSelectedRails();
+            if (action === 'options' && typeof openRailOptionsDialog === 'function') openRailOptionsDialog();
+        }
+
         function startApplication() {
             if (typeof fabric !== 'undefined' && !canvas) {
                 canvas = new fabric.Canvas('layoutCanvas', {
@@ -147,20 +434,14 @@
                     allowTouchScrolling: false
                 });
 
-                // ユーザー操作のスナップは layout-engine.js の mouse:up イベント側に一本化しているため、
-                // Fabric の object:modified による直接呼び出しは不要（重複発火・ループ防止のためコメントアウト）
-                /* 
-                canvas.on('object:modified', function(options) {
-                    if (options && options.target && typeof applyClusterSnapLogic === 'function') {
-                        applyClusterSnapLogic(options.target);
-                    }
-                }); 
-                */
-
                 if (typeof initCameraControls === 'function') initCameraControls();
-                if (typeof initKeyControls === 'function') initKeyControls();
                 if (typeof initTouchControls === 'function') initTouchControls();
+                if (typeof initContextMenu === 'function') initContextMenu();
                 
+                // ファイルドラッグ＆ドロップのレシーバー設定
+                const canvasContainer = document.querySelector('.canvas-container') || document.getElementById('layoutCanvas');
+                if (typeof setupFileDropZone === 'function') setupFileDropZone(canvasContainer);
+
                 initPaletteUI();
 
                 console.log("[%s] Canvas初期化成功。初期配置データをロードします...", CODE_VERSION);
@@ -169,6 +450,7 @@
                     if (typeof loadDebugSampleLayout === 'function') {
                         loadDebugSampleLayout();
                     }
+                    if (typeof updateUIState === 'function') updateUIState();
                 }).catch(err => {
                     console.error("初期ライブラリの読み込みに失敗しました:", err);
                 });
@@ -243,14 +525,6 @@
                 btn.title = item.description || item.name;
                 btn.onclick = () => addRailToCanvas(partId);
                 paletteContainer.appendChild(btn);
-            });
-        }
-
-        function initKeyControls() {
-            window.addEventListener('keydown', e => {
-                if ((e.key === 'Delete' || e.key === 'Backspace') && !isInputFocused()) {
-                    deleteSelectedRails();
-                }
             });
         }
 

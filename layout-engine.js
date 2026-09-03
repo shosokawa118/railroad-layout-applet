@@ -208,11 +208,14 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
     const newCx = newRail.customData.geoCenterX || 0;
     const newCy = newRail.customData.geoCenterY || 0;
 
-    const targetAngle = (parentNode.angle + 180 - targetNewNode.facingAngle + 360) % 360;
+    // --- 修正箇所: getEffectiveNodeDef を使用 ---
+    const targetEffDef = getEffectiveNodeDef(newRail, targetNewNode);
+
+    const targetAngle = (parentNode.angle + 180 - targetEffDef.facingAngle + 360) % 360;
     newRail.set({ angle: targetAngle });
 
-    const lx = targetNewNode.relX - newCx;
-    const ly = targetNewNode.relY - newCy;
+    const lx = targetEffDef.relX - newCx;
+    const ly = targetEffDef.relY - newCy;
     const rad = (targetAngle * Math.PI) / 180;
 
     const newLeft = parentNode.x - (lx * Math.cos(rad) - ly * Math.sin(rad));
@@ -260,6 +263,13 @@ function registerGlobalCanvasEvents() {
     if (globalEventsRegistered || !canvas) return;
     globalEventsRegistered = true;
 
+    // --- 【追加】操作開始時の状態保持 ---
+    canvas.on('mouse:down', (options) => {
+        if (options && options.target && typeof captureDragStart === 'function') {
+            captureDragStart(options.target);
+        }
+    });
+
     canvas.on('object:moving', (options) => { 
         isDraggingRail = true;
         if (options && options.target) onGeneralTransform(options.target); 
@@ -271,12 +281,18 @@ function registerGlobalCanvasEvents() {
     });
     
     canvas.on('mouse:up', () => {
+        const activeObj = canvas.getActiveObject();
+
         if (isDraggingRail) {
             isDraggingRail = false;
-            const activeObj = canvas.getActiveObject();
             if (activeObj && typeof applyClusterSnapLogic === 'function') {
                 applyClusterSnapLogic(activeObj);
             }
+        }
+
+        // --- 【追加】移動終了・スナップ完了後の差分記録 ---
+        if (activeObj && typeof captureDragEnd === 'function') {
+            captureDragEnd(activeObj);
         }
     });
 
@@ -321,6 +337,9 @@ function addRailToCanvas(partId, options = {}) {
         geoCenterY: geoData.centerY
     };
 
+    // ===== 修正: partOptions は必要時のみ生成（初期時点では undefined）=====
+    // const jointsBefore = typeof globalJoints !== 'undefined' ? [...globalJoints] : [];
+
     if (!options.skipAutoConnect) {
         const activeObj = canvas.getActiveObject();
         const parentRail = (activeObj && activeObj.customData && activeObj.customData.isRail) ? activeObj : null;
@@ -358,6 +377,22 @@ function addRailToCanvas(partId, options = {}) {
 
     registerGlobalCanvasEvents();
 
+    if (!options.skipAutoConnect && !options.skipSelect && typeof recordAction === 'function') {
+        recordAction({
+            type: 'ADD',
+            rails: [{
+                instanceId: railObject.customData.instanceId,
+                partId: partId,
+                x: railObject.left,
+                y: railObject.top,
+                angle: railObject.angle
+                // partOptions は必要時のみ recordAction 側で参照
+            }],
+            jointsBefore: jointsBefore,
+            jointsAfter: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
+        });
+    }
+
     if (!options.skipSelect) {
         canvas.setActiveObject(railObject);
     }
@@ -375,13 +410,45 @@ function deleteSelectedRails() {
     if (!activeObject) return;
 
     let targetRails = [];
-    if (activeObject.type === 'activeSelection') {
+    const isSelectionGroup = activeObject.type === 'activeSelection';
+
+    if (isSelectionGroup) {
         targetRails = activeObject.getObjects().filter(o => o && o.customData && o.customData.isRail);
     } else if (activeObject.customData && activeObject.customData.isRail) {
         targetRails = [activeObject];
     }
 
     if (targetRails.length === 0) return;
+
+    // --- 【追加】削除実行前のUndo履歴記録 ---
+    if (typeof recordAction === 'function') {
+        recordAction({
+            type: 'DELETE',
+            rails: targetRails.map(r => {
+                let absX = r.left;
+                let absY = r.top;
+                let absAngle = r.angle;
+
+                // 範囲選択時は相対座標になっているため、キャンバス絶対座標に変換する
+                if (isSelectionGroup) {
+                    const matrix = r.calcTransformMatrix();
+                    const options = fabric.util.qrDecompose(matrix);
+                    absX = options.translateX;
+                    absY = options.translateY;
+                    absAngle = options.angle;
+                }
+
+                return {
+                    instanceId: r.customData.instanceId,
+                    partId: r.customData.partId,
+                    x: absX,
+                    y: absY,
+                    angle: absAngle
+                };
+            }),
+            jointsBefore: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
+        });
+    }
 
     const targetIds = targetRails.map(r => r.customData.instanceId);
 
@@ -392,7 +459,9 @@ function deleteSelectedRails() {
     targetRails.forEach(r => canvas.remove(r));
     canvas.discardActiveObject();
 
-    updateJointIndicators();
+    if (typeof updateJointIndicators === 'function') {
+        updateJointIndicators();
+    }
     canvas.requestRenderAll();
 }
 
@@ -411,13 +480,21 @@ function exportLayoutData() {
             systemSet.add(catalogItem.systemId);
         }
 
-        railList.push({
+        // ===== 修正: 基本座標のみを明示的に抽出 =====
+        const railData = {
             instanceId: rail.customData.instanceId,
             partId: partId,
             x: Math.round(rail.left * 100) / 100,
             y: Math.round(rail.top * 100) / 100,
             angle: Math.round(rail.angle * 100) / 100
-        });
+        };
+
+        // ===== 修正: partOptions が存在する場合のみ追加 =====
+        if (rail.partOptions && typeof rail.partOptions === 'object') {
+            railData.partOptions = JSON.parse(JSON.stringify(rail.partOptions));
+        }
+
+        railList.push(railData);
     });
 
     return {
@@ -465,6 +542,12 @@ async function importLayoutData(layoutData, isOverwrite = true) {
         const newObj = addRailToCanvas(r.partId, { skipAutoConnect: true, skipSelect: true });
         if (newObj) {
             newObj.set({ left: r.x, top: r.y, angle: r.angle });
+            
+            // ===== 修正: partOptions が存在する場合のみ復元 =====
+            if (r.partOptions && typeof r.partOptions === 'object') {
+                newObj.partOptions = JSON.parse(JSON.stringify(r.partOptions));
+            }
+
             newObj.setCoords();
             createdObjects.push(newObj);
             
