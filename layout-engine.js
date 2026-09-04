@@ -343,8 +343,7 @@ function addRailToCanvas(partId, options = {}) {
         geoCenterY: geoData.centerY
     };
 
-    // ===== 修正: partOptions は必要時のみ生成（初期時点では undefined）=====
-    // const jointsBefore = typeof globalJoints !== 'undefined' ? [...globalJoints] : [];
+    const jointsBefore = typeof globalJoints !== 'undefined' ? [...globalJoints] : [];
 
     if (!options.skipAutoConnect) {
         const activeObj = canvas.getActiveObject();
