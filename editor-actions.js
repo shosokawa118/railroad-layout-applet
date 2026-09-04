@@ -501,7 +501,8 @@ async function pasteRails() {
         const text = await navigator.clipboard.readText();
         console.log('[DEBUG] クリップボードテキスト:', text);
         const parsed = JSON.parse(text);
-        if (parsed && parsed.type === "RAIL_LAYOUT_CLIPBOARD" && Array.isArray(parsed.rails)) {
+        // type プロパティの有無に関わらず、rails 配列が存在すれば有効なデータとして扱う
+        if (parsed && Array.isArray(parsed.rails)) {
             clipboardData = parsed;
         }
     } catch (err) {
