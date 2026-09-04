@@ -189,6 +189,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
+        subCategory: "C280",
         name: "CR280-22.5-WP(F)",
         description: "アプローチPCレール CR280-22.5-WP-F (水平→カント-)",
         nodes: [
@@ -206,6 +207,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
+        subCategory: "C280",
         name: "C280-45-WP(F)",
         description: "ワイドPCカーブレール C280-45-WP(F)",
         nodes: [
@@ -227,6 +229,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
+        subCategory: "C280",
         name: "CL280-22.5-WP(F)",
         description: "アプローチPCレール CL280-22.5-WP-F (カント+→水平)",
         nodes: [
@@ -246,6 +249,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
+        subCategory: "C317",
         name: "CR317-22.5-WP(F)",
         description: "アプローチPCレール CR317-22.5-WP-F (水平→カント-)",
         nodes: [
@@ -263,6 +267,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
+        subCategory: "C317",
         name: "C317-45-WP(F)",
         description: "ワイドPCカーブレール C317-45-WP(F)",
         nodes: [
@@ -284,6 +289,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
+        subCategory: "C317",
         name: "CL317-22.5-WP(F)",
         description: "アプローチPCレール CL317-22.5-WP-F (カント+→水平)",
         nodes: [
@@ -303,6 +309,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
+        subCategory: "C354",
         name: "CR354-22.5-WP(F)",
         description: "アプローチPCレール CR354-22.5-WP-F (水平→カント-)",
         nodes: [
@@ -320,6 +327,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
+        subCategory: "C354",
         name: "C354-45-WP(F)",
         description: "ワイドPCカーブレール C354-45-WP(F)",
         nodes: [
@@ -341,6 +349,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
+        subCategory: "C354",
         name: "CL354-22.5-WP(F)",
         description: "アプローチPCレール CL354-22.5-WP-F (カント+→水平)",
         nodes: [
@@ -360,6 +369,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
+        subCategory: "C391",
         name: "CR391-22.5-WP(F)",
         description: "アプローチPCレール CR391-22.5-WP-F (水平→カント-)",
         nodes: [
@@ -377,6 +387,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
+        subCategory: "C391",
         name: "C391-45-WP(F)",
         description: "ワイドPCカーブレール C391-45-WP(F)",
         nodes: [
@@ -398,6 +409,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
+        subCategory: "C391",
         name: "CL391-22.5-WP(F)",
         description: "アプローチPCレール CL391-22.5-WP-F (カント+→水平)",
         nodes: [

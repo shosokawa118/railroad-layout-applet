@@ -277,6 +277,7 @@ registerRailParts({
         systemId: "TOMIX-WIDETRAM-N",
         compatibleSystems: ["TOMIX-WIDETRAM-N"],
         category: "turnout",
+        subCategory: "PartsKitAssy",
         name: "WT-SIDING-L",
         description: "ワイドトラム 待避線分岐ユニット (左 / 全長140mm)",
         nodes: [
@@ -294,6 +295,7 @@ registerRailParts({
         systemId: "TOMIX-WIDETRAM-N",
         compatibleSystems: ["TOMIX-WIDETRAM-N"],
         category: "turnout",
+        subCategory: "PartsKitAssy",
         name: "WT-SIDING-R",
         description: "ワイドトラム 待避線分岐ユニット (右 / 全長140mm)",
         nodes: [
@@ -311,6 +313,7 @@ registerRailParts({
         systemId: "TOMIX-WIDETRAM-N",
         compatibleSystems: ["TOMIX-WIDETRAM-N"],
         category: "turnout",
+        subCategory: "PartsKitAssy",
         name: "WT-CROSSOVER-LH",
         description: "ワイドトラム 片渡り線ユニット (左上がり / 全長140mm)",
         nodes: [
@@ -330,6 +333,7 @@ registerRailParts({
         systemId: "TOMIX-WIDETRAM-N",
         compatibleSystems: ["TOMIX-WIDETRAM-N"],
         category: "turnout",
+        subCategory: "PartsKitAssy",
         name: "WT-CROSSOVER-RH",
         description: "ワイドトラム 片渡り線ユニット (右上がり / 全長140mm)",
         nodes: [
