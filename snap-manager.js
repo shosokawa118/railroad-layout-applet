@@ -159,20 +159,3 @@ function applyClusterSnapLogic(movedRail) {
     updateJointIndicators();
     canvas.requestRenderAll();
 }
-
-function exportLayoutJSON() {
-    const completeSaveData = exportLayoutData();
-    if (!completeSaveData) return;
-
-    const jsonString = JSON.stringify(completeSaveData, null, 2);
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(jsonString).then(() => {
-            alert("レイアウトデータ(JSON)をクリップボードにコピーしました！");
-        }).catch(() => {
-            alert("コンソール(F12)にJSONを出力しました！");
-        });
-    } else {
-        alert("コンソール(F12)にJSONを出力しました！");
-    }
-}
