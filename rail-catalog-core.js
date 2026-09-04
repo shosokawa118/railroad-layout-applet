@@ -27,7 +27,7 @@ const railCatalog = {
         },
         "KATO-DOUBLETRACK-N": { // 新設: KATO 複線専用システム
             scale: "N", brand: "KATO", systemName: "複線ユニトラック (N)",
-            gauge: 9, ballastWidth: 33,
+            gauge: 9, ballastWidth: 25,
             defaultJointGroup: "unijoiner-33mm",
             libraryFile: "rail-catalog-kato-double.js"
         },
