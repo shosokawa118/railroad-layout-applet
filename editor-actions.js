@@ -871,7 +871,7 @@ document.addEventListener('keydown', (e) => {
 
 
 // =========================================================
-// 6. ブラウザ画面内へのファイルドラッグ＆ドロップ
+// 6. ファイル入出力
 // =========================================================
 
 /**
@@ -910,4 +910,82 @@ function setupFileDropZone(targetElement) {
             }
         }
     }, false);
+}
+
+/**
+ * レイアウトデータをJSONファイルとしてダウンロード保存する
+ */
+function exportLayoutToFile() {
+    if (typeof exportLayoutData !== 'function') {
+        console.error('exportLayoutData 関数が見つかりません');
+        return;
+    }
+
+    const layoutData = exportLayoutData();
+
+    if (!layoutData || !Array.isArray(layoutData.rails) || layoutData.rails.length === 0) {
+        alert('保存するレイアウトデータがありません。');
+        return;
+    }
+
+    const jsonString = JSON.stringify(layoutData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const now = new Date();
+    const timeStr = now.toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const filename = `railroad-layout-${timeStr}.json`;
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+/**
+ * ファイル選択ダイアログを開き、JSONファイルを読み込んでレイアウトを復元する
+ */
+function importLayoutFromFile() {
+    if (typeof importLayoutData !== 'function') {
+        console.error('importLayoutData 関数が見つかりません');
+        return;
+    }
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.json,application/json';
+
+    fileInput.onchange = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const text = e.target.result;
+                const parsed = JSON.parse(text);
+
+                if (!parsed || !Array.isArray(parsed.rails)) {
+                    alert('無効なレイアウトデータファイルです。（railsデータが見つかりません）');
+                    return;
+                }
+
+                // ファイル読み込み時は上書き (isOverwrite = true) で実行
+                await importLayoutData(parsed, true);
+                console.log('ファイルからの読み込みが完了しました');
+
+            } catch (err) {
+                console.error('JSON解析エラー:', err);
+                alert('ファイルの読み込みに失敗しました。正しいJSONファイルかご確認ください。');
+            }
+        };
+
+        reader.readAsText(file);
+    };
+
+    fileInput.click();
 }
