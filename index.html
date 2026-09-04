@@ -73,8 +73,7 @@
     <div id="controls">
         <!-- システム選択＆ユーティリティボタン -->
         <div class="row">
-            <label for="systemSelect" style="font-size: 12px; font-weight: bold; color: #555;">レール規格:</label>
-            <select id="systemSelect"></select>
+            <button id="btnOpenSystemDialog" onclick="openSystemDialog()">レール規格...</button>
             <span style="border-left: 1px solid #ccc; height: 16px; margin: 0 4px;"></span>
 
             <!-- 画面上部の基本編集ボタン群（Undo -> Cut -> Copy -> Paste -> Delete） -->
@@ -127,6 +126,33 @@
         <div class="menu-divider"></div>
         <button id="menuOptions" onclick="execMenuAction('options')">オプション... [Ctrl+,]</button>
     </div>
+
+    <!-- レールシステム選択ダイアログ -->
+    <dialog id="systemSelectDialog">
+        <div class="dialog-content">
+            <h3>レール規格の選択</h3>
+
+            <!-- 将来のフィルタ拡張用エリア -->
+            <div class="filter-section" style="display: flex; gap: 8px; margin-bottom: 12px;">
+                <select id="filterBrand" onchange="applySystemFilters()" disabled>
+                    <option value="">すべてのメーカー</option>
+                </select>
+                <select id="filterGauge" onchange="applySystemFilters()" disabled>
+                    <option value="">すべてのゲージ</option>
+                </select>
+            </div>
+
+            <!-- システム一覧選択リスト -->
+            <div id="systemListContainer" style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; margin-bottom: 12px;">
+                <!-- JSで動的生成 -->
+            </div>
+
+            <div class="dialog-buttons" style="text-align: right;">
+                <button onclick="closeSystemDialog()">キャンセル</button>
+                <button id="btnApplySystem" onclick="confirmSystemSelection()" disabled>選択</button>
+            </div>
+        </div>
+    </dialog>
 
     <!-- パーツオプションダイアログ (標準 <dialog> を使用) -->
     <dialog id="railOptionsDialog" style="border: 1px solid #ccc; border-radius: 8px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 320px; max-height: 80vh; overflow-y: auto;">
