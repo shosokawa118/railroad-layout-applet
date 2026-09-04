@@ -67,6 +67,12 @@ let jointDisplayMode = 'rail-end';
  */
 function setJointDisplayMode(mode) {
     jointDisplayMode = mode;
+
+    // 裏で設定を保存
+    if (typeof saveUserSetting === 'function') {
+        saveUserSetting('jointDisplaySelect', mode);
+    }
+
     updateJointIndicators();
     if (canvas) {
         canvas.requestRenderAll();
