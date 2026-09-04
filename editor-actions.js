@@ -1,3 +1,12 @@
+const APP_TITLE = 'Railroad Layout Applet';
+
+/**
+ * タイトルバー（<title>）の表示を更新する
+ */
+function updateTitleBar() {
+    document.title = isDirty() ? `* ${APP_TITLE}` : APP_TITLE;
+}
+
 // =========================================================
 // フェーズ1: 編集基本機能（Undo/Redo, Copy/Cut/Paste, File D&D）
 // =========================================================
@@ -39,7 +48,20 @@ function markAsClean() {
     savedAction = historyUndoStack.length > 0 
         ? historyUndoStack[historyUndoStack.length - 1] 
         : null;
+    
+    if (typeof updateUIState === 'function') {
+        updateUIState();
+    } else {
+        updateTitleBar();
+    }
 }
+
+// ページ離脱時に未保存の変更があれば警告を表示
+window.addEventListener('beforeunload', (e) => {
+    if (!isDirty()) return;
+    e.preventDefault();
+    e.returnValue = '';
+});
 
 /**
  * 履歴アクションを記録する
@@ -364,6 +386,10 @@ function updateUIState() {
     if (menuDelete) menuDelete.disabled = !hasSelection;
     if (menuOptions) menuOptions.disabled = !isSingleRailSelected;
 
+    // タイトルバーの未保存（*）表示を連動更新
+    if (typeof updateTitleBar === 'function') {
+        updateTitleBar();
+    }
 }
 
 
@@ -377,12 +403,28 @@ function updateUIState() {
 function captureDragStart(target) {
     if (!target) return;
     const rails = (target.type === 'activeSelection') ? target.getObjects() : [target];
-    dragStartStates = rails.filter(r => r && r.customData && r.customData.isRail).map(r => ({
-        instanceId: r.customData.instanceId,
-        x: r.left,
-        y: r.top,
-        angle: r.angle
-    }));
+    const targetRails = rails.filter(r => r && r.customData && r.customData.isRail);
+
+    if (targetRails.length === 0) {
+        dragStartStates = [];
+        dragStartJoints = [];
+        return;
+    }
+
+    // キャンバス上の絶対座標を記録
+    dragStartStates = targetRails.map(r => {
+        // activeSelection 内でも正しい絶対位置を取得
+        const matrix = r.calcTransformMatrix();
+        const options = fabric.util.qrDecompose(matrix);
+
+        return {
+            instanceId: r.customData.instanceId,
+            x: Math.round(options.translateX * 100) / 100,
+            y: Math.round(options.translateY * 100) / 100,
+            angle: Math.round(options.angle * 100) / 100
+        };
+    });
+
     dragStartJoints = typeof globalJoints !== 'undefined' ? [...globalJoints] : [];
 }
 
@@ -390,31 +432,47 @@ function captureDragStart(target) {
  * 移動完了時の差分判定と記録（mouse:up時）
  */
 function captureDragEnd(target) {
-    if (!target || dragStartStates.length === 0) return;
+    if (!target || !dragStartStates || dragStartStates.length === 0) return;
+    
     const rails = (target.type === 'activeSelection') ? target.getObjects() : [target];
     const targetRails = rails.filter(r => r && r.customData && r.customData.isRail);
 
-    const dragEndStates = targetRails.map(r => ({
-        instanceId: r.customData.instanceId,
-        x: r.left,
-        y: r.top,
-        angle: r.angle
-    }));
+    // キャンバス上の絶対座標を取得
+    const dragEndStates = targetRails.map(r => {
+        const matrix = r.calcTransformMatrix();
+        const options = fabric.util.qrDecompose(matrix);
 
-    // 位置・角度に変更があったか検証
+        return {
+            instanceId: r.customData.instanceId,
+            x: Math.round(options.translateX * 100) / 100,
+            y: Math.round(options.translateY * 100) / 100,
+            angle: Math.round(options.angle * 100) / 100
+        };
+    });
+
+    // 位置・角度に変更があったか検証 (0.01px 以上の差分で比較)
     const hasMoved = dragStartStates.some((start) => {
         const end = dragEndStates.find(e => e.instanceId === start.instanceId);
         if (!end) return false;
-        return start.x !== end.x || start.y !== end.y || start.angle !== end.angle;
+        
+        return Math.abs(start.x - end.x) > 0.01 ||
+               Math.abs(start.y - end.y) > 0.01 ||
+               Math.abs(start.angle - end.angle) > 0.01;
     });
 
-    if (hasMoved) {
+    // ジョイント状態に変更があったか検証
+    const currentJoints = typeof globalJoints !== 'undefined' ? [...globalJoints] : [];
+    const isJointChanged = JSON.stringify(dragStartJoints) !== JSON.stringify(currentJoints);
+
+    // 位置変更、またはジョイント変更のいずれかがあれば記録
+    if (hasMoved || isJointChanged) {
         const moveItems = dragStartStates.map((start) => {
             const end = dragEndStates.find(e => e.instanceId === start.instanceId);
+            const finalTo = end ? { x: end.x, y: end.y, angle: end.angle } : { x: start.x, y: start.y, angle: start.angle };
             return {
                 instanceId: start.instanceId,
                 from: { x: start.x, y: start.y, angle: start.angle },
-                to: { x: end.x, y: end.y, angle: end.angle }
+                to: finalTo
             };
         });
 
@@ -422,7 +480,7 @@ function captureDragEnd(target) {
             type: 'MOVE',
             items: moveItems,
             jointsFrom: dragStartJoints,
-            jointsTo: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
+            jointsTo: currentJoints
         });
     }
 
