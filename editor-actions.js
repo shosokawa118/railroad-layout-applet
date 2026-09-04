@@ -18,6 +18,29 @@ let clipboardDataMemory = null;
 // 1. 差分ログ（コマンド）管理ロジック
 // =========================================================
 
+// 保存時の状態（Clean状態）を特定するための参照
+let savedAction = null; // null は「初期状態（スタック空）で保存された」ことを意味する
+
+/**
+ * 現在の状態が「未保存（dirty）」かどうかを判定する
+ * @returns {boolean}
+ */
+function isDirty() {
+    const currentTopAction = historyUndoStack.length > 0 
+        ? historyUndoStack[historyUndoStack.length - 1] 
+        : null;
+    return currentTopAction !== savedAction;
+}
+
+/**
+ * 現在の状態を「保存済み（clean）」として記録する
+ */
+function markAsClean() {
+    savedAction = historyUndoStack.length > 0 
+        ? historyUndoStack[historyUndoStack.length - 1] 
+        : null;
+}
+
 /**
  * 履歴アクションを記録する
  * @param {Object} action - { type: 'MOVE'|'ADD'|'DELETE'|'CYCLE_NODE', ... }
@@ -927,13 +950,8 @@ function setupFileDropZone(targetElement) {
  * レイアウトデータをJSONファイルとしてダウンロード保存する
  */
 function exportLayoutToFile() {
-    if (typeof exportLayoutData !== 'function') {
-        console.error('exportLayoutData 関数が見つかりません');
-        return;
-    }
-
+    if (typeof exportLayoutData !== 'function') return;
     const layoutData = exportLayoutData();
-
     if (!layoutData || !Array.isArray(layoutData.rails) || layoutData.rails.length === 0) {
         alert('保存するレイアウトデータがありません。');
         return;
@@ -952,9 +970,11 @@ function exportLayoutToFile() {
     a.download = filename;
     document.body.appendChild(a);
     a.click();
-
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+
+    // ===== 保存完了後に Clean 状態として記録 =====
+    markAsClean();
 }
 
 /**
