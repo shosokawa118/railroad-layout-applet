@@ -532,6 +532,11 @@ async function importLayoutData(layoutData, isOverwrite = true) {
         canvas.clear();
         globalJoints = [];
         railCount = 0;
+
+        // ===== 履歴をリセットして Clean 状態にする =====
+        if (Array.isArray(historyUndoStack)) historyUndoStack.length = 0;
+        if (Array.isArray(historyRedoStack)) historyRedoStack.length = 0;
+        if (typeof markAsClean === 'function') markAsClean();
     }
 
     const createdObjects = [];
@@ -618,6 +623,9 @@ async function importLayoutData(layoutData, isOverwrite = true) {
     canvas.discardActiveObject();
     updateJointIndicators();
     canvas.requestRenderAll();
+
+    // 画面状態（UI）の更新
+    if (typeof updateUIState === 'function') updateUIState();
 }
 
 function onGeneralTransform(target) {
