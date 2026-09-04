@@ -148,10 +148,173 @@
     </dialog>
 
     <script>
+        // =============================================================================
+        // レール規格選択ダイアログ 制御
+        // =============================================================================
+        // ダイアログ内で一時的に選択されているシステムID
+        let tempSelectedSystemId = null;
+
+        /**
+        * レール規格ダイアログを開く
+        */
+        function openSystemDialog() {
+            const dialog = document.getElementById('systemSelectDialog');
+            if (!dialog) return;
+
+            // 現在選択中のシステムIDを一時変数にセット
+            tempSelectedSystemId = currentSystemId;
+
+            // フィルタ・リストの初期化と生成
+            initSystemFilters();
+            renderSystemList();
+
+            if (typeof dialog.showModal === 'function') {
+                dialog.showModal();
+            } else {
+                dialog.setAttribute('open', '');
+            }
+        }
+
+        /**
+         * レール規格ダイアログを閉じる
+         */
+        function closeSystemDialog() {
+            const dialog = document.getElementById('systemSelectDialog');
+            if (!dialog) return;
+
+            if (typeof dialog.close === 'function') {
+                dialog.close();
+            } else {
+                dialog.removeAttribute('open');
+            }
+        }
+
+        /**
+         * 将来のフィルタ機能用：メーカーやゲージの選択肢を動的生成
+         */
+        function initSystemFilters() {
+            const brandSelect = document.getElementById('filterBrand');
+            const gaugeSelect = document.getElementById('filterGauge');
+            if (!railCatalog || !railCatalog.systems) return;
+
+            const brands = new Set();
+            const gauges = new Set();
+
+            Object.values(railCatalog.systems).forEach(sys => {
+                if (sys.brand) brands.add(sys.brand);
+                if (sys.scale) gauges.add(sys.scale); // または sys.gauge
+            });
+
+            // メーカーフィルターの作成
+            if (brandSelect) {
+                brandSelect.innerHTML = '<option value="">すべてのメーカー</option>';
+                brands.forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b;
+                    opt.textContent = b;
+                    brandSelect.appendChild(opt);
+                });
+                brandSelect.disabled = brands.size <= 1;
+            }
+
+            // ゲージフィルターの作成
+            if (gaugeSelect) {
+                gaugeSelect.innerHTML = '<option value="">すべてのゲージ</option>';
+                gauges.forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = g;
+                    opt.textContent = g;
+                    gaugeSelect.appendChild(opt);
+                });
+                gaugeSelect.disabled = gauges.size <= 1;
+            }
+        }
+
+        /**
+         * フィルタ条件に基づいてシステム一覧を描画
+         */
+        function renderSystemList() {
+            const container = document.getElementById('systemListContainer');
+            const btnApply = document.getElementById('btnApplySystem');
+            if (!container || !railCatalog || !railCatalog.systems) return;
+
+            const selectedBrand = document.getElementById('filterBrand')?.value || '';
+            const selectedGauge = document.getElementById('filterGauge')?.value || '';
+
+            container.innerHTML = '';
+
+            Object.keys(railCatalog.systems).forEach(sysId => {
+                const sys = railCatalog.systems[sysId];
+
+                // フィルタリング判定
+                if (selectedBrand && sys.brand !== selectedBrand) return;
+                if (selectedGauge && sys.scale !== selectedGauge) return;
+
+                const item = document.createElement('div');
+                item.className = 'system-item';
+                item.style.padding = '8px';
+                item.style.cursor = 'pointer';
+                item.style.borderBottom = '1px solid #eee';
+
+                // 選択中のハイライト表示
+                if (sysId === tempSelectedSystemId) {
+                    item.style.backgroundColor = '#e0f7fa';
+                    item.style.fontWeight = 'bold';
+                }
+
+                item.textContent = `${sys.brand} - ${sys.systemName}`;
+
+                // クリック時の選択処理
+                item.onclick = () => {
+                    tempSelectedSystemId = sysId;
+                    renderSystemList(); // 表示更新
+                };
+
+                container.appendChild(item);
+            });
+
+            if (btnApply) {
+                btnApply.disabled = !tempSelectedSystemId;
+            }
+        }
+
+        /**
+         * フィルタ変更時のイベントハンドラ
+         */
+        function applySystemFilters() {
+            renderSystemList();
+        }
+
+        /**
+         * 確定ボタン押下時の処理
+         */
+        async function confirmSystemSelection() {
+            if (!tempSelectedSystemId) return;
+
+            currentSystemId = tempSelectedSystemId;
+
+            // LocalStorageへ自動保存
+            if (typeof saveUserSetting === 'function') {
+                saveUserSetting('systemSelect', currentSystemId);
+            }
+
+            closeSystemDialog();
+
+            // ライブラリの読み込みとパレット更新
+            try {
+                await loadSystemLibrary(currentSystemId);
+                renderPartsPalette();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // =============================================================================
+        // レール詳細オプション（ダイアログ）制御
+        // =============================================================================
         let currentEditingRail = null;
 
         // ダイアログを開く処理
-        // partOptions.nodeOffsets のみを参照
         function openRailOptionsDialog() {
             if (!canvas) return;
             const activeObj = canvas.getActiveObject();
@@ -291,9 +454,9 @@
             if (typeof draw === 'function') draw(); // 描画更新
         }
 
-    </script>
-
-    <script>
+        // =============================================================================
+        // メインアプリケーション & UI制御
+        // =============================================================================
         const CODE_VERSION = "VER-AUTO-CONNECT-AC5";
         console.log("=========================================");
         console.log("ビュー（HTML）バージョン:", CODE_VERSION);
@@ -305,7 +468,7 @@
 
         function initCameraControls() {
             if (!canvas) return;
-            
+
             // キャンバス上の最後のエレメント非選択クリック座標を記憶
             canvas.on('mouse:down', function(opt) {
                 if (opt.pointer && !opt.target) {
@@ -330,9 +493,9 @@
             let isSpacePressed = false; let isDraggingCamera = false; let lastX, lastY;
             window.addEventListener('keydown', e => { if (e && e.code === 'Space') { isSpacePressed = true; canvas.defaultCursor = 'grab'; } });
             window.addEventListener('keyup', e => { if (e && e.code === 'Space') { isSpacePressed = false; canvas.defaultCursor = 'default'; } });
-            
-            canvas.on('mouse:down', opt => { 
-                if (isSpacePressed && opt && opt.e) { isDraggingCamera = true; canvas.defaultCursor = 'grabbing'; lastX = opt.e.clientX; lastY = opt.e.clientY; } 
+
+            canvas.on('mouse:down', opt => {
+                if (isSpacePressed && opt && opt.e) { isDraggingCamera = true; canvas.defaultCursor = 'grabbing'; lastX = opt.e.clientX; lastY = opt.e.clientY; }
             });
             canvas.on('mouse:move', opt => {
                 if (isDraggingCamera && opt && opt.e) {
@@ -392,7 +555,7 @@
 
             container.addEventListener('touchend', () => { if (touchTimer) clearTimeout(touchTimer); });
             container.addEventListener('touchmove', () => { if (touchTimer) clearTimeout(touchTimer); });
-            
+
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('#contextMenu')) hideContextMenu();
             });
@@ -437,7 +600,7 @@
                 if (typeof initCameraControls === 'function') initCameraControls();
                 if (typeof initTouchControls === 'function') initTouchControls();
                 if (typeof initContextMenu === 'function') initContextMenu();
-                
+
                 // ファイルドラッグ＆ドロップのレシーバー設定
                 const canvasContainer = document.querySelector('.canvas-container') || document.getElementById('layoutCanvas');
                 if (typeof setupFileDropZone === 'function') setupFileDropZone(canvasContainer);
@@ -445,7 +608,7 @@
                 initPaletteUI();
 
                 console.log("[%s] Canvas初期化成功。初期配置データをロードします...", CODE_VERSION);
-                
+
                 loadSystemLibrary(currentSystemId).then(() => {
                     if (typeof loadDebugSampleLayout === 'function') {
                         loadDebugSampleLayout();
@@ -457,42 +620,19 @@
             }
         }
 
+        /**
+        * 既存の initPaletteUI の置き換え
+        */
         function initPaletteUI() {
-            const sysSelect = document.getElementById('systemSelect');
-            if (!sysSelect || !railCatalog) return;
+            if (!railCatalog) return;
 
             // 保存された設定の読み込み
-            const savedSettings = loadUserSettings();
-
-            sysSelect.innerHTML = '';
-            Object.keys(railCatalog.systems).forEach(sysId => {
-                const sys = railCatalog.systems[sysId];
-                const opt = document.createElement('option');
-                opt.value = sysId;
-                opt.textContent = `${sys.brand} - ${sys.systemName}`;
-                sysSelect.appendChild(opt);
-            });
+            const savedSettings = (typeof loadUserSettings === 'function') ? loadUserSettings() : {};
 
             // 保存済みの規格IDが存在しかつ選択肢にあれば優先適用
             if (savedSettings.systemSelect && railCatalog.systems[savedSettings.systemSelect]) {
                 currentSystemId = savedSettings.systemSelect;
             }
-
-            sysSelect.value = currentSystemId;
-
-            sysSelect.addEventListener('change', async (e) => {
-                currentSystemId = e.target.value;
-                
-                // 裏で静かに保存
-                saveUserSetting('systemSelect', currentSystemId);
-
-                try {
-                    await loadSystemLibrary(currentSystemId);
-                    renderPartsPalette();
-                } catch (err) {
-                    console.error(err);
-                }
-            });
 
             loadSystemLibrary(currentSystemId).then(() => {
                 renderPartsPalette();
@@ -566,7 +706,7 @@
             const domain = 'cdnjs.' + 'cloudflare' + '.com';
             const path = '/ajax/libs/fabric.js/5.3.1/fabric.min.js';
             el.src = protocol + domain + path;
-            el.onload = function() { 
+            el.onload = function() {
                 const hm = document.createElement('script');
                 hm.src = 'https://' + 'cdnjs.' + 'cloudflare' + '.com/ajax/libs/hammer.js/2.0.8/hammer.min.js';
                 hm.onload = function() { startApplication(); };
@@ -609,10 +749,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             const savedSettings = loadUserSettings();
             const jointSelect = document.getElementById('jointDisplaySelect');
-            
+
             if (jointSelect && savedSettings.jointDisplaySelect) {
                 jointSelect.value = savedSettings.jointDisplaySelect;
-                
+
                 // layout-engine側の初期描画変数にも反映
                 if (typeof setJointDisplayMode === 'function') {
                     setJointDisplayMode(savedSettings.jointDisplaySelect);
