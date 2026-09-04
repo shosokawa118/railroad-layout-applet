@@ -461,6 +461,9 @@
             const sysSelect = document.getElementById('systemSelect');
             if (!sysSelect || !railCatalog) return;
 
+            // 保存された設定の読み込み
+            const savedSettings = loadUserSettings();
+
             sysSelect.innerHTML = '';
             Object.keys(railCatalog.systems).forEach(sysId => {
                 const sys = railCatalog.systems[sysId];
@@ -470,10 +473,19 @@
                 sysSelect.appendChild(opt);
             });
 
+            // 保存済みの規格IDが存在しかつ選択肢にあれば優先適用
+            if (savedSettings.systemSelect && railCatalog.systems[savedSettings.systemSelect]) {
+                currentSystemId = savedSettings.systemSelect;
+            }
+
             sysSelect.value = currentSystemId;
 
             sysSelect.addEventListener('change', async (e) => {
                 currentSystemId = e.target.value;
+                
+                // 裏で静かに保存
+                saveUserSetting('systemSelect', currentSystemId);
+
                 try {
                     await loadSystemLibrary(currentSystemId);
                     renderPartsPalette();
@@ -562,6 +574,51 @@
             };
             document.head.appendChild(el);
         })();
+
+        // =============================================================================
+        // LocalStorage 設定管理
+        // =============================================================================
+        const RLA_SETTINGS_KEY = 'rla_settings';
+        const DEFAULT_SETTINGS = {
+            systemSelect: '',
+            jointDisplaySelect: 'rail-end'
+        };
+
+        function loadUserSettings() {
+            try {
+                const saved = localStorage.getItem(RLA_SETTINGS_KEY);
+                if (!saved) return { ...DEFAULT_SETTINGS };
+                return { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+            } catch (e) {
+                console.warn('設定の読み込みに失敗しました。', e);
+                return { ...DEFAULT_SETTINGS };
+            }
+        }
+
+        function saveUserSetting(key, value) {
+            try {
+                const current = loadUserSettings();
+                current[key] = value;
+                localStorage.setItem(RLA_SETTINGS_KEY, JSON.stringify(current));
+            } catch (e) {
+                console.warn('設定の保存に失敗しました。', e);
+            }
+        }
+
+        // 初期化時に保存済みのジョイント表示モードを適用する処理
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedSettings = loadUserSettings();
+            const jointSelect = document.getElementById('jointDisplaySelect');
+            
+            if (jointSelect && savedSettings.jointDisplaySelect) {
+                jointSelect.value = savedSettings.jointDisplaySelect;
+                
+                // layout-engine側の初期描画変数にも反映
+                if (typeof setJointDisplayMode === 'function') {
+                    setJointDisplayMode(savedSettings.jointDisplaySelect);
+                }
+            }
+        });
     </script>
 </body>
 </html>
