@@ -46,10 +46,10 @@ registerRailParts({
         name: "複線直線軌道 186mm",
         description: "186mm 複線プレート (軌道間隔25mm)",
         nodes: [
-            { "id": 0, "name": "内軌-左(進入)", "relX": -93, "relY": -12.5, "facingAngle": 180 },
-            { "id": 1, "name": "外軌-左(進入)", "relX": -93, "relY":  12.5, "facingAngle": 180 },
-            { "id": 2, "name": "外軌-右(出口)", "relX":  93, "relY":  12.5, "facingAngle": 0 },
-            { "id": 3, "name": "内軌-右(出口)", "relX":  93, "relY": -12.5, "facingAngle": 0 }
+            { "id": 0, "name": "内軌-左(進入)", "relX": -93, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
+            { "id": 1, "name": "外軌-左(進入)", "relX": -93, "relY":  12.5, "facingAngle": 180, "polarity": -1 },
+            { "id": 2, "name": "外軌-右(出口)", "relX":  93, "relY":  12.5, "facingAngle": 0, "polarity": 1 },
+            { "id": 3, "name": "内軌-右(出口)", "relX":  93, "relY": -12.5, "facingAngle": 0, "polarity": -1 }
         ],
         shapes: [
             { "type": "line", "length": 186, "offsetX": 0, "offsetY": -12.5 },
@@ -64,10 +64,10 @@ registerRailParts({
         name: "複線直線軌道 124mm",
         description: "124mm 複線プレート (軌道間隔25mm)",
         nodes: [
-            { "id": 0, "name": "内軌-左(進入)", "relX": -62, "relY": -12.5, "facingAngle": 180 },
-            { "id": 1, "name": "外軌-左(進入)", "relX": -62, "relY":  12.5, "facingAngle": 180 },
-            { "id": 2, "name": "外軌-右(出口)", "relX":  62, "relY":  12.5, "facingAngle": 0 },
-            { "id": 3, "name": "内軌-右(出口)", "relX":  62, "relY": -12.5, "facingAngle": 0 }
+            { "id": 0, "name": "内軌-左(進入)", "relX": -62, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
+            { "id": 1, "name": "外軌-左(進入)", "relX": -62, "relY":  12.5, "facingAngle": 180, "polarity": -1 },
+            { "id": 2, "name": "外軌-右(出口)", "relX":  62, "relY":  12.5, "facingAngle": 0, "polarity": 1 },
+            { "id": 3, "name": "内軌-右(出口)", "relX":  62, "relY": -12.5, "facingAngle": 0, "polarity": -1 }
         ],
         shapes: [
             { "type": "line", "length": 124, "offsetX": 0, "offsetY": -12.5 },
@@ -82,10 +82,10 @@ registerRailParts({
         name: "複線直線軌道 62mm",
         description: "62mm 複線プレート (軌道間隔25mm)",
         nodes: [
-            { "id": 0, "name": "内軌-左(進入)", "relX": -31, "relY": -12.5, "facingAngle": 180 },
-            { "id": 1, "name": "外軌-左(進入)", "relX": -31, "relY":  12.5, "facingAngle": 180 },
-            { "id": 2, "name": "外軌-右(出口)", "relX":  31, "relY":  12.5, "facingAngle": 0 },
-            { "id": 3, "name": "内軌-右(出口)", "relX":  31, "relY": -12.5, "facingAngle": 0 }
+            { "id": 0, "name": "内軌-左(進入)", "relX": -31, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
+            { "id": 1, "name": "外軌-左(進入)", "relX": -31, "relY":  12.5, "facingAngle": 180, "polarity": -1 },
+            { "id": 2, "name": "外軌-右(出口)", "relX":  31, "relY":  12.5, "facingAngle": 0, "polarity": 1 },
+            { "id": 3, "name": "内軌-右(出口)", "relX":  31, "relY": -12.5, "facingAngle": 0, "polarity": -1 }
         ],
         shapes: [
             { "type": "line", "length": 62, "offsetX": 0, "offsetY": -12.5 },
@@ -100,11 +100,11 @@ registerRailParts({
         name: "複線交差点/交差角 曲線 L",
         description: "交差点 曲線軌道 (進入25mm / 出口33mm+R180)",
         nodes: [
-            { "id": 0, "name": "直線側-内軌(進入)", "relX": -62.0, "relY": -12.5, "facingAngle": 180 },
-            { "id": 1, "name": "直線側-外軌(進入)", "relX": -62.0, "relY":  12.5, "facingAngle": 180 },
+            { "id": 0, "name": "直線側-内軌(進入)", "relX": -62.0, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
+            { "id": 1, "name": "直線側-外軌(進入)", "relX": -62.0, "relY":  12.5, "facingAngle": 180, "polarity": -1 },
             // 出口側の33mmノードに jointGroup を明示指定して上書き
-            { "id": 2, "name": "45°頂点-外軌(出口)", "relX": 115.28, "relY": -40.22, "facingAngle": -45, "jointGroup": "unijoiner-33mm" },
-            { "id": 3, "name": "45°頂点-内軌(出口)", "relX":  90.28, "relY": -65.22, "facingAngle": -45, "jointGroup": "unijoiner-33mm" }
+            { "id": 2, "name": "45°頂点-外軌(出口)", "relX": 115.28, "relY": -40.22, "facingAngle": -45, "jointGroup": "unijoiner-33mm", "polarity": 1 },
+            { "id": 3, "name": "45°頂点-内軌(出口)", "relX":  90.28, "relY": -65.22, "facingAngle": -45, "jointGroup": "unijoiner-33mm", "polarity": -1 }
         ],
         shapes: [
             { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": -12.5 },
@@ -121,11 +121,11 @@ registerRailParts({
         name: "複線交差点/交差角 曲線 R",
         description: "交差点 曲線軌道 (進入25mm / 出口33mm+R180)",
         nodes: [
-            { "id": 0, "name": "直線側-外軌(進入)", "relX": -62.0, "relY": -12.5, "facingAngle": 180 },
-            { "id": 1, "name": "直線側-内軌(進入)", "relX": -62.0, "relY":  12.5, "facingAngle": 180 },
+            { "id": 0, "name": "直線側-外軌(進入)", "relX": -62.0, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
+            { "id": 1, "name": "直線側-内軌(進入)", "relX": -62.0, "relY":  12.5, "facingAngle": 180, "polarity": -1 },
             // 出口側の33mmノードに jointGroup を明示指定して上書き
-            { "id": 2, "name": "45°頂点-内軌(出口)", "relX":  90.28, "relY":  65.22, "facingAngle": 45, "jointGroup": "unijoiner-33mm" },
-            { "id": 3, "name": "45°頂点-外軌(出口)", "relX": 115.28, "relY":  40.22, "facingAngle": 45, "jointGroup": "unijoiner-33mm" }
+            { "id": 2, "name": "45°頂点-内軌(出口)", "relX":  90.28, "relY":  65.22, "facingAngle": 45, "jointGroup": "unijoiner-33mm", "polarity": 1 },
+            { "id": 3, "name": "45°頂点-外軌(出口)", "relX": 115.28, "relY":  40.22, "facingAngle": 45, "jointGroup": "unijoiner-33mm", "polarity": -1 }
         ],
         shapes: [
             { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": 12.5 },
@@ -142,13 +142,13 @@ registerRailParts({
         name: "複線分岐ポイント L",
         description: "電動複線分岐ポイント (186mm直進25mm + C-L曲線分岐33mm)",
         nodes: [
-            { "id": 0, "name": "進入-内軌", "relX": -93.0, "relY": -12.5, "facingAngle": 180 },
-            { "id": 1, "name": "進入-外軌", "relX": -93.0, "relY":  12.5, "facingAngle": 180 },
+            { "id": 0, "name": "進入-内軌", "relX": -93.0, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
+            { "id": 1, "name": "進入-外軌", "relX": -93.0, "relY":  12.5, "facingAngle": 180, "polarity": -1 },
             // 分岐側の33mmノードに jointGroup を明示指定して上書き
-            { "id": 2, "name": "分岐-外軌", "relX":  84.28, "relY": -40.22, "facingAngle": -45, "jointGroup": "unijoiner-33mm" },
-            { "id": 3, "name": "分岐-内軌", "relX":  59.28, "relY": -65.22, "facingAngle": -45, "jointGroup": "unijoiner-33mm" },
-            { "id": 4, "name": "直進-外軌", "relX":  93.0,  "relY":  12.5, "facingAngle": 0 },
-            { "id": 5, "name": "直進-内軌", "relX":  93.0,  "relY": -12.5, "facingAngle": 0 }
+            { "id": 2, "name": "分岐-外軌", "relX":  84.28, "relY": -40.22, "facingAngle": -45, "jointGroup": "unijoiner-33mm", "polarity": 1 },
+            { "id": 3, "name": "分岐-内軌", "relX":  59.28, "relY": -65.22, "facingAngle": -45, "jointGroup": "unijoiner-33mm", "polarity": -1 },
+            { "id": 4, "name": "直進-外軌", "relX":  93.0,  "relY":  12.5, "facingAngle": 0, "polarity": 1 },
+            { "id": 5, "name": "直進-内軌", "relX":  93.0,  "relY": -12.5, "facingAngle": 0, "polarity": -1 }
         ],
         shapes: [
             { "type": "line", "length": 186, "offsetX": 0, "offsetY": -12.5 },
@@ -167,13 +167,13 @@ registerRailParts({
         name: "複線分岐ポイント R",
         description: "電動複線分岐ポイント (186mm直進25mm + C-R曲線分岐33mm)",
         nodes: [
-            { "id": 0, "name": "進入-外軌", "relX": -93.0, "relY": -12.5, "facingAngle": 180 },
-            { "id": 1, "name": "進入-内軌", "relX": -93.0, "relY":  12.5, "facingAngle": 180 },
+            { "id": 0, "name": "進入-外軌", "relX": -93.0, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
+            { "id": 1, "name": "進入-内軌", "relX": -93.0, "relY":  12.5, "facingAngle": 180, "polarity": -1 },
             // 分岐側の33mmノードに jointGroup を明示指定して上書き
-            { "id": 2, "name": "分岐-内軌", "relX":  59.28, "relY":  65.22, "facingAngle": 45, "jointGroup": "unijoiner-33mm" },
-            { "id": 3, "name": "分岐-外軌", "relX":  84.28, "relY":  40.22, "facingAngle": 45, "jointGroup": "unijoiner-33mm" },
-            { "id": 4, "name": "直進-外軌", "relX":  93.0,  "relY":  12.5, "facingAngle": 0 },
-            { "id": 5, "name": "直進-内軌", "relX":  93.0,  "relY": -12.5, "facingAngle": 0 }
+            { "id": 2, "name": "分岐-内軌", "relX":  59.28, "relY":  65.22, "facingAngle": 45, "jointGroup": "unijoiner-33mm", "polarity": 1 },
+            { "id": 3, "name": "分岐-外軌", "relX":  84.28, "relY":  40.22, "facingAngle": 45, "jointGroup": "unijoiner-33mm", "polarity": -1 },
+            { "id": 4, "name": "直進-外軌", "relX":  93.0,  "relY":  12.5, "facingAngle": 0, "polarity": 1 },
+            { "id": 5, "name": "直進-内軌", "relX":  93.0,  "relY": -12.5, "facingAngle": 0, "polarity": -1 }
         ],
         shapes: [
             { "type": "line", "length": 186, "offsetX": 0, "offsetY": -12.5 },
@@ -192,14 +192,14 @@ registerRailParts({
         name: "複線十字軌道 62mm",
         description: "62mm×62mm 複線十字交差点軌道 (全ノード25mm間隔)",
         nodes: [
-            { "id": 0, "name": "西-内軌(進入)", "relX": -31, "relY": -12.5, "facingAngle": 180 },
-            { "id": 1, "name": "西-外軌(進入)", "relX": -31, "relY":  12.5, "facingAngle": 180 },
-            { "id": 2, "name": "南-外軌(出口)", "relX": -12.5, "relY":  31, "facingAngle": 90 },
-            { "id": 3, "name": "南-内軌(出口)", "relX":  12.5, "relY":  31, "facingAngle": 90 },
-            { "id": 4, "name": "北-外軌(出口)", "relX": -12.5, "relY": -31, "facingAngle": 270 },
-            { "id": 5, "name": "北-内軌(出口)", "relX":  12.5, "relY": -31, "facingAngle": 270 },
-            { "id": 6, "name": "東-外軌(出口)", "relX":  31, "relY":  12.5, "facingAngle": 0 },
-            { "id": 7, "name": "東-内軌(出口)", "relX":  31, "relY": -12.5, "facingAngle": 0 }
+            { "id": 0, "name": "西-内軌(進入)", "relX": -31, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
+            { "id": 1, "name": "西-外軌(進入)", "relX": -31, "relY":  12.5, "facingAngle": 180, "polarity": -1 },
+            { "id": 2, "name": "南-外軌(出口)", "relX": -12.5, "relY":  31, "facingAngle": 90, "polarity": 1 },
+            { "id": 3, "name": "南-内軌(出口)", "relX":  12.5, "relY":  31, "facingAngle": 90, "polarity": -1 },
+            { "id": 4, "name": "北-内軌(進入)", "relX":  12.5, "relY": -31, "facingAngle": 270, "polarity": 1 },
+            { "id": 5, "name": "北-外軌(進入)", "relX": -12.5, "relY": -31, "facingAngle": 270, "polarity": -1 },
+            { "id": 6, "name": "東-外軌(出口)", "relX":  31, "relY":  12.5, "facingAngle": 0, "polarity": 1 },
+            { "id": 7, "name": "東-内軌(出口)", "relX":  31, "relY": -12.5, "facingAngle": 0, "polarity": -1 }
         ],
         shapes: [
             { "type": "line", "length": 62, "offsetX": 0, "offsetY": -12.5, "angle": 0 },
@@ -209,4 +209,3 @@ registerRailParts({
         ]
     }
 });
-
