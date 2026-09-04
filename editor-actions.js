@@ -821,6 +821,18 @@ document.addEventListener('keydown', (e) => {
 
     if (isCtrl) {
         switch (e.key.toLowerCase()) {
+            case 's':
+                e.preventDefault();
+                if (typeof exportLayoutToFile === 'function') {
+                    exportLayoutToFile();
+                }
+                break;
+            case 'o':
+                e.preventDefault();
+                if (typeof importLayoutFromFile === 'function') {
+                    importLayoutFromFile();
+                }
+                break;
             case ',': // Ctrl + , でノード補正ダイアログを開く
                 e.preventDefault();
                 if (typeof openNodeOffsetDialog === 'function') {
@@ -868,7 +880,6 @@ document.addEventListener('keydown', (e) => {
         if (typeof deleteSelectedRails === 'function') deleteSelectedRails();
     }
 });
-
 
 // =========================================================
 // 6. ファイル入出力
