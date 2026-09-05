@@ -58,22 +58,11 @@ function generateGenericRailData(catalogItem) {
         if (y < minY) minY = y; if (y > maxY) maxY = y;
     }
 
-    // 文字の向きを可読な角度（-90°〜 90° の範囲）に補正するヘルパー関数
-    function normalizeTextAngle(angleDeg) {
-        let norm = angleDeg % 360;
-        if (norm < 0) norm += 360;
-        // 90度〜270度の範囲（文字が上下逆さまになる状態）なら180度反転
-        if (norm > 90 && norm < 270) {
-            norm -= 180;
-        }
-        return norm;
-    }
-
     if (!catalogItem || !catalogItem.shapes) {
         return { basePaths: ["M 0 0 L 10 0"], railPaths: [], textDataList: [], centerX: 0, centerY: 0 };
     }
 
-    catalogItem.shapes.forEach((shape) => {
+    catalogItem.shapes.forEach((shape, sIdx) => {
         if (shape.type === "polygon" && Array.isArray(shape.points) && shape.points.length > 0) {
             let polyPath = "";
             shape.points.forEach((pt, idx) => {
@@ -201,7 +190,8 @@ function generateGenericRailData(catalogItem) {
                     text: displayText,
                     x: offX,
                     y: offY,
-                    angle: normalizeTextAngle(shapeAngle)
+                    baseAngle: shapeAngle,
+                    shapeType: 'line'
                 });
                 hasRenderedText = true;
             }
@@ -272,7 +262,9 @@ function generateGenericRailData(catalogItem) {
                     text: displayText,
                     x: textX,
                     y: textY,
-                    angle: normalizeTextAngle(rawAngle)
+                    baseAngle: rawAngle,
+                    shapeType: 'arc',
+                    midDeg: midDeg
                 });
                 hasRenderedText = true;
             }
@@ -283,6 +275,15 @@ function generateGenericRailData(catalogItem) {
     const height = (minY !== Infinity && maxY !== -Infinity) ? (maxY - minY) : 0;
     const geoCenterX = (minX !== Infinity && maxX !== -Infinity) ? minX + width / 2 : 0;
     const geoCenterY = (minY !== Infinity && maxY !== -Infinity) ? minY + height / 2 : 0;
+
+    // --- 【デバッグログ】生成されたテキストデータ・バウンディングボックスを出力 ---
+    console.log(`[TextDebug:Gen] Item: "${catalogItem ? catalogItem.id : 'unknown'}"`, {
+        displayText,
+        geoCenterX,
+        geoCenterY,
+        bounds: { minX, maxX, minY, maxY, width, height },
+        textDataList
+    });
 
     return {
         basePaths: basePaths,

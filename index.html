@@ -4,8 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Railroad Layout Applet</title>
-    
-    <!-- 定義のみのコアファイルおよび基幹スクリプト -->
+
+<!-- 1. ライブラリ群の読み込み（Fabric.js v5.5.2 & Hammer.js） -->
+    <script src="https://cdn.jsdelivr.net/npm/fabric@5.5.2/dist/fabric.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+
+    <!-- 2. アプリのコアスクリプト群 -->
     <script src="rail-catalog-core.js"></script>
     <script src="layout-state.js"></script>
     <script src="layout-geometry.js"></script>
@@ -14,7 +18,18 @@
     <script src="sample-data.js"></script>
     <script src="editor-actions.js"></script>
 
-<style>
+    <!-- 3. DOM読み込み完了時にアプリを起動 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof startApplication === 'function') {
+                startApplication();
+            } else {
+                console.error('startApplication 関数が見つかりません');
+            }
+        });
+    </script>
+
+    <style>
         body { margin: 0; padding: 10px; background-color: #f0f0f0; font-family: sans-serif; touch-action: none; }
         #controls { margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; background: #fff; padding: 10px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
@@ -770,22 +785,6 @@
             const el = document.activeElement;
             return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA');
         }
-
-        // ライブラリ動的読み込みローダー
-        (function() {
-            const el = document.createElement('script');
-            const protocol = 'https://';
-            const domain = 'cdnjs.' + 'cloudflare' + '.com';
-            const path = '/ajax/libs/fabric.js/5.3.1/fabric.min.js';
-            el.src = protocol + domain + path;
-            el.onload = function() {
-                const hm = document.createElement('script');
-                hm.src = 'https://' + 'cdnjs.' + 'cloudflare' + '.com/ajax/libs/hammer.js/2.0.8/hammer.min.js';
-                hm.onload = function() { startApplication(); };
-                document.head.appendChild(hm);
-            };
-            document.head.appendChild(el);
-        })();
 
         // =============================================================================
         // LocalStorage 設定管理

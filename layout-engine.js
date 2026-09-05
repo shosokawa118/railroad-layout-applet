@@ -296,7 +296,13 @@ function registerGlobalCanvasEvents() {
             }
         }
 
-        // --- 【追加】移動終了・スナップ完了後の差分記録 ---
+        // --- 【追加】スナップ完了後・差分記録前に文字の向きを自動調整 ---
+        if (activeObj && typeof updateRailTextOrientation === 'function') {
+            updateRailTextOrientation(activeObj);
+            canvas.requestRenderAll();
+        }
+
+        // --- 移動終了・スナップ完了後の差分記録 ---
         if (activeObj && typeof captureDragEnd === 'function') {
             captureDragEnd(activeObj);
         }
@@ -314,9 +320,47 @@ function registerGlobalCanvasEvents() {
     canvas.on('selection:updated', handleSelection);
 }
 
-// レール名描画設定（デフォルトサイズ: 9mmゲージの軌道間に入る約6px）
-let DEFAULT_RAIL_NAME_FONT_SIZE = 6;
+// レール名描画設定
+let DEFAULT_RAIL_NAME_FONT_SIZE = 8;
 let SHOW_RAIL_NAMES = true;
+
+/**
+ * 対象のレール（単体 または 複数選択Group）内の文字向きを画面上で正しく読める向き（-90°〜90°）に正しく補正する
+ */
+function updateRailTextOrientation(target) {
+    if (!target) return;
+
+    const rails = (target.type === 'activeSelection') ? target.getObjects() : [target];
+
+    rails.forEach((railGroup, idx) => {
+        if (!railGroup || !railGroup.customData || !railGroup.customData.isRail || !railGroup._objects) return;
+
+        const matrix = railGroup.calcTransformMatrix();
+        const decomposed = fabric.util.qrDecompose(matrix);
+        const globalRailAngle = decomposed.angle;
+
+        railGroup._objects.forEach((obj, objIdx) => {
+            if (obj.isRailText) {
+                let absAngle = (globalRailAngle + obj.baseAngle) % 360;
+                if (absAngle < 0) absAngle += 360;
+
+                let flip = (absAngle > 90 && absAngle < 270) ? 180 : 0;
+                let newLocalAngle = obj.baseAngle + flip;
+
+                console.log(`[TextDebug:Orient] Rail[${idx}] Part: "${railGroup.customData.partId}"`, {
+                    globalRailAngle,
+                    baseAngle: obj.baseAngle,
+                    absAngle,
+                    flip,
+                    newLocalAngle,
+                    textPosInGroup: { left: obj.left, top: obj.top }
+                });
+
+                obj.set('angle', newLocalAngle);
+            }
+        });
+    });
+}
 
 function addRailToCanvas(partId, options = {}) {
     if (!canvas) return null;
@@ -344,10 +388,13 @@ function addRailToCanvas(partId, options = {}) {
                 fontFamily: 'sans-serif',
                 left: tData.x,
                 top: tData.y,
-                angle: tData.angle,
+                angle: tData.baseAngle,
                 originX: 'center',
-                originY: 'center'
+                originY: 'center',
+                textBaseline: 'alphabetic'
             });
+            tObj.isRailText = true;
+            tObj.baseAngle = tData.baseAngle;
             textObjects.push(tObj);
         });
     }
@@ -398,10 +445,17 @@ function addRailToCanvas(partId, options = {}) {
         }
     }
 
+    // 配置・角度変更後にテキストの向きを自動補正
+    updateRailTextOrientation(railObject);
+
     canvas.add(railObject);
     
     railObject.on('moving', function() { isDraggingRail = true; onGeneralTransform(this); });
-    railObject.on('rotating', function() { isDraggingRail = true; onGeneralTransform(this); });
+    railObject.on('rotating', function() { 
+        isDraggingRail = true; 
+        updateRailTextOrientation(this); // 回転中も向きを更新
+        onGeneralTransform(this); 
+    });
 
     registerGlobalCanvasEvents();
 
