@@ -314,6 +314,10 @@ function registerGlobalCanvasEvents() {
     canvas.on('selection:updated', handleSelection);
 }
 
+// レール名描画設定（デフォルトサイズ: 9mmゲージの軌道間に入る約6px）
+let DEFAULT_RAIL_NAME_FONT_SIZE = 6;
+let SHOW_RAIL_NAMES = true;
+
 function addRailToCanvas(partId, options = {}) {
     if (!canvas) return null;
 
@@ -329,7 +333,26 @@ function addRailToCanvas(partId, options = {}) {
     const baseObjects = geoData.basePaths.map(pStr => new fabric.Path(pStr, { fill: '#888888', stroke: null, originX: 'center', originY: 'center' }));
     const railObjects = geoData.railPaths.map(pStr => new fabric.Path(pStr, { fill: null, stroke: '#222222', strokeWidth: 1.5, strokeLineCap: 'round', originX: 'center', originY: 'center' }));
 
-    const railObject = new fabric.Group([...baseObjects, ...railObjects], {
+    // テキストオブジェクトの生成
+    const textObjects = [];
+    if (SHOW_RAIL_NAMES && geoData.textDataList) {
+        const fontSize = options.fontSize || DEFAULT_RAIL_NAME_FONT_SIZE;
+        geoData.textDataList.forEach(tData => {
+            const tObj = new fabric.Text(tData.text, {
+                fontSize: fontSize,
+                fill: '#111111',
+                fontFamily: 'sans-serif',
+                left: tData.x,
+                top: tData.y,
+                angle: tData.angle,
+                originX: 'center',
+                originY: 'center'
+            });
+            textObjects.push(tObj);
+        });
+    }
+
+    const railObject = new fabric.Group([...baseObjects, ...railObjects, ...textObjects], {
         left: 0, top: 0, originX: 'center', originY: 'center', angle: 0
     });
 
