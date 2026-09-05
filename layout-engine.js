@@ -641,6 +641,12 @@ async function importLayoutData(layoutData, isOverwrite = true) {
             }
 
             newObj.setCoords();
+
+            // ★ 修正: 読込データの角度 (r.angle) 適用後にテキストの向きを再計算
+            if (typeof updateRailTextOrientation === 'function') {
+                updateRailTextOrientation(newObj);
+            }
+
             createdObjects.push(newObj);
             
             const realId = newObj.customData.instanceId;
