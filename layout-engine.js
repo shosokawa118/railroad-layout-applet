@@ -445,15 +445,15 @@ function addRailToCanvas(partId, options = {}) {
         }
     }
 
-    // 配置・角度変更後にテキストの向きを自動補正
-    updateRailTextOrientation(railObject);
-
+    // キャンバスへ追加（位置・角度決定後）
     canvas.add(railObject);
     
     railObject.on('moving', function() { isDraggingRail = true; onGeneralTransform(this); });
     railObject.on('rotating', function() { 
         isDraggingRail = true; 
-        updateRailTextOrientation(this); // 回転中も向きを更新
+        if (typeof updateRailTextOrientation === 'function') {
+            updateRailTextOrientation(this); // 回転中も向きを更新
+        }
         onGeneralTransform(this); 
     });
 
@@ -477,6 +477,11 @@ function addRailToCanvas(partId, options = {}) {
 
     if (!options.skipSelect) {
         canvas.setActiveObject(railObject);
+    }
+
+    // キャンバス追加と選択状態確定後にテキスト向きの補正を実行
+    if (typeof updateRailTextOrientation === 'function') {
+        updateRailTextOrientation(railObject);
     }
 
     updateJointIndicators();
