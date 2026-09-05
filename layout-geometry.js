@@ -33,6 +33,7 @@ function checkArcCardinalBounds(cX, cY, rOut, rIn, startDeg, arcAngle, updateBou
 function generateGenericRailData(catalogItem) {
     const basePaths = [];
     const railPaths = [];
+    const textDataList = []; // 文字描画用データリスト
     
     const sys = catalogItem && catalogItem.systemId ? railCatalog.systems[catalogItem.systemId] : null;
     
@@ -46,6 +47,9 @@ function generateGenericRailData(catalogItem) {
     const shouldRenderRails = (typeof gauge === 'number' && gauge > 0);
     const halfGauge = shouldRenderRails ? gauge / 2 : 0;
 
+    // 表示テキスト（label 優先、無ければ name）
+    const displayText = (catalogItem && (catalogItem.label || catalogItem.name)) ? (catalogItem.label || catalogItem.name) : "";
+
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
 
     function updateBounds(x, y) {
@@ -54,7 +58,7 @@ function generateGenericRailData(catalogItem) {
     }
 
     if (!catalogItem || !catalogItem.shapes) {
-        return { basePaths: ["M 0 0 L 10 0"], railPaths: [], centerX: 0, centerY: 0 };
+        return { basePaths: ["M 0 0 L 10 0"], railPaths: [], textDataList: [], centerX: 0, centerY: 0 };
     }
 
     catalogItem.shapes.forEach((shape) => {
@@ -178,6 +182,16 @@ function generateGenericRailData(catalogItem) {
                 railPaths.push(`M ${r1_start.x} ${r1_start.y} L ${r1_end.x} ${r1_end.y}`);
                 railPaths.push(`M ${r2_start.x} ${r2_start.y} L ${r2_end.x} ${r2_end.y}`);
             }
+
+            // 直線の中央に文字を配置
+            if (displayText) {
+                textDataList.push({
+                    text: displayText,
+                    x: offX,
+                    y: offY,
+                    angle: shapeAngle
+                });
+            }
         }
         else if (shape.type === "arc") {
             const r = shape.radius;
@@ -230,6 +244,23 @@ function generateGenericRailData(catalogItem) {
                 railPaths.push(`M ${rx1} ${ry1} A ${rRailOut} ${rRailOut} 0 ${largeArcFlag} ${sweepOut} ${rx2} ${ry2}`);
                 railPaths.push(`M ${rx3} ${ry3} A ${rRailIn} ${rRailIn} 0 ${largeArcFlag} ${sweepOut} ${rx4} ${ry4}`);
             }
+
+            // 弧の中央位置に文字を配置（接線方向に合わせて回転）
+            if (displayText) {
+                const midDeg = startDeg + arcAngle / 2;
+                const midRad = (midDeg * Math.PI) / 180;
+                const textX = cX + r * Math.cos(midRad);
+                const textY = cY + r * Math.sin(midRad);
+                // 接線方向の角度計算（時計回り/反時計回りに応じて90度回転）
+                const textAngle = midDeg + (arcAngle >= 0 ? 90 : -90);
+
+                textDataList.push({
+                    text: displayText,
+                    x: textX,
+                    y: textY,
+                    angle: textAngle
+                });
+            }
         }
     });
 
@@ -241,6 +272,7 @@ function generateGenericRailData(catalogItem) {
     return {
         basePaths: basePaths,
         railPaths: railPaths,
+        textDataList: textDataList,
         centerX: geoCenterX,
         centerY: geoCenterY
     };
