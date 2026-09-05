@@ -51,10 +51,22 @@ function generateGenericRailData(catalogItem) {
     const displayText = (catalogItem && (catalogItem.label || catalogItem.name)) ? (catalogItem.label || catalogItem.name) : "";
 
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    let hasRenderedText = false; // 分岐レール等で重複描画（両側表示）されるのを防ぐフラグ
 
     function updateBounds(x, y) {
         if (x < minX) minX = x; if (x > maxX) maxX = x;
         if (y < minY) minY = y; if (y > maxY) maxY = y;
+    }
+
+    // 文字の向きを可読な角度（-90°〜 90° の範囲）に補正するヘルパー関数
+    function normalizeTextAngle(angleDeg) {
+        let norm = angleDeg % 360;
+        if (norm < 0) norm += 360;
+        // 90度〜270度の範囲（文字が上下逆さまになる状態）なら180度反転
+        if (norm > 90 && norm < 270) {
+            norm -= 180;
+        }
+        return norm;
     }
 
     if (!catalogItem || !catalogItem.shapes) {
@@ -183,14 +195,15 @@ function generateGenericRailData(catalogItem) {
                 railPaths.push(`M ${r2_start.x} ${r2_start.y} L ${r2_end.x} ${r2_end.y}`);
             }
 
-            // 直線の中央に文字を配置
-            if (displayText) {
+            // まだ文字を描画していない場合のみ、主線（最初の直線要素）に描画
+            if (displayText && !hasRenderedText) {
                 textDataList.push({
                     text: displayText,
                     x: offX,
                     y: offY,
-                    angle: shapeAngle
+                    angle: normalizeTextAngle(shapeAngle)
                 });
+                hasRenderedText = true;
             }
         }
         else if (shape.type === "arc") {
@@ -245,21 +258,23 @@ function generateGenericRailData(catalogItem) {
                 railPaths.push(`M ${rx3} ${ry3} A ${rRailIn} ${rRailIn} 0 ${largeArcFlag} ${sweepOut} ${rx4} ${ry4}`);
             }
 
-            // 弧の中央位置に文字を配置（接線方向に合わせて回転）
-            if (displayText) {
+            // まだ文字を描画していない場合のみ、最初の曲線要素に描画
+            if (displayText && !hasRenderedText) {
                 const midDeg = startDeg + arcAngle / 2;
                 const midRad = (midDeg * Math.PI) / 180;
                 const textX = cX + r * Math.cos(midRad);
                 const textY = cY + r * Math.sin(midRad);
-                // 接線方向の角度計算（時計回り/反時計回りに応じて90度回転）
-                const textAngle = midDeg + (arcAngle >= 0 ? 90 : -90);
+                
+                // 接線方向の角度計算
+                const rawAngle = midDeg + (arcAngle >= 0 ? 90 : -90);
 
                 textDataList.push({
                     text: displayText,
                     x: textX,
                     y: textY,
-                    angle: textAngle
+                    angle: normalizeTextAngle(rawAngle)
                 });
+                hasRenderedText = true;
             }
         }
     });
