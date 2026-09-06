@@ -349,11 +349,12 @@ registerRailParts({
     },
 
     // ---------------------------------------------------------
-    // 3方ポイント (N-PLR541/280-15 & N-PRL541/280-15)
+    // 3方ポイント (subCategory: 分岐)
     // ---------------------------------------------------------
     "TOMIX-N-PLR541/280-15": {
         systemId: "TOMIX-FINETRACK-N",
         category: "turnout",
+        subCategory: "分岐",
         name: "N-PLR541/280-15-F",
         description: "電動3方ポイント (左R541/右R280)",
         nodes: [
@@ -373,6 +374,7 @@ registerRailParts({
     "TOMIX-N-PRL541/280-15": {
         systemId: "TOMIX-FINETRACK-N",
         category: "turnout",
+        subCategory: "分岐",
         name: "N-PRL541/280-15-F",
         description: "電動3方ポイント (右R541/左R280)",
         nodes: [
@@ -391,12 +393,12 @@ registerRailParts({
     },
 
     // ---------------------------------------------------------
-    // Y字ポイント (N-PY280-15) - 全長70mm / R280-15°
-    // Node ID: 0=進入端, 1=左分岐, 2=右分岐
+    // Y字ポイント (subCategory: 分岐)
     // ---------------------------------------------------------
     "TOMIX-N-PY280-15": {
         systemId: "TOMIX-FINETRACK-N",
         category: "turnout",
+        subCategory: "分岐",
         name: "N-PY280-15-F",
         description: "完全選択式 Y字ポイント (全長70mm)",
         nodes: [
@@ -405,19 +407,60 @@ registerRailParts({
             { "id": 2, "jointType": "rail-end", "name": "右分岐", "relX": 32.47, "relY": 9.54,   "facingAngle": 15 }
         ],
         shapes: [
-            // 左分岐 (R280 / -15°)
             { "type": "arc", "radius": 280, "arcAngle": -15, "centerX": -35.0, "centerY": -280.0, "startAngle": 90 },
-            // 右分岐 (R280 / +15°)
             { "type": "arc", "radius": 280, "arcAngle": 15,  "centerX": -35.0, "centerY": 280.0,  "startAngle": 270 }
         ]
     },
 
     // ---------------------------------------------------------
-    // 30度交差レール (X72.5-30) - 交差中心原点 (0,0)
+    // ダブルスリップポイント (subCategory: 分岐)
+    // ---------------------------------------------------------
+    "TOMIX-N-PXL140-15": {
+        systemId: "TOMIX-FINETRACK-N",
+        category: "turnout",
+        subCategory: "分岐",
+        name: "N-PXL140-15-F",
+        description: "電動ダブルスリップポイント (左)",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "主線入口", "relX": -70,   "relY": 0,      "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "斜線入口", "relX": -70,   "relY": -18.76, "facingAngle": 195 },
+            { "id": 2, "jointType": "rail-end", "name": "斜線出口", "relX": 70,    "relY": 18.76,  "facingAngle": 15 },
+            { "id": 3, "jointType": "rail-end", "name": "主線出口", "relX": 70,    "relY": 0,      "facingAngle": 0 }
+        ],
+        shapes: [
+            { "type": "line", "length": 140,    "offsetX": 0, "offsetY": 0, "angle": 0 },
+            { "type": "line", "length": 144.93, "offsetX": 0, "offsetY": 0, "angle": 15 },
+            { "type": "arc",  "radius": 541, "arcAngle": -15, "centerX": -70, "centerY": 541,  "startAngle": 270 },
+            { "type": "arc",  "radius": 541, "arcAngle": 15,  "centerX": 70,  "centerY": -541, "startAngle": 90 }
+        ]
+    },
+    "TOMIX-N-PXR140-15": {
+        systemId: "TOMIX-FINETRACK-N",
+        category: "turnout",
+        subCategory: "分岐",
+        name: "N-PXR140-15-F",
+        description: "電動ダブルスリップポイント (右)",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "主線入口", "relX": -70,   "relY": 0,      "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "斜線入口", "relX": -70,   "relY": 18.76,  "facingAngle": 165 },
+            { "id": 2, "jointType": "rail-end", "name": "斜線出口", "relX": 70,    "relY": -18.76, "facingAngle": 345 },
+            { "id": 3, "jointType": "rail-end", "name": "主線出口", "relX": 70,    "relY": 0,      "facingAngle": 0 }
+        ],
+        shapes: [
+            { "type": "line", "length": 140,    "offsetX": 0, "offsetY": 0, "angle": 0 },
+            { "type": "line", "length": 144.93, "offsetX": 0, "offsetY": 0, "angle": 345 },
+            { "type": "arc",  "radius": 541, "arcAngle": 15,  "centerX": -70, "centerY": -541, "startAngle": 90 },
+            { "type": "arc",  "radius": 541, "arcAngle": -15, "centerX": 70,  "centerY": 541,  "startAngle": 270 }
+        ]
+    },
+
+    // ---------------------------------------------------------
+    // 交差レール (subCategory: 交差)
     // ---------------------------------------------------------
     "TOMIX-X72.5-30": {
         systemId: "TOMIX-FINETRACK-N",
-        category: "crossing",
+        category: "turnout",
+        subCategory: "交差",
         name: "X72.5-30-F",
         description: "交差レール X72.5-30",
         nodes: [
@@ -431,13 +474,10 @@ registerRailParts({
             { "type": "line", "length": 72.5, "offsetX": 0, "offsetY": 0, "angle": 15 }
         ]
     },
-
-    // ---------------------------------------------------------
-    // 15度交差レール (XL140-15 / XR140-15) - 交差中心原点 (0,0)
-    // ---------------------------------------------------------
     "TOMIX-XL140-15": {
         systemId: "TOMIX-FINETRACK-N",
-        category: "crossing",
+        category: "turnout",
+        subCategory: "交差",
         name: "XL140-15-F",
         description: "単一交差レール XL140-15 (左)",
         nodes: [
@@ -453,7 +493,8 @@ registerRailParts({
     },
     "TOMIX-XR140-15": {
         systemId: "TOMIX-FINETRACK-N",
-        category: "crossing",
+        category: "turnout",
+        subCategory: "交差",
         name: "XR140-15-F",
         description: "単一交差レール XR140-15 (右)",
         nodes: [
@@ -465,46 +506,6 @@ registerRailParts({
         shapes: [
             { "type": "line", "length": 142.96, "offsetX": 0, "offsetY": 0, "angle": 0 },
             { "type": "line", "length": 142.96, "offsetX": 0, "offsetY": 0, "angle": 345 }
-        ]
-    },
-
-    // ---------------------------------------------------------
-    // ダブルスリップポイント - 交差中心原点 (0,0)
-    // ---------------------------------------------------------
-    "TOMIX-N-PXL140-15": {
-        systemId: "TOMIX-FINETRACK-N",
-        category: "turnout",
-        name: "N-PXL140-15-F",
-        description: "電動ダブルスリップポイント (左)",
-        nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "主線入口", "relX": -70,   "relY": 0,      "facingAngle": 180 },
-            { "id": 1, "jointType": "rail-end", "name": "斜線入口", "relX": -70,   "relY": -18.76, "facingAngle": 195 },
-            { "id": 2, "jointType": "rail-end", "name": "斜線出口", "relX": 70,    "relY": 18.76,  "facingAngle": 15 },
-            { "id": 3, "jointType": "rail-end", "name": "主線出口", "relX": 70,    "relY": 0,      "facingAngle": 0 }
-        ],
-        shapes: [
-            { "type": "line", "length": 140,    "offsetX": 0, "offsetY": 0, "angle": 0 },
-            { "type": "line", "length": 144.93, "offsetX": 0, "offsetY": 0, "angle": 15 },
-            { "type": "arc",  "radius": 541, "arcAngle": 15,  "centerX": -70, "centerY": 541,  "startAngle": 270 },
-            { "type": "arc",  "radius": 541, "arcAngle": -15, "centerX": 70,  "centerY": -541, "startAngle": 90 }
-        ]
-    },
-    "TOMIX-N-PXR140-15": {
-        systemId: "TOMIX-FINETRACK-N",
-        category: "turnout",
-        name: "N-PXR140-15-F",
-        description: "電動ダブルスリップポイント (右)",
-        nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "主線入口", "relX": -70,   "relY": 0,      "facingAngle": 180 },
-            { "id": 1, "jointType": "rail-end", "name": "斜線入口", "relX": -70,   "relY": 18.76,  "facingAngle": 165 },
-            { "id": 2, "jointType": "rail-end", "name": "斜線出口", "relX": 70,    "relY": -18.76, "facingAngle": 345 },
-            { "id": 3, "jointType": "rail-end", "name": "主線出口", "relX": 70,    "relY": 0,      "facingAngle": 0 }
-        ],
-        shapes: [
-            { "type": "line", "length": 140,    "offsetX": 0, "offsetY": 0, "angle": 0 },
-            { "type": "line", "length": 144.93, "offsetX": 0, "offsetY": 0, "angle": 345 },
-            { "type": "arc",  "radius": 541, "arcAngle": -15, "centerX": -70, "centerY": -541, "startAngle": 90 },
-            { "type": "arc",  "radius": 541, "arcAngle": 15,  "centerX": 70,  "centerY": 541,  "startAngle": 270 }
         ]
     },
 
