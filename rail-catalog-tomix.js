@@ -350,7 +350,6 @@ registerRailParts({
 
     // ---------------------------------------------------------
     // 3方ポイント (N-PLR541/280-15 & N-PRL541/280-15)
-    // Node ID: 0=進入端, 1=分岐1, 2=直進本線(最大ID優先)
     // ---------------------------------------------------------
     "TOMIX-N-PLR541/280-15": {
         systemId: "TOMIX-FINETRACK-N",
@@ -364,11 +363,11 @@ registerRailParts({
             { "id": 3, "jointType": "rail-end", "name": "直進本線", "relX": 140.00, "relY": 0,      "facingAngle": 0 }
         ],
         shapes: [
-            { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
+            { "type": "line", "length": 140, "offsetX": 70, "offsetY": 0 },
             { "type": "arc",  "radius": 541, "arcAngle": -15, "centerX": 0, "centerY": -541, "startAngle": 90 },
-            { "type": "line", "length": 34.53, "offsetX": 0, "offsetY": 0 },
+            { "type": "line", "length": 34.53, "offsetX": 17.265, "offsetY": 0 },
             { "type": "arc",  "radius": 280, "arcAngle": 15, "centerX": 34.53, "centerY": 280, "startAngle": 270 },
-            { "type": "line", "length": 34.16, "offsetX": 107.00, "offsetY": 9.54, "angle": 15 }
+            { "type": "line", "length": 34.16, "offsetX": 123.50, "offsetY": 13.96, "angle": 15 }
         ]
     },
     "TOMIX-N-PRL541/280-15": {
@@ -383,30 +382,33 @@ registerRailParts({
             { "id": 3, "jointType": "rail-end", "name": "直進本線", "relX": 140.00, "relY": 0,      "facingAngle": 0 }
         ],
         shapes: [
-            { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
+            { "type": "line", "length": 140, "offsetX": 70, "offsetY": 0 },
             { "type": "arc",  "radius": 541, "arcAngle": 15, "centerX": 0, "centerY": 541, "startAngle": 270 },
-            { "type": "line", "length": 34.53, "offsetX": 0, "offsetY": 0 },
+            { "type": "line", "length": 34.53, "offsetX": 17.265, "offsetY": 0 },
             { "type": "arc",  "radius": 280, "arcAngle": -15, "centerX": 34.53, "centerY": -280, "startAngle": 90 },
-            { "type": "line", "length": 34.16, "offsetX": 107.00, "offsetY": -9.54, "angle": 345 }
+            { "type": "line", "length": 34.16, "offsetX": 123.50, "offsetY": -13.96, "angle": 345 }
         ]
     },
 
     // ---------------------------------------------------------
-    // Y字ポイント (N-PY280-15)
+    // Y字ポイント (N-PY280-15) - 全長70mm / R280-15°
+    // Node ID: 0=進入端, 1=左分岐, 2=右分岐
     // ---------------------------------------------------------
     "TOMIX-N-PY280-15": {
         systemId: "TOMIX-FINETRACK-N",
         category: "turnout",
         name: "N-PY280-15-F",
-        description: "完全選択式 Y字ポイント",
+        description: "完全選択式 Y字ポイント (全長70mm)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": 0,      "relY": 0,      "facingAngle": 180 },
-            { "id": 1, "jointType": "rail-end", "name": "左分岐", "relX": 139.99, "relY": -18.38, "facingAngle": 345 },
-            { "id": 2, "jointType": "rail-end", "name": "右分岐", "relX": 139.99, "relY": 18.38,  "facingAngle": 15 }
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -35.0, "relY": 0,      "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "左分岐", "relX": 32.47, "relY": -9.54,  "facingAngle": 345 },
+            { "id": 2, "jointType": "rail-end", "name": "右分岐", "relX": 32.47, "relY": 9.54,   "facingAngle": 15 }
         ],
         shapes: [
-            { "type": "arc", "radius": 541, "arcAngle": -15, "centerX": 0, "centerY": -541, "startAngle": 90 },
-            { "type": "arc", "radius": 541, "arcAngle": 15,  "centerX": 0, "centerY": 541,  "startAngle": 270 }
+            // 左分岐 (R280 / -15°)
+            { "type": "arc", "radius": 280, "arcAngle": -15, "centerX": -35.0, "centerY": -280.0, "startAngle": 90 },
+            // 右分岐 (R280 / +15°)
+            { "type": "arc", "radius": 280, "arcAngle": 15,  "centerX": -35.0, "centerY": 280.0,  "startAngle": 270 }
         ]
     },
 
@@ -425,8 +427,8 @@ registerRailParts({
             { "id": 3, "jointType": "rail-end", "name": "主線出口", "relX": 35.01,  "relY": -9.38, "facingAngle": 345 }
         ],
         shapes: [
-            { "type": "line", "length": 72.5, "offsetX": -35.01, "offsetY": 9.38,  "angle": 345 },
-            { "type": "line", "length": 72.5, "offsetX": -35.01, "offsetY": -9.38, "angle": 15 }
+            { "type": "line", "length": 72.5, "offsetX": 0, "offsetY": 0, "angle": 345 },
+            { "type": "line", "length": 72.5, "offsetX": 0, "offsetY": 0, "angle": 15 }
         ]
     },
 
@@ -445,8 +447,8 @@ registerRailParts({
             { "id": 3, "jointType": "rail-end", "name": "主線出口", "relX": 71.48,  "relY": 0,      "facingAngle": 0 }
         ],
         shapes: [
-            { "type": "line", "length": 142.96, "offsetX": -71.48, "offsetY": 0,       "angle": 0 },
-            { "type": "line", "length": 142.96, "offsetX": -69.04, "offsetY": -18.50, "angle": 15 }
+            { "type": "line", "length": 142.96, "offsetX": 0, "offsetY": 0, "angle": 0 },
+            { "type": "line", "length": 142.96, "offsetX": 0, "offsetY": 0, "angle": 15 }
         ]
     },
     "TOMIX-XR140-15": {
@@ -461,8 +463,8 @@ registerRailParts({
             { "id": 3, "jointType": "rail-end", "name": "主線出口", "relX": 71.48,  "relY": 0,      "facingAngle": 0 }
         ],
         shapes: [
-            { "type": "line", "length": 142.96, "offsetX": -71.48, "offsetY": 0,      "angle": 0 },
-            { "type": "line", "length": 142.96, "offsetX": -69.04, "offsetY": 18.50, "angle": 345 }
+            { "type": "line", "length": 142.96, "offsetX": 0, "offsetY": 0, "angle": 0 },
+            { "type": "line", "length": 142.96, "offsetX": 0, "offsetY": 0, "angle": 345 }
         ]
     },
 
@@ -481,8 +483,8 @@ registerRailParts({
             { "id": 3, "jointType": "rail-end", "name": "主線出口", "relX": 70,    "relY": 0,      "facingAngle": 0 }
         ],
         shapes: [
-            { "type": "line", "length": 140,    "offsetX": -70, "offsetY": 0,       "angle": 0 },
-            { "type": "line", "length": 144.93, "offsetX": -70, "offsetY": -18.76, "angle": 15 },
+            { "type": "line", "length": 140,    "offsetX": 0, "offsetY": 0, "angle": 0 },
+            { "type": "line", "length": 144.93, "offsetX": 0, "offsetY": 0, "angle": 15 },
             { "type": "arc",  "radius": 541, "arcAngle": 15,  "centerX": -70, "centerY": 541,  "startAngle": 270 },
             { "type": "arc",  "radius": 541, "arcAngle": -15, "centerX": 70,  "centerY": -541, "startAngle": 90 }
         ]
@@ -499,8 +501,8 @@ registerRailParts({
             { "id": 3, "jointType": "rail-end", "name": "主線出口", "relX": 70,    "relY": 0,      "facingAngle": 0 }
         ],
         shapes: [
-            { "type": "line", "length": 140,    "offsetX": -70, "offsetY": 0,      "angle": 0 },
-            { "type": "line", "length": 144.93, "offsetX": -70, "offsetY": 18.76, "angle": 345 },
+            { "type": "line", "length": 140,    "offsetX": 0, "offsetY": 0, "angle": 0 },
+            { "type": "line", "length": 144.93, "offsetX": 0, "offsetY": 0, "angle": 345 },
             { "type": "arc",  "radius": 541, "arcAngle": -15, "centerX": -70, "centerY": -541, "startAngle": 90 },
             { "type": "arc",  "radius": 541, "arcAngle": 15,  "centerX": 70,  "centerY": 541,  "startAngle": 270 }
         ]
@@ -518,7 +520,7 @@ registerRailParts({
             { "id": 0, "jointType": "rail-end", "name": "接続端", "relX": 0, "relY": 0, "facingAngle": 180 }
         ],
         shapes: [
-            { "type": "line", "length": 35, "offsetX": 0, "offsetY": 0 },
+            { "type": "line", "length": 35, "offsetX": 17.5, "offsetY": 0 },
             {
                 "type": "polygon",
                 "points": [
