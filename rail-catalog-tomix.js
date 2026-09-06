@@ -413,7 +413,7 @@ registerRailParts({
     },
 
     // ---------------------------------------------------------
-    // ダブルスリップポイント (subCategory: 分岐)
+    // ダブルスリップポイント (回転方向 厳密修正版)
     // ---------------------------------------------------------
     "TOMIX-N-PXL140-15": {
         systemId: "TOMIX-FINETRACK-N",
@@ -430,7 +430,9 @@ registerRailParts({
         shapes: [
             { "type": "line", "length": 140,    "offsetX": 0, "offsetY": 0, "angle": 0 },
             { "type": "line", "length": 144.93, "offsetX": 0, "offsetY": 0, "angle": 15 },
-            { "type": "arc",  "radius": 541, "arcAngle": -15, "centerX": -70, "centerY": 541,  "startAngle": 270 },
+            // 下側渡り線: 270度から時計回り(+15deg)
+            { "type": "arc",  "radius": 541, "arcAngle": 15,  "centerX": -70, "centerY": 541,  "startAngle": 270 },
+            // 上側渡り線: 90度から時計回り(+15deg)
             { "type": "arc",  "radius": 541, "arcAngle": 15,  "centerX": 70,  "centerY": -541, "startAngle": 90 }
         ]
     },
@@ -449,7 +451,9 @@ registerRailParts({
         shapes: [
             { "type": "line", "length": 140,    "offsetX": 0, "offsetY": 0, "angle": 0 },
             { "type": "line", "length": 144.93, "offsetX": 0, "offsetY": 0, "angle": 345 },
-            { "type": "arc",  "radius": 541, "arcAngle": 15,  "centerX": -70, "centerY": -541, "startAngle": 90 },
+            // 上側渡り線: 90度から反時計回り(-15deg)
+            { "type": "arc",  "radius": 541, "arcAngle": -15, "centerX": -70, "centerY": -541, "startAngle": 90 },
+            // 下側渡り線: 270度から反時計回り(-15deg)
             { "type": "arc",  "radius": 541, "arcAngle": -15, "centerX": 70,  "centerY": 541,  "startAngle": 270 }
         ]
     },
