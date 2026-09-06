@@ -209,12 +209,12 @@ registerRailParts({
         ]
     },
 
-    // --- 道路プレート 62×62 ---
-    "KATO-UNITRAM-ROAD-62-62": {
+    // --- 道路プレート TSC62 ---
+    "KATO-UNITRAM-ROAD-TSC62": {
         systemId: "KATO-UNITRAM-N",
         category: "road",
-        name: "道路プレート 62×62",
-        description: "62mm×62mm 道路プレート",
+        name: "TSC62",
+        description: "ユニトラム道路中央62mm",
         nodes: [
             // 西(左: X=-31, Y=0, 向き=180°)
             { "id": 0, "name": "西", "relX": -31, "relY": 0, "facingAngle": 180, "jointType": "plate" },
@@ -230,33 +230,12 @@ registerRailParts({
         ]
     },
 
-    // --- 道路プレート 62×124 ---
-    "KATO-UNITRAM-ROAD-62-124": {
+    // --- 道路プレート TSC186C ---
+    "KATO-UNITRAM-ROAD-TSC186C": {
         systemId: "KATO-UNITRAM-N",
         category: "road",
-        name: "道路プレート 62×124",
-        description: "62mm×124mm 道路プレート",
-        nodes: [
-            // 西(左: X=-31, Y=0, 向き=180°)
-            { "id": 0, "name": "西", "relX": -31, "relY": 0, "facingAngle": 180, "jointType": "plate" },
-            // 北(上: X=0, Y=-62, 向き=270°)
-            { "id": 1, "name": "北", "relX": 0, "relY": -62, "facingAngle": 270, "jointType": "plate" },
-            // 南(下: X=0, Y=62, 向き=90°)
-            { "id": 2, "name": "南", "relX": 0, "relY": 62, "facingAngle": 90, "jointType": "plate" },
-            // 東(右: X=31, Y=0, 向き=0°)
-            { "id": 3, "name": "東", "relX": 31, "relY": 0, "facingAngle": 0, "jointType": "plate" }
-        ],
-        shapes: [
-            { "type": "rect", "width": 62, "height": 124, "offsetX": 0, "offsetY": 0 }
-        ]
-    },
-
-    // --- 道路プレート 62×186 ---
-    "KATO-UNITRAM-ROAD-62-186": {
-        systemId: "KATO-UNITRAM-N",
-        category: "road",
-        name: "道路プレート 62×186",
-        description: "62mm×186mm 道路プレート",
+        name: "TSC186C",
+        description: "ユニトラム道路中央186mm 交差点用",
         nodes: [
             // 西(左: 2箇所 Y=-31, Y=31, 向き=180°)
             { "id": 0, "name": "西-上", "relX": -31, "relY": -31, "facingAngle": 180, "jointType": "plate" },
@@ -274,12 +253,12 @@ registerRailParts({
         ]
     },
 
-    // --- 道路プレート 124×186 ---
-    "KATO-UNITRAM-ROAD-124-186": {
+    // --- 道路プレート TS124 ---
+    "KATO-UNITRAM-ROAD-TS124": {
         systemId: "KATO-UNITRAM-N",
         category: "road",
-        name: "道路プレート 124×186",
-        description: "124mm×186mm 道路プレート",
+        name: "TS124",
+        description: "ユニトラム直線道路プレート124mm",
         nodes: [
             // 西(左: 186mm辺 2箇所 Y=-31, Y=31, 向き=180°)
             { "id": 0, "name": "西-上", "relX": -62, "relY": -31, "facingAngle": 180, "jointType": "plate" },
@@ -297,12 +276,12 @@ registerRailParts({
         ]
     },
 
-    // --- 道路プレート 186×186 ---
-    "KATO-UNITRAM-ROAD-186-186": {
+    // --- 道路プレート TC186 ---
+    "KATO-UNITRAM-ROAD-TC186": {
         systemId: "KATO-UNITRAM-N",
         category: "road",
-        name: "道路プレート 186×186",
-        description: "186mm×186mm 道路プレート",
+        name: "TC186",
+        description: "ユニトラム道路プレート交差点・角地",
         nodes: [
             // 西(左: 186mm辺 2箇所 Y=-31, Y=31, 向き=180°)
             { "id": 0, "name": "西-上", "relX": -93, "relY": -31, "facingAngle": 180, "jointType": "plate" },
@@ -319,6 +298,27 @@ registerRailParts({
         ],
         shapes: [
             { "type": "rect", "width": 186, "height": 186, "offsetX": 0, "offsetY": 0 }
+        ]
+    },
+
+    // --- 道路プレート TQ62 ---
+    "KATO-UNITRAM-ROAD-TQ62": {
+        systemId: "KATO-UNITRAM-N",
+        category: "road",
+        name: "TQ62",
+        description: "ユニトラム道路プレート交差点・中央",
+        nodes: [
+            // 西(左: X=-31, Y=0, 向き=180°)
+            { "id": 0, "name": "西", "relX": -31, "relY": 0, "facingAngle": 180, "jointType": "plate" },
+            // 北(上: X=0, Y=-31, 向き=270°)
+            { "id": 1, "name": "北", "relX": 0, "relY": -31, "facingAngle": 270, "jointType": "plate" },
+            // 南(下: X=0, Y=31, 向き=90°)
+            { "id": 2, "name": "南", "relX": 0, "relY": 31, "facingAngle": 90, "jointType": "plate" },
+            // 東(右: X=31, Y=0, 向き=0°)
+            { "id": 3, "name": "東", "relX": 31, "relY": 0, "facingAngle": 0, "jointType": "plate" }
+        ],
+        shapes: [
+            { "type": "rect", "width": 62, "height": 62, "offsetX": 0, "offsetY": 0 }
         ]
     }
 });
