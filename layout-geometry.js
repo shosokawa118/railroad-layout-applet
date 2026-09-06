@@ -269,6 +269,55 @@ function generateGenericRailData(catalogItem) {
                 hasRenderedText = true;
             }
         }
+        else if (shape.type === "rect") {
+            const w = shape.width || 0;
+            const h = shape.height || 0;
+            const offX = shape.offsetX || 0;
+            const offY = shape.offsetY || 0;
+            const shapeAngle = shape.angle || 0;
+
+            // ローカル座標系での4頂点（中心原点 (0,0) からの相対位置）
+            const x1_loc = -w / 2, y1_loc = -h / 2; // 左上
+            const x2_loc =  w / 2, y2_loc = -h / 2; // 右上
+            const x3_loc =  w / 2, y3_loc =  h / 2; // 右下
+            const x4_loc = -w / 2, y4_loc =  h / 2; // 左下
+
+            const rad = (shapeAngle * Math.PI) / 180;
+            const cos = Math.cos(rad);
+            const sin = Math.sin(rad);
+
+            // 回転・オフセット座標変換関数
+            const trans = (lx, ly) => ({
+                x: offX + (lx * cos - ly * sin),
+                y: offY + (lx * sin + ly * cos)
+            });
+
+            const p1 = trans(x1_loc, y1_loc);
+            const p2 = trans(x2_loc, y2_loc);
+            const p3 = trans(x3_loc, y3_loc);
+            const p4 = trans(x4_loc, y4_loc);
+
+            // 外形パス（Base Path）の登録
+            basePaths.push(`M ${p1.x} ${p1.y} L ${p2.x} ${p2.y} L ${p3.x} ${p3.y} L ${p4.x} ${p4.y} Z`);
+
+            // バウンディングボックス用の境界更新
+            updateBounds(p1.x, p1.y);
+            updateBounds(p2.x, p2.y);
+            updateBounds(p3.x, p3.y);
+            updateBounds(p4.x, p4.y);
+
+            // テキスト未描画の場合、矩形の中心（offX, offY）にラベルを割り当て
+            if (displayText && !hasRenderedText) {
+                textDataList.push({
+                    text: displayText,
+                    x: offX,
+                    y: offY,
+                    baseAngle: shapeAngle,
+                    shapeType: 'rect'
+                });
+                hasRenderedText = true;
+            }
+        }
     });
 
     const width = (minX !== Infinity && maxX !== -Infinity) ? (maxX - minX) : 0;
