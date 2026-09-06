@@ -43,7 +43,7 @@ registerRailParts({
     "KATO-UNITRAM-S186D": {
         systemId: "KATO-UNITRAM-N",
         category: "straight",
-        name: "複線直線軌道 186mm",
+        name: "TWS186",
         description: "186mm 複線プレート (軌道間隔25mm)",
         nodes: [
             { "id": 0, "name": "内軌-左(進入)", "relX": -93, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
@@ -61,7 +61,7 @@ registerRailParts({
     "KATO-UNITRAM-S124D": {
         systemId: "KATO-UNITRAM-N",
         category: "straight",
-        name: "複線直線軌道 124mm",
+        name: "TWS124",
         description: "124mm 複線プレート (軌道間隔25mm)",
         nodes: [
             { "id": 0, "name": "内軌-左(進入)", "relX": -62, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
@@ -79,7 +79,7 @@ registerRailParts({
     "KATO-UNITRAM-S62D": {
         systemId: "KATO-UNITRAM-N",
         category: "straight",
-        name: "複線直線軌道 62mm",
+        name: "TWS62",
         description: "62mm 複線プレート (軌道間隔25mm)",
         nodes: [
             { "id": 0, "name": "内軌-左(進入)", "relX": -31, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
@@ -97,7 +97,7 @@ registerRailParts({
     "KATO-UNITRAM-C-L": {
         systemId: "KATO-UNITRAM-N",
         category: "curve",
-        name: "複線交差点/交差角 曲線 L",
+        name: "TWR180L",
         description: "交差点 曲線軌道 (進入25mm / 出口33mm+R180)",
         nodes: [
             { "id": 0, "name": "直線側-内軌(進入)", "relX": -62.0, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
@@ -118,7 +118,7 @@ registerRailParts({
     "KATO-UNITRAM-C-R": {
         systemId: "KATO-UNITRAM-N",
         category: "curve",
-        name: "複線交差点/交差角 曲線 R",
+        name: "TWR180R",
         description: "交差点 曲線軌道 (進入25mm / 出口33mm+R180)",
         nodes: [
             { "id": 0, "name": "直線側-外軌(進入)", "relX": -62.0, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
@@ -139,7 +139,7 @@ registerRailParts({
     "KATO-UNITRAM-TURNOUT-L": {
         systemId: "KATO-UNITRAM-N",
         category: "turnout",
-        name: "複線分岐ポイント L",
+        name: "TWEP180L",
         description: "電動複線分岐ポイント (186mm直進25mm + C-L曲線分岐33mm)",
         nodes: [
             { "id": 0, "name": "進入-内軌", "relX": -93.0, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
@@ -164,7 +164,7 @@ registerRailParts({
     "KATO-UNITRAM-TURNOUT-R": {
         systemId: "KATO-UNITRAM-N",
         category: "turnout",
-        name: "複線分岐ポイント R",
+        name: "TWEP180R",
         description: "電動複線分岐ポイント (186mm直進25mm + C-R曲線分岐33mm)",
         nodes: [
             { "id": 0, "name": "進入-外軌", "relX": -93.0, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
@@ -189,7 +189,7 @@ registerRailParts({
     "KATO-UNITRAM-CROSS-62D": {
         systemId: "KATO-UNITRAM-N",
         category: "turnout",
-        name: "複線十字軌道 62mm",
+        name: "TWX62-90",
         description: "62mm×62mm 複線十字交差点軌道 (全ノード25mm間隔)",
         nodes: [
             { "id": 0, "name": "西-内軌(進入)", "relX": -31, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
