@@ -413,7 +413,7 @@ registerRailParts({
     },
 
     // ---------------------------------------------------------
-    // ダブルスリップポイント (回転方向 厳密修正版)
+    // ダブルスリップポイント (R280複合カーブ仕様)
     // ---------------------------------------------------------
     "TOMIX-N-PXL140-15": {
         systemId: "TOMIX-FINETRACK-N",
@@ -428,12 +428,13 @@ registerRailParts({
             { "id": 3, "jointType": "rail-end", "name": "主線出口", "relX": 70,    "relY": 0,      "facingAngle": 0 }
         ],
         shapes: [
+            // 主線・斜線（直進2本）
             { "type": "line", "length": 140,    "offsetX": 0, "offsetY": 0, "angle": 0 },
             { "type": "line", "length": 144.93, "offsetX": 0, "offsetY": 0, "angle": 15 },
-            // 下側渡り線: 270度から時計回り(+15deg)
-            { "type": "arc",  "radius": 541, "arcAngle": 15,  "centerX": -70, "centerY": 541,  "startAngle": 270 },
-            // 上側渡り線: 90度から時計回り(+15deg)
-            { "type": "arc",  "radius": 541, "arcAngle": 15,  "centerX": 70,  "centerY": -541, "startAngle": 90 }
+            // 渡り線1 (下側: ノード0付近の直進 -> R280曲げ -> ノード2方向の直進)
+            { "type": "arc",  "radius": 280,   "arcAngle": 15, "centerX": -36.23, "centerY": 280, "startAngle": 270 },
+            // 渡り線2 (上側: ノード1方向の直進 -> R280曲げ -> ノード3付近の直進)
+            { "type": "arc",  "radius": 280,   "arcAngle": 15, "centerX": 36.23,  "centerY": -280, "startAngle": 90 }
         ]
     },
     "TOMIX-N-PXR140-15": {
@@ -449,12 +450,13 @@ registerRailParts({
             { "id": 3, "jointType": "rail-end", "name": "主線出口", "relX": 70,    "relY": 0,      "facingAngle": 0 }
         ],
         shapes: [
+            // 主線・斜線（直進2本）
             { "type": "line", "length": 140,    "offsetX": 0, "offsetY": 0, "angle": 0 },
             { "type": "line", "length": 144.93, "offsetX": 0, "offsetY": 0, "angle": 345 },
-            // 上側渡り線: 90度から反時計回り(-15deg)
-            { "type": "arc",  "radius": 541, "arcAngle": -15, "centerX": -70, "centerY": -541, "startAngle": 90 },
-            // 下側渡り線: 270度から反時計回り(-15deg)
-            { "type": "arc",  "radius": 541, "arcAngle": -15, "centerX": 70,  "centerY": 541,  "startAngle": 270 }
+            // 渡り線1 (上側)
+            { "type": "arc",  "radius": 280,   "arcAngle": -15, "centerX": -36.23, "centerY": -280, "startAngle": 90 },
+            // 渡り線2 (下側)
+            { "type": "arc",  "radius": 280,   "arcAngle": -15, "centerX": 36.23,  "centerY": 280, "startAngle": 270 }
         ]
     },
 
