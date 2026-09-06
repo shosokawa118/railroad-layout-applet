@@ -207,5 +207,118 @@ registerRailParts({
             { "type": "line", "length": 62, "offsetX": -12.5, "offsetY": 0, "angle": 90 },
             { "type": "line", "length": 62, "offsetX":  12.5, "offsetY": 0, "angle": 90 }
         ]
+    },
+
+    // --- 道路プレート 62×62 ---
+    "KATO-UNITRAM-ROAD-62-62": {
+        systemId: "KATO-UNITRAM-N",
+        category: "road",
+        name: "道路プレート 62×62",
+        description: "62mm×62mm 道路プレート",
+        nodes: [
+            // 西(左: X=-31, Y=0, 向き=180°)
+            { "id": 0, "name": "西", "relX": -31, "relY": 0, "facingAngle": 180, "jointType": "plate" },
+            // 北(上: X=0, Y=-31, 向き=270°)
+            { "id": 1, "name": "北", "relX": 0, "relY": -31, "facingAngle": 270, "jointType": "plate" },
+            // 南(下: X=0, Y=31, 向き=90°)
+            { "id": 2, "name": "南", "relX": 0, "relY": 31, "facingAngle": 90, "jointType": "plate" },
+            // 東(右: X=31, Y=0, 向き=0°)
+            { "id": 3, "name": "東", "relX": 31, "relY": 0, "facingAngle": 0, "jointType": "plate" }
+        ],
+        shapes: [
+            { "type": "rect", "width": 62, "height": 62, "offsetX": 0, "offsetY": 0 }
+        ]
+    },
+
+    // --- 道路プレート 62×124 ---
+    "KATO-UNITRAM-ROAD-62-124": {
+        systemId: "KATO-UNITRAM-N",
+        category: "road",
+        name: "道路プレート 62×124",
+        description: "62mm×124mm 道路プレート",
+        nodes: [
+            // 西(左: X=-31, Y=0, 向き=180°)
+            { "id": 0, "name": "西", "relX": -31, "relY": 0, "facingAngle": 180, "jointType": "plate" },
+            // 北(上: X=0, Y=-62, 向き=270°)
+            { "id": 1, "name": "北", "relX": 0, "relY": -62, "facingAngle": 270, "jointType": "plate" },
+            // 南(下: X=0, Y=62, 向き=90°)
+            { "id": 2, "name": "南", "relX": 0, "relY": 62, "facingAngle": 90, "jointType": "plate" },
+            // 東(右: X=31, Y=0, 向き=0°)
+            { "id": 3, "name": "東", "relX": 31, "relY": 0, "facingAngle": 0, "jointType": "plate" }
+        ],
+        shapes: [
+            { "type": "rect", "width": 62, "height": 124, "offsetX": 0, "offsetY": 0 }
+        ]
+    },
+
+    // --- 道路プレート 62×186 ---
+    "KATO-UNITRAM-ROAD-62-186": {
+        systemId: "KATO-UNITRAM-N",
+        category: "road",
+        name: "道路プレート 62×186",
+        description: "62mm×186mm 道路プレート",
+        nodes: [
+            // 西(左: 2箇所 Y=-31, Y=31, 向き=180°)
+            { "id": 0, "name": "西-上", "relX": -31, "relY": -31, "facingAngle": 180, "jointType": "plate" },
+            { "id": 1, "name": "西-下", "relX": -31, "relY": 31, "facingAngle": 180, "jointType": "plate" },
+            // 北(上: X=0, Y=-93, 向き=270°)
+            { "id": 2, "name": "北", "relX": 0, "relY": -93, "facingAngle": 270, "jointType": "plate" },
+            // 南(下: X=0, Y=93, 向き=90°)
+            { "id": 3, "name": "南", "relX": 0, "relY": 93, "facingAngle": 90, "jointType": "plate" },
+            // 東(右: 2箇所 Y=-31, Y=31, 向き=0°)
+            { "id": 4, "name": "東-下", "relX": 31, "relY": 31, "facingAngle": 0, "jointType": "plate" },
+            { "id": 5, "name": "東-上", "relX": 31, "relY": -31, "facingAngle": 0, "jointType": "plate" }
+        ],
+        shapes: [
+            { "type": "rect", "width": 62, "height": 186, "offsetX": 0, "offsetY": 0 }
+        ]
+    },
+
+    // --- 道路プレート 124×186 ---
+    "KATO-UNITRAM-ROAD-124-186": {
+        systemId: "KATO-UNITRAM-N",
+        category: "road",
+        name: "道路プレート 124×186",
+        description: "124mm×186mm 道路プレート",
+        nodes: [
+            // 西(左: 186mm辺 2箇所 Y=-31, Y=31, 向き=180°)
+            { "id": 0, "name": "西-上", "relX": -62, "relY": -31, "facingAngle": 180, "jointType": "plate" },
+            { "id": 1, "name": "西-下", "relX": -62, "relY": 31, "facingAngle": 180, "jointType": "plate" },
+            // 北(上: 124mm辺 1箇所 X=0, Y=-93, 向き=270°)
+            { "id": 2, "name": "北", "relX": 0, "relY": -93, "facingAngle": 270, "jointType": "plate" },
+            // 南(下: 124mm辺 1箇所 X=0, Y=93, 向き=90°)
+            { "id": 3, "name": "南", "relX": 0, "relY": 93, "facingAngle": 90, "jointType": "plate" },
+            // 東(右: 186mm辺 2箇所 Y=-31, Y=31, 向き=0°)
+            { "id": 4, "name": "東-下", "relX": 62, "relY": 31, "facingAngle": 0, "jointType": "plate" },
+            { "id": 5, "name": "東-上", "relX": 62, "relY": -31, "facingAngle": 0, "jointType": "plate" }
+        ],
+        shapes: [
+            { "type": "rect", "width": 124, "height": 186, "offsetX": 0, "offsetY": 0 }
+        ]
+    },
+
+    // --- 道路プレート 186×186 ---
+    "KATO-UNITRAM-ROAD-186-186": {
+        systemId: "KATO-UNITRAM-N",
+        category: "road",
+        name: "道路プレート 186×186",
+        description: "186mm×186mm 道路プレート",
+        nodes: [
+            // 西(左: 186mm辺 2箇所 Y=-31, Y=31, 向き=180°)
+            { "id": 0, "name": "西-上", "relX": -93, "relY": -31, "facingAngle": 180, "jointType": "plate" },
+            { "id": 1, "name": "西-下", "relX": -93, "relY": 31, "facingAngle": 180, "jointType": "plate" },
+            // 北(上: 186mm辺 2箇所 X=-31, X=31, 向き=270°)
+            { "id": 2, "name": "北-左", "relX": -31, "relY": -93, "facingAngle": 270, "jointType": "plate" },
+            { "id": 3, "name": "北-右", "relX": 31, "relY": -93, "facingAngle": 270, "jointType": "plate" },
+            // 南(下: 186mm辺 2箇所 X=-31, X=31, 向き=90°)
+            { "id": 4, "name": "南-左", "relX": -31, "relY": 93, "facingAngle": 90, "jointType": "plate" },
+            { "id": 5, "name": "南-右", "relX": 31, "relY": 93, "facingAngle": 90, "jointType": "plate" },
+            // 東(右: 186mm辺 2箇所 Y=-31, Y=31, 向き=0°)
+            { "id": 6, "name": "東-下", "relX": 93, "relY": 31, "facingAngle": 0, "jointType": "plate" },
+            { "id": 7, "name": "東-上", "relX": 93, "relY": -31, "facingAngle": 0, "jointType": "plate" }
+        ],
+        shapes: [
+            { "type": "rect", "width": 186, "height": 186, "offsetX": 0, "offsetY": 0 }
+        ]
     }
 });
