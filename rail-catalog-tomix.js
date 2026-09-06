@@ -41,7 +41,7 @@ registerRailParts({
         systemId: "TOMIX-FINETRACK-N",
         compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-MINICURVE-N"],
         category: "straight",
-        name: "S280-F",
+        name: "S280",
         description: "ストレートPCレール 280mm",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -140, "relY": 0, "facingAngle": 180 },
@@ -53,7 +53,7 @@ registerRailParts({
         systemId: "TOMIX-FINETRACK-N",
         compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-MINICURVE-N"],
         category: "straight",
-        name: "S140-F",
+        name: "S140",
         description: "ストレートPCレール 140mm",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -70, "relY": 0, "facingAngle": 180 },
@@ -65,7 +65,7 @@ registerRailParts({
         systemId: "TOMIX-FINETRACK-N",
         compatibleSystems: ["TOMIX-FINETRACK-N", "TOMIX-MINICURVE-N"],
         category: "straight",
-        name: "S70-F",
+        name: "S70",
         description: "ストレートPCレール 70mm",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -35, "relY": 0, "facingAngle": 180 },
@@ -80,7 +80,7 @@ registerRailParts({
     "TOMIX-S72.5": {
         systemId: "TOMIX-FINETRACK-N",
         category: "straight",
-        name: "S72.5-F",
+        name: "S72.5",
         description: "ストレート(15°)PCレール 72.5mm",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -36.25, "relY": 0, "facingAngle": 180 },
@@ -91,7 +91,7 @@ registerRailParts({
     "TOMIX-S99": {
         systemId: "TOMIX-FINETRACK-N",
         category: "straight",
-        name: "S99-F",
+        name: "S99",
         description: "ストレート(45°)PCレール 99mm",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -49.5, "relY": 0, "facingAngle": 180 },
@@ -102,7 +102,7 @@ registerRailParts({
     "TOMIX-S33": {
         systemId: "TOMIX-FINETRACK-N",
         category: "straight",
-        name: "S33-F",
+        name: "S33",
         description: "端数PCレール 33mm",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -16.5, "relY": 0, "facingAngle": 180 },
@@ -113,7 +113,7 @@ registerRailParts({
     "TOMIX-S18.5": {
         systemId: "TOMIX-FINETRACK-N",
         category: "straight",
-        name: "S18.5-F",
+        name: "S18.5",
         description: "端数PCレール 18.5mm",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -9.25, "relY": 0, "facingAngle": 180 },
@@ -124,7 +124,7 @@ registerRailParts({
     "TOMIX-BUMPER": {
         systemId: "TOMIX-FINETRACK-N",
         category: "straight",
-        name: "S70-B-F",
+        name: "S70-B",
         description: "車止めレール 70mm",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -35, "relY": 0, "facingAngle": 180 }
@@ -138,7 +138,7 @@ registerRailParts({
     "TOMIX-C280-45": {
         systemId: "TOMIX-FINETRACK-N",
         category: "curve",
-        name: "C280-45-F",
+        name: "C280-45",
         description: "カーブPCレール",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -107.15, "relY": 0, "facingAngle": 157.5 },
@@ -149,7 +149,7 @@ registerRailParts({
     "TOMIX-C317-45": {
         systemId: "TOMIX-FINETRACK-N",
         category: "curve",
-        name: "C317-45-F",
+        name: "C317-45",
         description: "カーブPCレール",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -121.32, "relY": 0, "facingAngle": 157.5 },
@@ -160,7 +160,7 @@ registerRailParts({
     "TOMIX-C243-45": {
         systemId: "TOMIX-FINETRACK-N",
         category: "curve",
-        name: "C243-45-F",
+        name: "C243-45",
         description: "カーブPCレール",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -92.99, "relY": 0, "facingAngle": 157.5 },
@@ -171,7 +171,7 @@ registerRailParts({
     "TOMIX-C541-15": {
         systemId: "TOMIX-FINETRACK-N",
         category: "curve",
-        name: "C541-15-F",
+        name: "C541-15",
         description: "カーブPCレール",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -70.61, "relY": 0, "facingAngle": 172.5 },
@@ -186,7 +186,7 @@ registerRailParts({
     "TOMIX-C103-30": {
         systemId: "TOMIX-MINICURVE-N",
         category: "curve",
-        name: "C103-30-F",
+        name: "C103-30",
         description: "スーパーミニカーブレール R103-30°",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -26.66, "relY": 0, "facingAngle": 165.0 },
@@ -197,7 +197,7 @@ registerRailParts({
     "TOMIX-C103-60": {
         systemId: "TOMIX-MINICURVE-N",
         category: "curve",
-        name: "C103-60-F",
+        name: "C103-60",
         description: "スーパーミニカーブレール R103-60°",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -51.50, "relY": 0, "facingAngle": 150.0 },
@@ -208,7 +208,7 @@ registerRailParts({
     "TOMIX-C140-30": {
         systemId: "TOMIX-MINICURVE-N",
         category: "curve",
-        name: "C140-30-F",
+        name: "C140-30",
         description: "ミニカーブレール R140-30°",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -36.23, "relY": 0, "facingAngle": 165.0 },
@@ -219,7 +219,7 @@ registerRailParts({
     "TOMIX-C140-60": {
         systemId: "TOMIX-MINICURVE-N",
         category: "curve",
-        name: "C140-60-F",
+        name: "C140-60",
         description: "ミニカーブレール R140-60°",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -70.00, "relY": 0, "facingAngle": 150.0 },
@@ -230,7 +230,7 @@ registerRailParts({
     "TOMIX-C177-30": {
         systemId: "TOMIX-MINICURVE-N",
         category: "curve",
-        name: "C177-30-F",
+        name: "C177-30",
         description: "ミニカーブレール R177-30°",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -45.81, "relY": 0, "facingAngle": 165.0 },
@@ -241,7 +241,7 @@ registerRailParts({
     "TOMIX-C177-60": {
         systemId: "TOMIX-MINICURVE-N",
         category: "curve",
-        name: "C177-60-F",
+        name: "C177-60",
         description: "ミニカーブレール R177-60°",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -88.50, "relY": 0, "facingAngle": 150.0 },
@@ -256,7 +256,7 @@ registerRailParts({
     "TOMIX-N-PL140-30": {
         systemId: "TOMIX-MINICURVE-N",
         category: "turnout",
-        name: "N-PL140-30-F",
+        name: "PL140-30",
         description: "ミニ手動ポイント N-PL140-30 (左)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -35.0, "relY": 0,      "facingAngle": 180 },
@@ -271,7 +271,7 @@ registerRailParts({
     "TOMIX-N-PR140-30": {
         systemId: "TOMIX-MINICURVE-N",
         category: "turnout",
-        name: "N-PR140-30-F",
+        name: "PR140-30",
         description: "ミニ手動ポイント N-PR140-30 (右)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -35.0, "relY": 0,     "facingAngle": 180 },
@@ -290,7 +290,7 @@ registerRailParts({
     "TOMIX-N-PR541-15": {
         systemId: "TOMIX-FINETRACK-N",
         category: "turnout",
-        name: "N-PR541-15-F",
+        name: "PR541-15",
         description: "電動合成枕木ポイント (右)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -70.0, "relY": 0,    "facingAngle": 180 },
@@ -305,7 +305,7 @@ registerRailParts({
     "TOMIX-N-PL541-15": {
         systemId: "TOMIX-FINETRACK-N",
         category: "turnout",
-        name: "N-PL541-15-F",
+        name: "PL541-15",
         description: "電動合成枕木ポイント (左)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -70.0, "relY": 0,     "facingAngle": 180 },
@@ -320,7 +320,7 @@ registerRailParts({
     "TOMIX-5531": {
         systemId: "TOMIX-FINETRACK-N",
         category: "turnout",
-        name: "N-CPR317/280-45-PC(F)",
+        name: "CPR317/280-45-PC",
         description: "カーブポイント C317/280-45 (右)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": 0, "relY": 0, "facingAngle": 180 },
@@ -335,7 +335,7 @@ registerRailParts({
     "TOMIX-5532": {
         systemId: "TOMIX-FINETRACK-N",
         category: "turnout",
-        name: "N-CPL317/280-45-PC(F)",
+        name: "CPL317/280-45-PC",
         description: "カーブポイント C317/280-45 (左)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": 0, "relY": 0, "facingAngle": 180 },
