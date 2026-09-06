@@ -119,10 +119,12 @@ registerRailParts({
             // --- 側面ジョイント ---
             { "id": 4, "name": "側面-直線南-左", "relX": 0, "relY": 31, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
             { "id": 5, "name": "側面-直線南-右", "relX": 62, "relY": 31, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
-            { "id": 6, "name": "側面-カーブ内側", "relX": 24.77, "relY": -43.27, "facingAngle": 247.5, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
+            { "id": 6, "name": "側面-カーブ内側", "relX": 24.77, "relY": -43.27, "facingAngle": 247.5, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // --- 外側プレート東端(X=124, 幅62mmの中央Y=0)ジョイント ---
+            { "id": 7, "name": "側面-東端先端", "relX": 124, "relY": 0, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
-            // 背景埋め用のプレート矩形
+            // 背景埋め用のプレート矩形 (幅186mm, 高さ62mm, 中心: offsetX 31, offsetY 0)
             { "type": "rect", "width": 186, "height": 62, "offsetX": 31, "offsetY": 0 },
             { "type": "line", "length": 50, "offsetX": -37.0, "offsetY": 12.5 },
             { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -12.0, "centerY": -167.5, "startAngle": 90 },
@@ -146,10 +148,12 @@ registerRailParts({
             // --- 側面ジョイント ---
             { "id": 4, "name": "側面-直線北-左", "relX": 0, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
             { "id": 5, "name": "側面-直線北-右", "relX": 62, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
-            { "id": 6, "name": "側面-カーブ内側", "relX": 24.77, "relY": 43.27, "facingAngle": 112.5, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
+            { "id": 6, "name": "側面-カーブ内側", "relX": 24.77, "relY": 43.27, "facingAngle": 112.5, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // --- 外側プレート東端(X=124, 幅62mmの中央Y=0)ジョイント ---
+            { "id": 7, "name": "側面-東端先端", "relX": 124, "relY": 0, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
-            // 背景埋め用のプレート矩形
+            // 背景埋め用のプレート矩形 (幅186mm, 高さ62mm, 中心: offsetX 31, offsetY 0)
             { "type": "rect", "width": 186, "height": 62, "offsetX": 31, "offsetY": 0 },
             { "type": "line", "length": 50, "offsetX": -37.0, "offsetY": -12.5 },
             { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -12.0, "centerY": 167.5, "startAngle": 270 },
@@ -307,7 +311,7 @@ registerRailParts({
         ]
     },
 
-    // --- 道路プレート TR180 (曲線側ノード削除版) ---
+    // --- 道路プレート TR180 ---
     "KATO-UNITRAM-ROAD-TR180": {
         systemId: "KATO-UNITRAM-N",
         category: "road",
@@ -319,7 +323,9 @@ registerRailParts({
             { "id": 1, "name": "南-右", "relX": 31, "relY": 93, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
             // 東(右: 186mm辺 2箇所 Y=-31, Y=31, 向き=0°)
             { "id": 2, "name": "東-下", "relX": 93, "relY": 31, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
-            { "id": 3, "name": "東-上", "relX": 93, "relY": -31, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
+            { "id": 3, "name": "東-上", "relX": 93, "relY": -31, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // カーブ軌道(C-L/C-R)の内側22.5°(Node 6)と対になる内側ジョイント
+            { "id": 4, "name": "カーブ対向-内側", "relX": -37.23, "relY": -43.27, "facingAngle": 67.5, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
             {
