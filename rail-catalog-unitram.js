@@ -280,7 +280,7 @@ registerRailParts({
         ]
     },
 
-    // --- 道路プレート TR180 (90度カーブ内側プレート) ---
+    // --- 道路プレート TR180 (曲線側ノード削除版) ---
     "KATO-UNITRAM-ROAD-TR180": {
         systemId: "KATO-UNITRAM-N",
         category: "road",
@@ -288,11 +288,11 @@ registerRailParts({
         description: "ユニトラム 曲線軌道プレート R180 (交差点・内側)",
         nodes: [
             // 南(下: 186mm辺 2箇所 X=-31, X=31, 向き=90°)
-            { "id": 4, "name": "南-左", "relX": -31, "relY": 93, "facingAngle": 90, "jointGroup": "unitram-plate" },
-            { "id": 5, "name": "南-右", "relX": 31, "relY": 93, "facingAngle": 90, "jointGroup": "unitram-plate" },
+            { "id": 0, "name": "南-左", "relX": -31, "relY": 93, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 1, "name": "南-右", "relX": 31, "relY": 93, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
             // 東(右: 186mm辺 2箇所 Y=-31, Y=31, 向き=0°)
-            { "id": 6, "name": "東-下", "relX": 93, "relY": 31, "facingAngle": 0, "jointGroup": "unitram-plate" },
-            { "id": 7, "name": "東-上", "relX": 93, "relY": -31, "facingAngle": 0, "jointGroup": "unitram-plate" }
+            { "id": 2, "name": "東-下", "relX": 93, "relY": 31, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 3, "name": "東-上", "relX": 93, "relY": -31, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
             {
