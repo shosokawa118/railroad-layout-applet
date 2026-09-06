@@ -248,13 +248,13 @@ registerRailParts({
         description: "ユニトラム道路中央62mm",
         nodes: [
             // 西(左: X=-31, Y=0, 向き=180°)
-            { "id": 0, "name": "西", "relX": -31, "relY": 0, "facingAngle": 180, "jointGroup": "unitram-plate" },
+            { "id": 0, "name": "西", "relX": -31, "relY": 0, "facingAngle": 180, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
             // 北(上: X=0, Y=-31, 向き=270°)
-            { "id": 1, "name": "北", "relX": 0, "relY": -31, "facingAngle": 270, "jointGroup": "unitram-plate" },
+            { "id": 1, "name": "北", "relX": 0, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
             // 南(下: X=0, Y=31, 向き=90°)
-            { "id": 2, "name": "南", "relX": 0, "relY": 31, "facingAngle": 90, "jointGroup": "unitram-plate" },
+            { "id": 2, "name": "南", "relX": 0, "relY": 31, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
             // 東(右: X=31, Y=0, 向き=0°)
-            { "id": 3, "name": "東", "relX": 31, "relY": 0, "facingAngle": 0, "jointGroup": "unitram-plate" }
+            { "id": 3, "name": "東", "relX": 31, "relY": 0, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
             { "type": "rect", "width": 62, "height": 62, "offsetX": 0, "offsetY": 0 }
@@ -269,15 +269,15 @@ registerRailParts({
         description: "ユニトラム道路中央186mm 交差点用",
         nodes: [
             // 西(左: 2箇所 Y=-31, Y=31, 向き=180°)
-            { "id": 0, "name": "西-上", "relX": -31, "relY": -31, "facingAngle": 180, "jointGroup": "unitram-plate" },
-            { "id": 1, "name": "西-下", "relX": -31, "relY": 31, "facingAngle": 180, "jointGroup": "unitram-plate" },
+            { "id": 0, "name": "西-上", "relX": -31, "relY": -31, "facingAngle": 180, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 1, "name": "西-下", "relX": -31, "relY": 31, "facingAngle": 180, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
             // 北(上: X=0, Y=-93, 向き=270°)
-            { "id": 2, "name": "北", "relX": 0, "relY": -93, "facingAngle": 270, "jointGroup": "unitram-plate" },
+            { "id": 2, "name": "北", "relX": 0, "relY": -93, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
             // 南(下: X=0, Y=93, 向き=90°)
-            { "id": 3, "name": "南", "relX": 0, "relY": 93, "facingAngle": 90, "jointGroup": "unitram-plate" },
+            { "id": 3, "name": "南", "relX": 0, "relY": 93, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
             // 東(右: 2箇所 Y=-31, Y=31, 向き=0°)
-            { "id": 4, "name": "東-下", "relX": 31, "relY": 31, "facingAngle": 0, "jointGroup": "unitram-plate" },
-            { "id": 5, "name": "東-上", "relX": 31, "relY": -31, "facingAngle": 0, "jointGroup": "unitram-plate" }
+            { "id": 4, "name": "東-下", "relX": 31, "relY": 31, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 5, "name": "東-上", "relX": 31, "relY": -31, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
             { "type": "rect", "width": 62, "height": 186, "offsetX": 0, "offsetY": 0 }
@@ -292,15 +292,15 @@ registerRailParts({
         description: "ユニトラム直線道路プレート124mm",
         nodes: [
             // 西(左: 186mm辺 2箇所 Y=-31, Y=31, 向き=180°)
-            { "id": 0, "name": "西-上", "relX": -62, "relY": -31, "facingAngle": 180, "jointGroup": "unitram-plate" },
-            { "id": 1, "name": "西-下", "relX": -62, "relY": 31, "facingAngle": 180, "jointGroup": "unitram-plate" },
+            { "id": 0, "name": "西-上", "relX": -62, "relY": -31, "facingAngle": 180, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 1, "name": "西-下", "relX": -62, "relY": 31, "facingAngle": 180, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
             // 北(上: 124mm辺 1箇所 X=0, Y=-93, 向き=270°)
-            { "id": 2, "name": "北", "relX": 0, "relY": -93, "facingAngle": 270, "jointGroup": "unitram-plate" },
+            { "id": 2, "name": "北", "relX": 0, "relY": -93, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
             // 南(下: 124mm辺 1箇所 X=0, Y=93, 向き=90°)
-            { "id": 3, "name": "南", "relX": 0, "relY": 93, "facingAngle": 90, "jointGroup": "unitram-plate" },
+            { "id": 3, "name": "南", "relX": 0, "relY": 93, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
             // 東(右: 186mm辺 2箇所 Y=-31, Y=31, 向き=0°)
-            { "id": 4, "name": "東-下", "relX": 62, "relY": 31, "facingAngle": 0, "jointGroup": "unitram-plate" },
-            { "id": 5, "name": "東-上", "relX": 62, "relY": -31, "facingAngle": 0, "jointGroup": "unitram-plate" }
+            { "id": 4, "name": "東-下", "relX": 62, "relY": 31, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 5, "name": "東-上", "relX": 62, "relY": -31, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
             { "type": "rect", "width": 124, "height": 186, "offsetX": 0, "offsetY": 0 }
@@ -340,17 +340,17 @@ registerRailParts({
         description: "ユニトラム道路プレート交差点・角地",
         nodes: [
             // 西(左: 186mm辺 2箇所 Y=-31, Y=31, 向き=180°)
-            { "id": 0, "name": "西-上", "relX": -93, "relY": -31, "facingAngle": 180, "jointGroup": "unitram-plate" },
-            { "id": 1, "name": "西-下", "relX": -93, "relY": 31, "facingAngle": 180, "jointGroup": "unitram-plate" },
+            { "id": 0, "name": "西-上", "relX": -93, "relY": -31, "facingAngle": 180, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 1, "name": "西-下", "relX": -93, "relY": 31, "facingAngle": 180, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
             // 北(上: 186mm辺 2箇所 X=-31, X=31, 向き=270°)
-            { "id": 2, "name": "北-左", "relX": -31, "relY": -93, "facingAngle": 270, "jointGroup": "unitram-plate" },
-            { "id": 3, "name": "北-右", "relX": 31, "relY": -93, "facingAngle": 270, "jointGroup": "unitram-plate" },
+            { "id": 2, "name": "北-左", "relX": -31, "relY": -93, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 3, "name": "北-右", "relX": 31, "relY": -93, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
             // 南(下: 186mm辺 2箇所 X=-31, X=31, 向き=90°)
-            { "id": 4, "name": "南-左", "relX": -31, "relY": 93, "facingAngle": 90, "jointGroup": "unitram-plate" },
-            { "id": 5, "name": "南-右", "relX": 31, "relY": 93, "facingAngle": 90, "jointGroup": "unitram-plate" },
+            { "id": 4, "name": "南-左", "relX": -31, "relY": 93, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 5, "name": "南-右", "relX": 31, "relY": 93, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
             // 東(右: 186mm辺 2箇所 Y=-31, Y=31, 向き=0°)
-            { "id": 6, "name": "東-下", "relX": 93, "relY": 31, "facingAngle": 0, "jointGroup": "unitram-plate" },
-            { "id": 7, "name": "東-上", "relX": 93, "relY": -31, "facingAngle": 0, "jointGroup": "unitram-plate" }
+            { "id": 6, "name": "東-下", "relX": 93, "relY": 31, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 7, "name": "東-上", "relX": 93, "relY": -31, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
             { "type": "rect", "width": 186, "height": 186, "offsetX": 0, "offsetY": 0 }
@@ -365,13 +365,13 @@ registerRailParts({
         description: "ユニトラム道路プレート交差点・中央",
         nodes: [
             // 西(左: X=-31, Y=0, 向き=180°)
-            { "id": 0, "name": "西", "relX": -31, "relY": 0, "facingAngle": 180, "jointGroup": "unitram-plate" },
+            { "id": 0, "name": "西", "relX": -31, "relY": 0, "facingAngle": 180, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
             // 北(上: X=0, Y=-31, 向き=270°)
-            { "id": 1, "name": "北", "relX": 0, "relY": -31, "facingAngle": 270, "jointGroup": "unitram-plate" },
+            { "id": 1, "name": "北", "relX": 0, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
             // 南(下: X=0, Y=31, 向き=90°)
-            { "id": 2, "name": "南", "relX": 0, "relY": 31, "facingAngle": 90, "jointGroup": "unitram-plate" },
+            { "id": 2, "name": "南", "relX": 0, "relY": 31, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
             // 東(右: X=31, Y=0, 向き=0°)
-            { "id": 3, "name": "東", "relX": 31, "relY": 0, "facingAngle": 0, "jointGroup": "unitram-plate" }
+            { "id": 3, "name": "東", "relX": 31, "relY": 0, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
             { "type": "rect", "width": 62, "height": 62, "offsetX": 0, "offsetY": 0 }
