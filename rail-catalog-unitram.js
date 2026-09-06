@@ -49,7 +49,12 @@ registerRailParts({
             { "id": 0, "name": "内軌-左(進入)", "relX": -93, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
             { "id": 1, "name": "外軌-左(進入)", "relX": -93, "relY":  12.5, "facingAngle": 180, "polarity": -1 },
             { "id": 2, "name": "外軌-右(出口)", "relX":  93, "relY":  12.5, "facingAngle": 0, "polarity": 1 },
-            { "id": 3, "name": "内軌-右(出口)", "relX":  93, "relY": -12.5, "facingAngle": 0, "polarity": -1 }
+            { "id": 3, "name": "内軌-右(出口)", "relX":  93, "relY": -12.5, "facingAngle": 0, "polarity": -1 },
+            // --- 側面ジョイント（端から62mm位置: relX = -31, +31） ---
+            { "id": 4, "name": "側面-北-左", "relX": -31, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 5, "name": "側面-北-右", "relX":  31, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 6, "name": "側面-南-左", "relX": -31, "relY":  31, "facingAngle": 90,  "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 7, "name": "側面-南-右", "relX":  31, "relY":  31, "facingAngle": 90,  "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
             { "type": "line", "length": 186, "offsetX": 0, "offsetY": -12.5 },
@@ -67,7 +72,10 @@ registerRailParts({
             { "id": 0, "name": "内軌-左(進入)", "relX": -62, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
             { "id": 1, "name": "外軌-左(進入)", "relX": -62, "relY":  12.5, "facingAngle": 180, "polarity": -1 },
             { "id": 2, "name": "外軌-右(出口)", "relX":  62, "relY":  12.5, "facingAngle": 0, "polarity": 1 },
-            { "id": 3, "name": "内軌-右(出口)", "relX":  62, "relY": -12.5, "facingAngle": 0, "polarity": -1 }
+            { "id": 3, "name": "内軌-右(出口)", "relX":  62, "relY": -12.5, "facingAngle": 0, "polarity": -1 },
+            // --- 側面ジョイント（端から62mm位置: relX = 0） ---
+            { "id": 4, "name": "側面-北", "relX": 0, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 5, "name": "側面-南", "relX": 0, "relY":  31, "facingAngle": 90,  "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
             { "type": "line", "length": 124, "offsetX": 0, "offsetY": -12.5 },
@@ -85,7 +93,10 @@ registerRailParts({
             { "id": 0, "name": "内軌-左(進入)", "relX": -31, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
             { "id": 1, "name": "外軌-左(進入)", "relX": -31, "relY":  12.5, "facingAngle": 180, "polarity": -1 },
             { "id": 2, "name": "外軌-右(出口)", "relX":  31, "relY":  12.5, "facingAngle": 0, "polarity": 1 },
-            { "id": 3, "name": "内軌-右(出口)", "relX":  31, "relY": -12.5, "facingAngle": 0, "polarity": -1 }
+            { "id": 3, "name": "内軌-右(出口)", "relX":  31, "relY": -12.5, "facingAngle": 0, "polarity": -1 },
+            // --- 側面ジョイント ---
+            { "id": 4, "name": "側面-北", "relX": 0, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 5, "name": "側面-南", "relX": 0, "relY":  31, "facingAngle": 90,  "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
             { "type": "line", "length": 62, "offsetX": 0, "offsetY": -12.5 },
@@ -104,7 +115,11 @@ registerRailParts({
             { "id": 1, "name": "直線側-外軌(進入)", "relX": -62.0, "relY":  12.5, "facingAngle": 180, "polarity": -1 },
             // 出口側の33mmノードに jointGroup を明示指定して上書き
             { "id": 2, "name": "45°頂点-外軌(出口)", "relX": 115.28, "relY": -40.22, "facingAngle": -45, "jointGroup": "unijoiner-33mm", "polarity": 1 },
-            { "id": 3, "name": "45°頂点-内軌(出口)", "relX":  90.28, "relY": -65.22, "facingAngle": -45, "jointGroup": "unijoiner-33mm", "polarity": -1 }
+            { "id": 3, "name": "45°頂点-内軌(出口)", "relX":  90.28, "relY": -65.22, "facingAngle": -45, "jointGroup": "unijoiner-33mm", "polarity": -1 },
+            // --- 側面ジョイント ---
+            { "id": 4, "name": "側面-直線南-左", "relX": 0, "relY": 31, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 5, "name": "側面-直線南-右", "relX": 62, "relY": 31, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 6, "name": "側面-カーブ内側", "relX": 24.77, "relY": -43.27, "facingAngle": 247.5, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
             // 背景埋め用のプレート矩形
@@ -127,7 +142,11 @@ registerRailParts({
             { "id": 1, "name": "直線側-内軌(進入)", "relX": -62.0, "relY":  12.5, "facingAngle": 180, "polarity": -1 },
             // 出口側の33mmノードに jointGroup を明示指定して上書き
             { "id": 2, "name": "45°頂点-内軌(出口)", "relX":  90.28, "relY":  65.22, "facingAngle": 45, "jointGroup": "unijoiner-33mm", "polarity": 1 },
-            { "id": 3, "name": "45°頂点-外軌(出口)", "relX": 115.28, "relY":  40.22, "facingAngle": 45, "jointGroup": "unijoiner-33mm", "polarity": -1 }
+            { "id": 3, "name": "45°頂点-外軌(出口)", "relX": 115.28, "relY":  40.22, "facingAngle": 45, "jointGroup": "unijoiner-33mm", "polarity": -1 },
+            // --- 側面ジョイント ---
+            { "id": 4, "name": "側面-直線北-左", "relX": 0, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 5, "name": "側面-直線北-右", "relX": 62, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 6, "name": "側面-カーブ内側", "relX": 24.77, "relY": 43.27, "facingAngle": 112.5, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
             // 背景埋め用のプレート矩形
@@ -152,7 +171,11 @@ registerRailParts({
             { "id": 2, "name": "分岐-外軌", "relX":  84.28, "relY": -40.22, "facingAngle": -45, "jointGroup": "unijoiner-33mm", "polarity": 1 },
             { "id": 3, "name": "分岐-内軌", "relX":  59.28, "relY": -65.22, "facingAngle": -45, "jointGroup": "unijoiner-33mm", "polarity": -1 },
             { "id": 4, "name": "直進-外軌", "relX":  93.0,  "relY":  12.5, "facingAngle": 0, "polarity": 1 },
-            { "id": 5, "name": "直進-内軌", "relX":  93.0,  "relY": -12.5, "facingAngle": 0, "polarity": -1 }
+            { "id": 5, "name": "直進-内軌", "relX":  93.0,  "relY": -12.5, "facingAngle": 0, "polarity": -1 },
+            // --- 側面ジョイント ---
+            { "id": 6, "name": "側面-直線南-左", "relX": -31, "relY": 31, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 7, "name": "側面-直線南-右", "relX":  31, "relY": 31, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 8, "name": "側面-分岐内側",   "relX": -6.23, "relY": -43.27, "facingAngle": 247.5, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
             { "type": "line", "length": 186, "offsetX": 0, "offsetY": -12.5 },
@@ -177,7 +200,11 @@ registerRailParts({
             { "id": 2, "name": "分岐-内軌", "relX":  59.28, "relY":  65.22, "facingAngle": 45, "jointGroup": "unijoiner-33mm", "polarity": 1 },
             { "id": 3, "name": "分岐-外軌", "relX":  84.28, "relY":  40.22, "facingAngle": 45, "jointGroup": "unijoiner-33mm", "polarity": -1 },
             { "id": 4, "name": "直進-外軌", "relX":  93.0,  "relY":  12.5, "facingAngle": 0, "polarity": 1 },
-            { "id": 5, "name": "直進-内軌", "relX":  93.0,  "relY": -12.5, "facingAngle": 0, "polarity": -1 }
+            { "id": 5, "name": "直進-内軌", "relX":  93.0,  "relY": -12.5, "facingAngle": 0, "polarity": -1 },
+            // --- 側面ジョイント ---
+            { "id": 6, "name": "側面-直線北-左", "relX": -31, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 7, "name": "側面-直線北-右", "relX":  31, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 8, "name": "側面-分岐内側",   "relX": -6.23, "relY":  43.27, "facingAngle": 112.5, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
             { "type": "line", "length": 186, "offsetX": 0, "offsetY": -12.5 },
