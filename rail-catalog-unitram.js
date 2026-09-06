@@ -107,10 +107,10 @@ registerRailParts({
             { "id": 3, "name": "45°頂点-内軌(出口)", "relX":  90.28, "relY": -65.22, "facingAngle": -45, "jointGroup": "unijoiner-33mm", "polarity": -1 }
         ],
         shapes: [
-            { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": -12.5 },
-            { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -37.0, "centerY": -192.5, "startAngle": 90 },
             { "type": "line", "length": 50, "offsetX": -37.0, "offsetY": 12.5 },
-            { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -12.0, "centerY": -167.5, "startAngle": 90 }
+            { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -12.0, "centerY": -167.5, "startAngle": 90 },
+            { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": -12.5 },
+            { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -37.0, "centerY": -192.5, "startAngle": 90 }
         ]
     },
 
@@ -128,10 +128,10 @@ registerRailParts({
             { "id": 3, "name": "45°頂点-外軌(出口)", "relX": 115.28, "relY":  40.22, "facingAngle": 45, "jointGroup": "unijoiner-33mm", "polarity": -1 }
         ],
         shapes: [
-            { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": 12.5 },
-            { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -37.0, "centerY": 192.5, "startAngle": 270 },
             { "type": "line", "length": 50, "offsetX": -37.0, "offsetY": -12.5 },
-            { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -12.0, "centerY": 167.5, "startAngle": 270 }
+            { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -12.0, "centerY": 167.5, "startAngle": 270 },
+            { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": 12.5 },
+            { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -37.0, "centerY": 192.5, "startAngle": 270 }
         ]
     },
 
@@ -153,10 +153,10 @@ registerRailParts({
         shapes: [
             { "type": "line", "length": 186, "offsetX": 0, "offsetY": -12.5 },
             { "type": "line", "length": 186, "offsetX": 0, "offsetY":  12.5 },
-            { "type": "line", "length": 25, "offsetX": -80.5, "offsetY": -12.5 },
-            { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -68.0, "centerY": -192.5, "startAngle": 90 },
             { "type": "line", "length": 50, "offsetX": -68.0, "offsetY": 12.5 },
-            { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -43.0, "centerY": -167.5, "startAngle": 90 }
+            { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -43.0, "centerY": -167.5, "startAngle": 90 },
+            { "type": "line", "length": 25, "offsetX": -80.5, "offsetY": -12.5 },
+            { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -68.0, "centerY": -192.5, "startAngle": 90 }
         ]
     },
 
@@ -178,10 +178,10 @@ registerRailParts({
         shapes: [
             { "type": "line", "length": 186, "offsetX": 0, "offsetY": -12.5 },
             { "type": "line", "length": 186, "offsetX": 0, "offsetY":  12.5 },
-            { "type": "line", "length": 25, "offsetX": -80.5, "offsetY": 12.5 },
-            { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -68.0, "centerY": 192.5, "startAngle": 270 },
             { "type": "line", "length": 50, "offsetX": -37.0, "offsetY": -12.5 },
-            { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -43.0, "centerY": 167.5, "startAngle": 270 }
+            { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -43.0, "centerY": 167.5, "startAngle": 270 },
+            { "type": "line", "length": 25, "offsetX": -80.5, "offsetY": 12.5 },
+            { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -68.0, "centerY": 192.5, "startAngle": 270 }
         ]
     },
 
