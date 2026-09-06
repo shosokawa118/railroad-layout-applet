@@ -121,15 +121,78 @@ registerRailParts({
         ],
         shapes: [{ "type": "line", "length": 18.5, "offsetX": 0, "offsetY": 0 }]
     },
-    "TOMIX-BUMPER": {
+    // ---------------------------------------------------------
+    // エンドレール
+    // ---------------------------------------------------------
+    "TOMIX-END": {
         systemId: "TOMIX-FINETRACK-N",
         category: "straight",
+        subCategory: "エンドレール",
         name: "S70-B",
-        description: "車止めレール 70mm",
+        description: "車止めレール 70mm (標識部付)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "relX": -35, "relY": 0, "facingAngle": 180 }
+            { "id": 0, "jointType": "rail-end", "name": "接続端", "relX": 0, "relY": 0, "facingAngle": 180 }
         ],
-        shapes: [{ "type": "line", "length": 70, "offsetX": 0, "offsetY": 0 }]
+        shapes: [
+            // レール部 (長さ70mm / 中心位置 X=35)
+            { "type": "line", "length": 70, "offsetX": 35, "offsetY": 0 },
+            // 緩衝帯ポリゴン (X=70 〜 X=118)
+            {
+                "type": "polygon",
+                "points": [
+                    { "x": 70,  "y": -9 },
+                    { "x": 118, "y": -9 },
+                    { "x": 118, "y": 9 },
+                    { "x": 70,  "y": 9 }
+                ]
+            }
+        ]
+    },
+    "TOMIX-END-LED": {
+        systemId: "TOMIX-FINETRACK-N",
+        category: "straight",
+        subCategory: "エンドレール",
+        name: "E-PC-LED",
+        description: "エンドPCレール E-PC (LEDタイプ)",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "接続端", "relX": 0, "relY": 0, "facingAngle": 180 }
+        ],
+        shapes: [
+            // レール部 (長さ35mm / 中心位置 X=17.5)
+            { "type": "line", "length": 35, "offsetX": 17.5, "offsetY": 0 },
+            // 緩衝帯ポリゴン (X=35 〜 X=83)
+            {
+                "type": "polygon",
+                "points": [
+                    { "x": 35, "y": -9 },
+                    { "x": 83, "y": -9 },
+                    { "x": 83, "y": 9 },
+                    { "x": 35, "y": 9 }
+                ]
+            }
+        ]
+    },
+    "TOMIX-END-LED2": {
+        systemId: "TOMIX-FINETRACK-N",
+        category: "straight",
+        subCategory: "エンドレール",
+        name: "E-LED2",
+        description: "エンドレールE (LEDタイプ2)",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "接続端", "relX": 0, "relY": 0, "facingAngle": 180 }
+        ],
+        shapes: [
+            { "type": "line", "length": 35, "offsetX": 17.5, "offsetY": 0 },
+            {
+                "type": "polygon",
+                "points": [
+                    { "x": 35, "y": -9 },
+                    { "x": 50, "y": -9 },
+                    { "x": 50, "y": 9 },
+                    { "x": 35, "y": 9 }
+                ]
+            }
+        ]
     },
 
     // =========================================================
@@ -512,31 +575,6 @@ registerRailParts({
         shapes: [
             { "type": "line", "length": 142.96, "offsetX": 0, "offsetY": 0, "angle": 0 },
             { "type": "line", "length": 142.96, "offsetX": 0, "offsetY": 0, "angle": 345 }
-        ]
-    },
-
-    // ---------------------------------------------------------
-    // エンドレールE (LEDタイプ2) - 短尺車止め
-    // ---------------------------------------------------------
-    "TOMIX-END-LED2": {
-        systemId: "TOMIX-FINETRACK-N",
-        category: "straight",
-        name: "E-LED2-F",
-        description: "エンドレールE (LEDタイプ2)",
-        nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "接続端", "relX": 0, "relY": 0, "facingAngle": 180 }
-        ],
-        shapes: [
-            { "type": "line", "length": 35, "offsetX": 17.5, "offsetY": 0 },
-            {
-                "type": "polygon",
-                "points": [
-                    { "x": 35, "y": -9 },
-                    { "x": 50, "y": -9 },
-                    { "x": 50, "y": 9 },
-                    { "x": 35, "y": 9 }
-                ]
-            }
         ]
     }
 });
