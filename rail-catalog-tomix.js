@@ -122,6 +122,43 @@ registerRailParts({
         shapes: [{ "type": "line", "length": 18.5, "offsetX": 0, "offsetY": 0 }]
     },
     // ---------------------------------------------------------
+    // ジョイントレール S35-J
+    // ノード0 (左端): TOMIX標準 (tomix-clapper)
+    // ノード1 (右端): TOMIX / KATO(ユニジョイナー) 両対応
+    // ---------------------------------------------------------
+    "TOMIX-1525": {
+        systemId: "TOMIX-FINETRACK-N",
+        category: "straight",
+        subCategory: "特殊レール",
+        name: "S35-J",
+        description: "ジョイントレール S35-J",
+        nodes: [
+            { 
+                "id": 0, 
+                "jointType": "rail-end", 
+                "jointGroup": ["tomix-clapper"], 
+                "name": "接続端(TOMIX)", 
+                "relX": 0, 
+                "relY": 0, 
+                "facingAngle": 180 
+            },
+            { 
+                "id": 1, 
+                "jointType": "rail-end", 
+                "jointGroup": ["tomix-clapper", ...DEFAULT_UNIJOINER_SINGLE], 
+                "name": "接続端(両対応)", 
+                "relX": 35, 
+                "relY": 0, 
+                "facingAngle": 0 
+            }
+        ],
+        shapes: [
+            // レール部 (長さ35mm / 中心位置 X=17.5)
+            { "type": "line", "length": 35, "offsetX": 17.5, "offsetY": 0 }
+        ]
+    },
+
+    // ---------------------------------------------------------
     // エンドレール
     // ---------------------------------------------------------
     "TOMIX-END": {
