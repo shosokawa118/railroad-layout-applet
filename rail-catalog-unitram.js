@@ -108,7 +108,7 @@ registerRailParts({
         ],
         shapes: [
             // 背景埋め用のプレート矩形
-            { "type": "rect", "width": 186, "height": 186, "offsetX": 0, "offsetY": 0 },
+            { "type": "rect", "width": 186, "height": 62, "offsetX": 0, "offsetY": 0 },
             { "type": "line", "length": 50, "offsetX": -37.0, "offsetY": 12.5 },
             { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -12.0, "centerY": -167.5, "startAngle": 90 },
             { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": -12.5 },
@@ -131,7 +131,7 @@ registerRailParts({
         ],
         shapes: [
             // 背景埋め用のプレート矩形
-            { "type": "rect", "width": 186, "height": 186, "offsetX": 0, "offsetY": 0 },
+            { "type": "rect", "width": 186, "height": 62, "offsetX": 0, "offsetY": 0 },
             { "type": "line", "length": 50, "offsetX": -37.0, "offsetY": -12.5 },
             { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -12.0, "centerY": 167.5, "startAngle": 270 },
             { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": 12.5 },
@@ -280,19 +280,13 @@ registerRailParts({
         ]
     },
 
-    // --- 道路プレート TR180 ---
+    // --- 道路プレート TR180 (90度カーブ内側プレート) ---
     "KATO-UNITRAM-ROAD-TR180": {
         systemId: "KATO-UNITRAM-N",
         category: "road",
         name: "TR180",
         description: "ユニトラム 曲線軌道プレート R180 (交差点・内側)",
         nodes: [
-            // 西(左: 186mm辺 2箇所 Y=-31, Y=31, 向き=180°)
-            { "id": 0, "name": "西-上", "relX": -93, "relY": -31, "facingAngle": 180, "jointType": "plate" },
-            { "id": 1, "name": "西-下", "relX": -93, "relY": 31, "facingAngle": 180, "jointType": "plate" },
-            // 北(上: 186mm辺 2箇所 X=-31, X=31, 向き=270°)
-            { "id": 2, "name": "北-左", "relX": -31, "relY": -93, "facingAngle": 270, "jointType": "plate" },
-            { "id": 3, "name": "北-右", "relX": 31, "relY": -93, "facingAngle": 270, "jointType": "plate" },
             // 南(下: 186mm辺 2箇所 X=-31, X=31, 向き=90°)
             { "id": 4, "name": "南-左", "relX": -31, "relY": 93, "facingAngle": 90, "jointType": "plate" },
             { "id": 5, "name": "南-右", "relX": 31, "relY": 93, "facingAngle": 90, "jointType": "plate" },
@@ -303,8 +297,10 @@ registerRailParts({
         shapes: [
             {
                 "type": "path",
-                // 186x186の外枠から、内側軌道(R180) - 道床幅半分(18.5mm) = R161.5 の円弧切り欠き
-                "pathData": "M -93 -93 L 93 -93 L 93 -68 A 161.5 161.5 0 0 0 -68 93 L -93 93 Z"
+                // 左下(-93,93) -> 直進24.5mm(-93,68.5)
+                // -> 中心(68.5, 68.5)/半径161.5で90度時計回り円弧 -> 上辺(68.5,-93)
+                // -> 右上(93,-93) -> 右下(93,93) で外枠を閉じる
+                "pathData": "M -93 93 L -93 68.5 A 161.5 161.5 0 0 1 68.5 -93 L 93 -93 L 93 93 Z"
             }
         ]
     },
