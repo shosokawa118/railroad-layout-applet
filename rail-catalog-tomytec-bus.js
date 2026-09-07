@@ -133,5 +133,25 @@ registerRailParts({
         shapes: [
             { "type": "arc", "radius": 177, "arcAngle": 30, "centerX": 0, "centerY": 170.97, "startAngle": 255.0 }
         ]
+    },
+
+    // --- 曲線道路 C214-30-RO ---
+    "TOMYTEC-BUS-C214-30-RO": {
+        systemId: "TOMYTEC-BUS-N",
+        category: "curve",
+        name: "C214-30-RO",
+        description: "曲線道路 C214-30-RO (半径214mm 角度30°)",
+        nodes: [
+            { "id": 0, "name": "進入", "jointType": "rail-end", "relX": -55.39, "relY": 0, "facingAngle": 165.0 },
+            { "id": 1, "name": "出口", "jointType": "rail-end", "relX":  55.39, "relY": 0, "facingAngle": 15.0 },
+            // 側面ジョイント (内側: R195.5 / 外側: R232.5)
+            { "id": 2, "name": "側面-内1", "jointType": "side-joiner", "jointGroup": "widetram-side-R195.5", "relX": -25.52, "relY": 12.92, "facingAngle": 82.5 },
+            { "id": 3, "name": "側面-内2", "jointType": "side-joiner", "jointGroup": "widetram-side-R195.5", "relX":  25.52, "relY": 12.92, "facingAngle": 97.5 },
+            { "id": 4, "name": "側面-外1", "jointType": "side-joiner", "jointGroup": "widetram-side-R232.5", "relX": -30.35, "relY": -23.71, "facingAngle": -97.5 },
+            { "id": 5, "name": "側面-外2", "jointType": "side-joiner", "jointGroup": "widetram-side-R232.5", "relX":  30.35, "relY": -23.71, "facingAngle": -82.5 }
+        ],
+        shapes: [
+            { "type": "arc", "radius": 214, "arcAngle": 30, "centerX": 0, "centerY": 206.71, "startAngle": 255.0 }
+        ]
     }
 });
