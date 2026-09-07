@@ -45,6 +45,7 @@ function generateGenericRailData(catalogItem) {
 
     const gauge = sys ? sys.gauge : null;
     const shouldRenderRails = (typeof gauge === 'number' && gauge > 0);
+    const shouldRenderSingleCenterLine = (typeof gauge === 'number' && gauge === 0);
     const halfGauge = shouldRenderRails ? gauge / 2 : 0;
 
     // 表示テキスト（label 優先、無ければ name）
@@ -182,6 +183,10 @@ function generateGenericRailData(catalogItem) {
 
                 railPaths.push(`M ${r1_start.x} ${r1_start.y} L ${r1_end.x} ${r1_end.y}`);
                 railPaths.push(`M ${r2_start.x} ${r2_start.y} L ${r2_end.x} ${r2_end.y}`);
+            } else if (shouldRenderSingleCenterLine) {
+                const c_start = trans(-len / 2, 0);
+                const c_end   = trans( len / 2, 0);
+                railPaths.push(`M ${c_start.x} ${c_start.y} L ${c_end.x} ${c_end.y}`);
             }
 
             // まだ文字を描画していない場合のみ、主線（最初の直線要素）に描画
@@ -246,6 +251,13 @@ function generateGenericRailData(catalogItem) {
 
                 railPaths.push(`M ${rx1} ${ry1} A ${rRailOut} ${rRailOut} 0 ${largeArcFlag} ${sweepOut} ${rx2} ${ry2}`);
                 railPaths.push(`M ${rx3} ${ry3} A ${rRailIn} ${rRailIn} 0 ${largeArcFlag} ${sweepOut} ${rx4} ${ry4}`);
+            } else if (shouldRenderSingleCenterLine) {
+                const rx1 = cX + r * Math.cos(startRad);
+                const ry1 = cY + r * Math.sin(startRad);
+                const rx2 = cX + r * Math.cos(endRad);
+                const ry2 = cY + r * Math.sin(endRad);
+
+                railPaths.push(`M ${rx1} ${ry1} A ${r} ${r} 0 ${largeArcFlag} ${sweepOut} ${rx2} ${ry2}`);
             }
 
             // まだ文字を描画していない場合のみ、最初の曲線要素に描画
@@ -324,15 +336,6 @@ function generateGenericRailData(catalogItem) {
     const height = (minY !== Infinity && maxY !== -Infinity) ? (maxY - minY) : 0;
     const geoCenterX = (minX !== Infinity && maxX !== -Infinity) ? minX + width / 2 : 0;
     const geoCenterY = (minY !== Infinity && maxY !== -Infinity) ? minY + height / 2 : 0;
-
-    // --- 【デバッグログ】生成されたテキストデータ・バウンディングボックスを出力 ---
-    console.log(`[TextDebug:Gen] Item: "${catalogItem ? catalogItem.id : 'unknown'}"`, {
-        displayText,
-        geoCenterX,
-        geoCenterY,
-        bounds: { minX, maxX, minY, maxY, width, height },
-        textDataList
-    });
 
     return {
         basePaths: basePaths,
