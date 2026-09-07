@@ -55,6 +55,29 @@ registerRailParts({
         ]
     },
 
+    // --- トラムレール付き交差点パーツ (X37-WT-RO) ---
+    "TOMYTEC-BUS-X37-WT-RO": {
+        systemId: "TOMYTEC-BUS-N",
+        category: "turnout",
+        name: "X37-WT-RO",
+        description: "ワイドトラムレール交差道路 S37-WT",
+        nodes: [
+            // 左右方向：標準のバス道路用ジョイント
+            { "id": 0, "name": "左端", "jointType": "tomytec-road-joint", "relX": -18.5, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "name": "右端", "jointType": "tomytec-road-joint", "relX":  18.5, "relY": 0, "facingAngle": 0 },
+            // 上下方向：トラム(Nゲージ)用ジョイント
+            { "id": 2, "name": "上端", "jointType": "tomix-clapper",       "relX": 0, "relY": -18.5, "facingAngle": 270 },
+            { "id": 3, "name": "下端", "jointType": "tomix-clapper",       "relX": 0, "relY":  18.5, "facingAngle": 90 }
+        ],
+        shapes: [
+            // 主線（左右方向）：バス道路（システム既定の gauge: 0 で1本線描画）
+            { "type": "line", "length": 37, "offsetX": 0, "offsetY": 0, "angle": 0 },
+
+            // 副線（上下方向）：トラム用線路（gauge: 9 を指定して2本線描画）
+            { "type": "line", "length": 37, "offsetX": 0, "offsetY": 0, "angle": 90, "gauge": 9 }
+        ]
+    },
+
     // --- 曲線道路 C66-30-RO ---
     "TOMYTEC-BUS-C66-30-RO": {
         systemId: "TOMYTEC-BUS-N",
