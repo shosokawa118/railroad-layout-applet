@@ -66,6 +66,13 @@ const railCatalog = {
             gauge: 9, ballastWidth: 37,
             defaultJointGroup: "tomix-clapper",
             libraryFile: "rail-catalog-widetram.js"
+        },
+        "TOMYTEC-BUS-N": {
+            scale: "N", brand: "TOMIX", systemName: "バスコレ走行システム (N)",
+            gauge: 0,
+            ballastWidth: 37,
+            defaultJointGroup: "tomytec-road-joint",
+            libraryFile: "rail-catalog-tomytec-bus.js"
         }
     },
     items: {}
