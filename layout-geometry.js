@@ -34,19 +34,14 @@ function generateGenericRailData(catalogItem) {
     const basePaths = [];
     const railPaths = [];
     const textDataList = []; // 文字描画用データリスト
-    
+
     const sys = catalogItem && catalogItem.systemId ? railCatalog.systems[catalogItem.systemId] : null;
-    
+
     const BALLAST_WIDTH = (catalogItem && typeof catalogItem.ballastWidth === 'number')
         ? catalogItem.ballastWidth
         : (sys ? sys.ballastWidth : 16);
 
     const halfW = BALLAST_WIDTH / 2;
-
-    const gauge = sys ? sys.gauge : null;
-    const shouldRenderRails = (typeof gauge === 'number' && gauge > 0);
-    const shouldRenderSingleCenterLine = (typeof gauge === 'number' && gauge === 0);
-    const halfGauge = shouldRenderRails ? gauge / 2 : 0;
 
     // 表示テキスト（label 優先、無ければ name）
     const displayText = (catalogItem && (catalogItem.label || catalogItem.name)) ? (catalogItem.label || catalogItem.name) : "";
@@ -64,6 +59,12 @@ function generateGenericRailData(catalogItem) {
     }
 
     catalogItem.shapes.forEach((shape, sIdx) => {
+        // --- shape 個別の gauge 判定（shape.gauge があれば優先、無ければ system の gauge） ---
+        const effectiveGauge = (typeof shape.gauge === 'number') ? shape.gauge : (sys ? sys.gauge : null);
+        const shouldRenderRails = (typeof effectiveGauge === 'number' && effectiveGauge > 0);
+        const shouldRenderSingleCenterLine = (typeof effectiveGauge === 'number' && effectiveGauge === 0);
+        const halfGauge = shouldRenderRails ? effectiveGauge / 2 : 0;
+
         if (shape.type === "polygon" && Array.isArray(shape.points) && shape.points.length > 0) {
             let polyPath = "";
             shape.points.forEach((pt, idx) => {
@@ -266,7 +267,7 @@ function generateGenericRailData(catalogItem) {
                 const midRad = (midDeg * Math.PI) / 180;
                 const textX = cX + r * Math.cos(midRad);
                 const textY = cY + r * Math.sin(midRad);
-                
+
                 // 接線方向の角度計算
                 const rawAngle = midDeg + (arcAngle >= 0 ? 90 : -90);
 
