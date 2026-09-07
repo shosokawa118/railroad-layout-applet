@@ -153,5 +153,24 @@ registerRailParts({
         shapes: [
             { "type": "arc", "radius": 214, "arcAngle": 30, "centerX": 0, "centerY": 206.71, "startAngle": 255.0 }
         ]
+    },
+    // --- 交差点 L字型単体ユニット (X121.5-A-RO) ---
+    "TOMYTEC-BUS-X121.5-A-RO": {
+        systemId: "TOMYTEC-BUS-N",
+        category: "turnout",
+        name: "X121.5-A-RO",
+        description: "交差点道路 L字型 (121.5mm×121.5mm)",
+        nodes: [
+            { "id": 0, "name": "北端", "jointType": "rail-end", "relX": -42.75, "relY": -60.75, "facingAngle": 270 },
+            { "id": 1, "name": "東端", "jointType": "rail-end", "relX":  60.75, "relY":  42.75, "facingAngle":   0 }
+        ],
+        shapes: [
+            // 直進交差ガイドライン（縦・横）
+            { "type": "line", "length": 121.5, "offsetX": -42.75, "offsetY": 0, "angle": 90 },
+            { "type": "line", "length": 121.5, "offsetX": 0, "offsetY": 42.75, "angle": 0 },
+
+            // 右左折用カーブガイドライン (R66mm)
+            { "type": "arc", "radius": 66, "arcAngle": 90, "centerX": -42.75, "centerY": 42.75, "startAngle": 270 }
+        ]
     }
 });
