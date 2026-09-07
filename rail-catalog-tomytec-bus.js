@@ -30,7 +30,8 @@
  * =============================================================================
  * - TOMIX ワイドトラムレールと外装寸法（道床幅37mm）および側面接続の互換性を保持。
  * - 走行ラインは中央の磁石ガイド線1本（「単線レール」と同等扱い）。
- * - 接続爪は電気的接続のない専用品のため、jointGroup に "tomytec-road-joint" を割り当て。
+ * - 端部接続爪は専用品のため jointGroup に "tomytec-road-joint" を割り当て。
+ * - 側面ジョイントはワイドトラムと互換性を持たせるため、同じ jointGroup 名を設定。
  */
 
 registerRailParts({
@@ -43,9 +44,11 @@ registerRailParts({
         nodes: [
             { "id": 0, "name": "進入", "relX": -35, "relY": 0, "facingAngle": 180 },
             { "id": 1, "name": "出口", "relX":  35, "relY": 0, "facingAngle": 0 },
-            // 側面ジョイント（ワイドトラムと共通互換）
-            { "id": 2, "name": "側面-北", "relX": 0, "relY": -18.5, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "tomix-side-joint" },
-            { "id": 3, "name": "側面-南", "relX": 0, "relY":  18.5, "facingAngle": 90,  "jointType": "side-joiner", "jointGroup": "tomix-side-joint" }
+            // 側面ジョイント（ワイドトラム互換）
+            { "id": 2, "name": "側面-北1", "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX": -25.75, "relY": -18.5, "facingAngle": -90 },
+            { "id": 3, "name": "側面-南1", "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX": -25.75, "relY":  18.5, "facingAngle":  90 },
+            { "id": 4, "name": "側面-北2", "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX":  25.75, "relY": -18.5, "facingAngle": -90 },
+            { "id": 5, "name": "側面-南2", "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX":  25.75, "relY":  18.5, "facingAngle":  90 }
         ],
         shapes: [
             { "type": "line", "length": 70, "offsetX": 0, "offsetY": 0 }
@@ -60,7 +63,12 @@ registerRailParts({
         description: "曲線道路 C66-30-RO (半径66mm 角度30°)",
         nodes: [
             { "id": 0, "name": "進入", "relX": -17.08, "relY": 8.84, "facingAngle": 195 },
-            { "id": 1, "name": "出口", "relX":  17.08, "relY": 8.84, "facingAngle": -15 }
+            { "id": 1, "name": "出口", "relX":  17.08, "relY": 8.84, "facingAngle": -15 },
+            // 側面ジョイント (内側: R47.5 / 外側: R84.5)
+            { "id": 2, "name": "側面-内1", "jointType": "side-joiner", "jointGroup": "widetram-side-R47.5", "relX": -6.20, "relY": 14.98, "facingAngle": 82.5 },
+            { "id": 3, "name": "側面-内2", "jointType": "side-joiner", "jointGroup": "widetram-side-R47.5", "relX":  6.20, "relY": 14.98, "facingAngle": 97.5 },
+            { "id": 4, "name": "側面-外1", "jointType": "side-joiner", "jointGroup": "widetram-side-R84.5", "relX": -11.03, "relY": -18.89, "facingAngle": -97.5 },
+            { "id": 5, "name": "側面-外2", "jointType": "side-joiner", "jointGroup": "widetram-side-R84.5", "relX":  11.03, "relY": -18.89, "facingAngle": -82.5 }
         ],
         shapes: [
             { "type": "arc", "radius": 66, "arcAngle": 30, "centerX": 0, "centerY": 66, "startAngle": 255 }
@@ -75,7 +83,12 @@ registerRailParts({
         description: "曲線道路 C103-30-RO (半径103mm 角度30°)",
         nodes: [
             { "id": 0, "name": "進入", "relX": -26.66, "relY": 13.79, "facingAngle": 195 },
-            { "id": 1, "name": "出口", "relX":  26.66, "relY": 13.79, "facingAngle": -15 }
+            { "id": 1, "name": "出口", "relX":  26.66, "relY": 13.79, "facingAngle": -15 },
+            // 側面ジョイント (内側: R84.5 / 外側: R121.5)
+            { "id": 2, "name": "側面-内1", "jointType": "side-joiner", "jointGroup": "widetram-side-R84.5", "relX": -11.03, "relY": 15.72, "facingAngle": 82.5 },
+            { "id": 3, "name": "側面-内2", "jointType": "side-joiner", "jointGroup": "widetram-side-R84.5", "relX":  11.03, "relY": 15.72, "facingAngle": 97.5 },
+            { "id": 4, "name": "側面-外1", "jointType": "side-joiner", "jointGroup": "widetram-side-R121.5", "relX": -15.86, "relY": -20.97, "facingAngle": -97.5 },
+            { "id": 5, "name": "側面-外2", "jointType": "side-joiner", "jointGroup": "widetram-side-R121.5", "relX":  15.86, "relY": -20.97, "facingAngle": -82.5 }
         ],
         shapes: [
             { "type": "arc", "radius": 103, "arcAngle": 30, "centerX": 0, "centerY": 103, "startAngle": 255 }
@@ -90,7 +103,12 @@ registerRailParts({
         description: "曲線道路 C140-30-RO (半径140mm 角度30°)",
         nodes: [
             { "id": 0, "name": "進入", "relX": -36.23, "relY": 18.75, "facingAngle": 195 },
-            { "id": 1, "name": "出口", "relX":  36.23, "relY": 18.75, "facingAngle": -15 }
+            { "id": 1, "name": "出口", "relX":  36.23, "relY": 18.75, "facingAngle": -15 },
+            // 側面ジョイント (内側: R121.5 / 外側: R158.5)
+            { "id": 2, "name": "側面-内1", "jointType": "side-joiner", "jointGroup": "widetram-side-R121.5", "relX": -15.86, "relY": 14.86, "facingAngle": 82.5 },
+            { "id": 3, "name": "側面-内2", "jointType": "side-joiner", "jointGroup": "widetram-side-R121.5", "relX":  15.86, "relY": 14.86, "facingAngle": 97.5 },
+            { "id": 4, "name": "側面-外1", "jointType": "side-joiner", "jointGroup": "widetram-side-R158.5", "relX": -20.69, "relY": -21.84, "facingAngle": -97.5 },
+            { "id": 5, "name": "側面-外2", "jointType": "side-joiner", "jointGroup": "widetram-side-R158.5", "relX":  20.69, "relY": -21.84, "facingAngle": -82.5 }
         ],
         shapes: [
             { "type": "arc", "radius": 140, "arcAngle": 30, "centerX": 0, "centerY": 140, "startAngle": 255 }
@@ -105,7 +123,12 @@ registerRailParts({
         description: "曲線道路 C177-30-RO (半径177mm 角度30°)",
         nodes: [
             { "id": 0, "name": "進入", "relX": -45.81, "relY": 23.71, "facingAngle": 195 },
-            { "id": 1, "name": "出口", "relX":  45.81, "relY": 23.71, "facingAngle": -15 }
+            { "id": 1, "name": "出口", "relX":  45.81, "relY": 23.71, "facingAngle": -15 },
+            // 側面ジョイント (内側: R158.5 / 外側: R195.5)
+            { "id": 2, "name": "側面-内1", "jointType": "side-joiner", "jointGroup": "widetram-side-R158.5", "relX": -20.69, "relY": 13.91, "facingAngle": 82.5 },
+            { "id": 3, "name": "側面-内2", "jointType": "side-joiner", "jointGroup": "widetram-side-R158.5", "relX":  20.69, "relY": 13.91, "facingAngle": 97.5 },
+            { "id": 4, "name": "側面-外1", "jointType": "side-joiner", "jointGroup": "widetram-side-R195.5", "relX": -25.52, "relY": -22.79, "facingAngle": -97.5 },
+            { "id": 5, "name": "側面-外2", "jointType": "side-joiner", "jointGroup": "widetram-side-R195.5", "relX":  25.52, "relY": -22.79, "facingAngle": -82.5 }
         ],
         shapes: [
             { "type": "arc", "radius": 177, "arcAngle": 30, "centerX": 0, "centerY": 177, "startAngle": 255 }
