@@ -324,8 +324,9 @@ registerRailParts({
             // 東(右: 186mm辺 2箇所 Y=-31, Y=31, 向き=0°)
             { "id": 2, "name": "東-下", "relX": 93, "relY": 31, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
             { "id": 3, "name": "東-上", "relX": 93, "relY": -31, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
-            // カーブ軌道(C-L/C-R)の内側22.5°(Node 6)と対になる内側ジョイント
-            { "id": 4, "name": "カーブ対向-内側", "relX": -37.23, "relY": -43.27, "facingAngle": 67.5, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
+            // カーブ円弧対向ジョイント (円弧開始から22.5°および67.5°位置)
+            { "id": 4, "name": "カーブ対向-下(22.5°)", "relX": -80.71, "relY": 6.70, "facingAngle": 202.5, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 5, "name": "カーブ対向-上(67.5°)", "relX": 6.70, "relY": -80.71, "facingAngle": 247.5, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
             {
