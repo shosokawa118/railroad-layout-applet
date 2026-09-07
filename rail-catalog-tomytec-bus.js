@@ -161,16 +161,22 @@ registerRailParts({
         name: "X121.5-A-RO",
         description: "交差点道路 L字型 (121.5mm×121.5mm)",
         nodes: [
-            { "id": 0, "name": "北端", "jointType": "rail-end", "relX": -42.75, "relY": -60.75, "facingAngle": 270 },
-            { "id": 1, "name": "東端", "jointType": "rail-end", "relX":  60.75, "relY":  42.75, "facingAngle":   0 }
+            // 主線 (左 ⇄ 右)
+            { "id": 0, "name": "左端", "jointType": "rail-end", "relX": -60.75, "relY":  42.75, "facingAngle": 180 },
+            { "id": 1, "name": "右端", "jointType": "rail-end", "relX":  60.75, "relY":  42.75, "facingAngle":   0 },
+            // 副線 (下 ⇄ 上)
+            { "id": 2, "name": "下端", "jointType": "rail-end", "relX": -42.75, "relY":  60.75, "facingAngle":  90 },
+            { "id": 3, "name": "上端", "jointType": "rail-end", "relX": -42.75, "relY": -60.75, "facingAngle": 270 }
         ],
         shapes: [
-            // 直進交差ガイドライン（縦・横）
-            { "type": "line", "length": 121.5, "offsetX": -42.75, "offsetY": 0, "angle": 90 },
+            // 主線（横方向直線）
             { "type": "line", "length": 121.5, "offsetX": 0, "offsetY": 42.75, "angle": 0 },
 
+            // 副線（縦方向直線）
+            { "type": "line", "length": 121.5, "offsetX": -42.75, "offsetY": 0, "angle": 90 },
+
             // 右左折用カーブガイドライン (R66mm)
-            { "type": "arc", "radius": 66, "arcAngle": 90, "centerX": -42.75, "centerY": 42.75, "startAngle": 270 }
+            { "type": "arc", "radius": 66, "arcAngle": -90, "centerX": 23.25, "centerY": -23.25, "startAngle": 180 }
         ]
     }
 });
