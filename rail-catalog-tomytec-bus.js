@@ -200,5 +200,44 @@ registerRailParts({
             // 右左折用カーブガイドライン (R66mm)
             { "type": "arc", "radius": 66, "arcAngle": -90, "centerX": 23.25, "centerY": -23.25, "startAngle": 180 }
         ]
+    },
+    // --- 丁字路用 I字型ユニット進入側 (X121.5-C-RO) ---
+    "TOMYTEC-BUS-X121.5-C-RO": {
+        systemId: "TOMYTEC-BUS-N",
+        category: "turnout",
+        name: "X121.5-C-RO",
+        description: "交差点道路 丁字路用 I字型（進入側） (121.5mm×37mm)",
+        nodes: [
+            { "id": 0, "name": "左端", "jointType": "tomytec-road-joint", "relX": -60.75, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "name": "右端", "jointType": "tomytec-road-joint", "relX":  60.75, "relY": 0, "facingAngle":   0 }
+        ],
+        shapes: [
+            // 主線（左右方向直線）
+            { "type": "line", "length": 121.5, "offsetX": 0, "offsetY": 0, "angle": 0 },
+
+            // 上方向分岐用カーブガイドライン (R66mm 2本)
+            { "type": "arc", "radius": 66, "arcAngle": -90, "centerX":   23.25, "centerY": -66, "startAngle": 180 },
+            { "type": "arc", "radius": 66, "arcAngle":  90, "centerX": -108.75, "centerY": -66, "startAngle":   0 }
+        ]
+    },
+
+    // --- 丁字路用 I字型ユニット退出側 (X121.5-D-RO) ---
+    "TOMYTEC-BUS-X121.5-D-RO": {
+        systemId: "TOMYTEC-BUS-N",
+        category: "turnout",
+        name: "X121.5-D-RO",
+        description: "交差点道路 丁字路用 I字型（退出側） (121.5mm×37mm)",
+        nodes: [
+            { "id": 0, "name": "左端", "jointType": "tomytec-road-joint", "relX": -60.75, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "name": "右端", "jointType": "tomytec-road-joint", "relX":  60.75, "relY": 0, "facingAngle":   0 }
+        ],
+        shapes: [
+            // 主線（左右方向直線）
+            { "type": "line", "length": 121.5, "offsetX": 0, "offsetY": 0, "angle": 0 },
+
+            // 下方向分岐用カーブガイドライン (R66mm 2本)
+            { "type": "arc", "radius": 66, "arcAngle":  90, "centerX":   23.25, "centerY": 66, "startAngle": 180 },
+            { "type": "arc", "radius": 66, "arcAngle": -90, "centerX": -108.75, "centerY": 66, "startAngle":   0 }
+        ]
     }
 });
