@@ -184,21 +184,24 @@ registerRailParts({
         description: "交差点道路 L字型 (121.5mm×121.5mm)",
         nodes: [
             // 主線 (左 ⇄ 右)
-            { "id": 0, "name": "左端", "jointType": "rail-end", "relX": -60.75, "relY":  42.75, "facingAngle": 180 },
-            { "id": 1, "name": "右端", "jointType": "rail-end", "relX":  60.75, "relY":  42.75, "facingAngle":   0 },
+            { "id": 0, "name": "左端", "relX": -103, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "name": "右端", "relX": 18.5, "relY": 0, "facingAngle":   0 },
             // 副線 (下 ⇄ 上)
-            { "id": 2, "name": "下端", "jointType": "rail-end", "relX": -42.75, "relY":  60.75, "facingAngle":  90 },
-            { "id": 3, "name": "上端", "jointType": "rail-end", "relX": -42.75, "relY": -60.75, "facingAngle": 270 }
+            { "id": 2, "name": "下端", "relX": 0, "relY": 18.5, "facingAngle":  90 },
+            { "id": 3, "name": "上端", "relX": 0, "relY": -103, "facingAngle": 270 }
         ],
         shapes: [
             // 主線（横方向直線）
-            { "type": "line", "length": 121.5, "offsetX": 0, "offsetY": 42.75, "angle": 0 },
-
+            { "type": "line", "length": 121.5, "offsetX": -42.75, "offsetY": 0, "angle": 0 },
             // 副線（縦方向直線）
-            { "type": "line", "length": 121.5, "offsetX": -42.75, "offsetY": 0, "angle": 90 },
-
-            // 右左折用カーブガイドライン (R66mm)
-            { "type": "arc", "radius": 66, "arcAngle": -90, "centerX": 23.25, "centerY": -23.25, "startAngle": 180 }
+            { "type": "line", "length": 121.5, "offsetX": 0, "offsetY": -42.75, "angle": 90 },
+            // 左折用カーブ (R66mm)
+            { "type": "arc", "radius": 66, "arcAngle": -90, "centerX": -66, "centerY": -66, "startAngle": 90 },
+            // 右折用カーブ（ballastWidth: 0 により道路面を描かずガイド線のみ描画）
+            { "type": "arc", "radius": 66, "arcAngle":  45, "centerX": -66, "centerY":  66, "startAngle": 270, "ballastWidth": 0 },
+            { "type": "arc", "radius": 66, "arcAngle": -45, "centerX":  66, "centerY": -66, "startAngle": 180, "ballastWidth": 0 },
+            // 対向車線の斜め横断線（ballastWidth: 0 により道路面を描かずガイド線のみ描画）
+            { "type": "line", "length": 50, "offsetX": 0, "offsetY": 0, "angle": -45, "ballastWidth": 0 }
         ]
     },
     // --- 丁字路用 I字型 進入側 (X121.5-C-RO) ---
@@ -208,19 +211,17 @@ registerRailParts({
         name: "X121.5-C-RO",
         description: "交差点道路 丁字路用 I字型（進入側）",
         nodes: [
-            { "id": 0, "name": "左端", "relX": -60.75, "relY": 0, "facingAngle": 180 },
-            { "id": 1, "name": "右端", "relX":  60.75, "relY": 0, "facingAngle":   0 }
+            { "id": 0, "name": "左端", "relX": -103, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "name": "右端", "relX": 18.5, "relY": 0, "facingAngle":   0 }
         ],
         shapes: [
             // 主線（37mm幅の道路面＋直線ガイド線を描画）
-            { "type": "line", "length": 121.5, "offsetX": 0, "offsetY": 0, "angle": 0 },
+            { "type": "line", "length": 121.5, "offsetX": -42.75, "offsetY": 0, "angle": 0 },
 
             // 分岐用カーブ（ballastWidth: 0 により道路面を描かずガイド線のみ描画）
-            { "type": "arc", "radius": 66, "arcAngle": -90, "centerX":   23.25, "centerY": -66, "startAngle": 180, "ballastWidth": 0 },
-            { "type": "arc", "radius": 66, "arcAngle":  90, "centerX": -108.75, "centerY": -66, "startAngle":   0, "ballastWidth": 0 }
+            { "type": "arc", "radius": 66, "arcAngle": 45, "centerX": -66, "centerY": 66, "startAngle": 270, "ballastWidth": 0 },
         ]
     },
-
     // --- 丁字路用 I字型 退出側 (X121.5-D-RO) ---
     "TOMYTEC-BUS-X121.5-D-RO": {
         systemId: "TOMYTEC-BUS-N",
@@ -228,16 +229,15 @@ registerRailParts({
         name: "X121.5-D-RO",
         description: "交差点道路 丁字路用 I字型（退出側）",
         nodes: [
-            { "id": 0, "name": "左端", "relX": -60.75, "relY": 0, "facingAngle": 180 },
-            { "id": 1, "name": "右端", "relX":  60.75, "relY": 0, "facingAngle":   0 }
+            { "id": 0, "name": "左端", "relX": -18.5, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "name": "右端", "relX":   103, "relY": 0, "facingAngle":   0 }
         ],
         shapes: [
             // 主線（37mm幅の道路面＋直線ガイド線を描画）
-            { "type": "line", "length": 121.5, "offsetX": 0, "offsetY": 0, "angle": 0 },
+            { "type": "line", "length": 121.5, "offsetX": 42.75, "offsetY": 0, "angle": 0 },
 
-            // 分岐用カーブ（ballastWidth: 0 により道路面を描かずガイド線のみ描画）
-            { "type": "arc", "radius": 66, "arcAngle":  90, "centerX":   23.25, "centerY": 66, "startAngle": 180, "ballastWidth": 0 },
-            { "type": "arc", "radius": 66, "arcAngle": -90, "centerX": -108.75, "centerY": 66, "startAngle":   0, "ballastWidth": 0 }
+            // 合流用カーブ（ballastWidth: 0 により道路面を描かずガイド線のみ描画）
+            { "type": "arc", "radius": 66, "arcAngle": -45, "centerX": 66, "centerY": 66, "startAngle": 270, "ballastWidth": 0 }
         ]
     }
 });
