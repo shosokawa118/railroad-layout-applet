@@ -33,21 +33,19 @@ function checkArcCardinalBounds(cX, cY, rOut, rIn, startDeg, arcAngle, updateBou
 function generateGenericRailData(catalogItem) {
     const basePaths = [];
     const railPaths = [];
-    const textDataList = []; // 文字描画用データリスト
+    const textDataList = [];
 
     const sys = catalogItem && catalogItem.systemId ? railCatalog.systems[catalogItem.systemId] : null;
 
-    const BALLAST_WIDTH = (catalogItem && typeof catalogItem.ballastWidth === 'number')
+    const defaultBallastWidth = (catalogItem && typeof catalogItem.ballastWidth === 'number')
         ? catalogItem.ballastWidth
         : (sys ? sys.ballastWidth : 16);
-
-    const halfW = BALLAST_WIDTH / 2;
 
     // 表示テキスト（label 優先、無ければ name）
     const displayText = (catalogItem && (catalogItem.label || catalogItem.name)) ? (catalogItem.label || catalogItem.name) : "";
 
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-    let hasRenderedText = false; // 分岐レール等で重複描画（両側表示）されるのを防ぐフラグ
+    let hasRenderedText = false;
 
     function updateBounds(x, y) {
         if (x < minX) minX = x; if (x > maxX) maxX = x;
@@ -59,7 +57,11 @@ function generateGenericRailData(catalogItem) {
     }
 
     catalogItem.shapes.forEach((shape, sIdx) => {
-        // --- shape 個別の gauge 判定（shape.gauge があれば優先、無ければ system の gauge） ---
+        // --- shape 個別の ballastWidth 判定 (指定があれば優先、無ければ既定値) ---
+        const shapeBallastWidth = (typeof shape.ballastWidth === 'number') ? shape.ballastWidth : defaultBallastWidth;
+        const halfW = shapeBallastWidth / 2;
+
+        // --- shape 個別の gauge 判定 ---
         const effectiveGauge = (typeof shape.gauge === 'number') ? shape.gauge : (sys ? sys.gauge : null);
         const shouldRenderRails = (typeof effectiveGauge === 'number' && effectiveGauge > 0);
         const shouldRenderSingleCenterLine = (typeof effectiveGauge === 'number' && effectiveGauge === 0);
@@ -72,10 +74,15 @@ function generateGenericRailData(catalogItem) {
                 updateBounds(pt.x, pt.y);
             });
             polyPath += " Z";
-            basePaths.push(polyPath);
+            
+            if (shapeBallastWidth > 0) {
+                basePaths.push(polyPath);
+            }
         }
         else if (shape.type === "path" && shape.pathData) {
-            basePaths.push(shape.pathData);
+            if (shapeBallastWidth > 0) {
+                basePaths.push(shape.pathData);
+            }
 
             const commandRegex = /([a-zA-Z])([^a-zA-Z]*)/g;
             let match;
@@ -156,25 +163,34 @@ function generateGenericRailData(catalogItem) {
             const offX = shape.offsetX || 0;
             const offY = shape.offsetY || 0;
 
-            const x1_loc = -len / 2, y1_loc = -halfW;
-            const x2_loc =  len / 2, y2_loc = -halfW;
-            const x3_loc =  len / 2, y3_loc =  halfW;
-            const x4_loc = -len / 2, y4_loc =  halfW;
-
             const trans = (lx, ly) => ({
                 x: offX + (lx * cos - ly * sin),
                 y: offY + (lx * sin + ly * cos)
             });
 
-            const p1 = trans(x1_loc, y1_loc);
-            const p2 = trans(x2_loc, y2_loc);
-            const p3 = trans(x3_loc, y3_loc);
-            const p4 = trans(x4_loc, y4_loc);
+            // 道床幅が0より大きい場合のみ外形面(basePaths)を描画
+            if (shapeBallastWidth > 0) {
+                const x1_loc = -len / 2, y1_loc = -halfW;
+                const x2_loc =  len / 2, y2_loc = -halfW;
+                const x3_loc =  len / 2, y3_loc =  halfW;
+                const x4_loc = -len / 2, y4_loc =  halfW;
 
-            basePaths.push(`M ${p1.x} ${p1.y} L ${p2.x} ${p2.y} L ${p3.x} ${p3.y} L ${p4.x} ${p4.y} Z`);
-            
-            updateBounds(p1.x, p1.y); updateBounds(p2.x, p2.y);
-            updateBounds(p3.x, p3.y); updateBounds(p4.x, p4.y);
+                const p1 = trans(x1_loc, y1_loc);
+                const p2 = trans(x2_loc, y2_loc);
+                const p3 = trans(x3_loc, y3_loc);
+                const p4 = trans(x4_loc, y4_loc);
+
+                basePaths.push(`M ${p1.x} ${p1.y} L ${p2.x} ${p2.y} L ${p3.x} ${p3.y} L ${p4.x} ${p4.y} Z`);
+                
+                updateBounds(p1.x, p1.y); updateBounds(p2.x, p2.y);
+                updateBounds(p3.x, p3.y); updateBounds(p4.x, p4.y);
+            } else {
+                // ballastWidth === 0 の場合は線分端点のみでバウンディングボックス計算
+                const pStart = trans(-len / 2, 0);
+                const pEnd   = trans( len / 2, 0);
+                updateBounds(pStart.x, pStart.y);
+                updateBounds(pEnd.x, pEnd.y);
+            }
 
             if (shouldRenderRails) {
                 const r1_start = trans(-len / 2, -halfGauge);
@@ -190,7 +206,6 @@ function generateGenericRailData(catalogItem) {
                 railPaths.push(`M ${c_start.x} ${c_start.y} L ${c_end.x} ${c_end.y}`);
             }
 
-            // まだ文字を描画していない場合のみ、主線（最初の直線要素）に描画
             if (displayText && !hasRenderedText) {
                 textDataList.push({
                     text: displayText,
@@ -204,9 +219,6 @@ function generateGenericRailData(catalogItem) {
         }
         else if (shape.type === "arc") {
             const r = shape.radius;
-            const rOut = r + halfW;
-            const rIn = Math.max(0, r - halfW);
-            
             const startDeg = shape.startAngle;
             const arcAngle = shape.arcAngle;
             const endDeg = startDeg + arcAngle;
@@ -216,25 +228,40 @@ function generateGenericRailData(catalogItem) {
             const cX = shape.centerX || 0;
             const cY = shape.centerY || 0;
 
-            const x1 = cX + rOut * Math.cos(startRad);
-            const y1 = cY + rOut * Math.sin(startRad);
-            const x2 = cX + rOut * Math.cos(endRad);
-            const y2 = cY + rOut * Math.sin(endRad);
-            const x3 = cX + rIn  * Math.cos(endRad);
-            const y3 = cY + rIn  * Math.sin(endRad);
-            const x4 = cX + rIn  * Math.cos(startRad);
-            const y4 = cY + rIn  * Math.sin(startRad);
-
             const largeArcFlag = Math.abs(arcAngle) >= 180 ? 1 : 0;
             const sweepOut = arcAngle >= 0 ? 1 : 0;
             const sweepIn  = arcAngle >= 0 ? 1 : 0;
 
-            basePaths.push(`M ${x1} ${y1} A ${rOut} ${rOut} 0 ${largeArcFlag} ${sweepOut} ${x2} ${y2} L ${x3} ${y3} A ${rIn} ${rIn} 0 ${largeArcFlag} ${1 - sweepIn} ${x4} ${y4} Z`);
-            
-            updateBounds(x1, y1); updateBounds(x2, y2);
-            updateBounds(x3, y3); updateBounds(x4, y4);
+            // 道床幅が0より大きい場合のみ外形面(basePaths)を描画
+            if (shapeBallastWidth > 0) {
+                const rOut = r + halfW;
+                const rIn = Math.max(0, r - halfW);
 
-            checkArcCardinalBounds(cX, cY, rOut, rIn, startDeg, arcAngle, updateBounds);
+                const x1 = cX + rOut * Math.cos(startRad);
+                const y1 = cY + rOut * Math.sin(startRad);
+                const x2 = cX + rOut * Math.cos(endRad);
+                const y2 = cY + rOut * Math.sin(endRad);
+                const x3 = cX + rIn  * Math.cos(endRad);
+                const y3 = cY + rIn  * Math.sin(endRad);
+                const x4 = cX + rIn  * Math.cos(startRad);
+                const y4 = cY + rIn  * Math.sin(startRad);
+
+                basePaths.push(`M ${x1} ${y1} A ${rOut} ${rOut} 0 ${largeArcFlag} ${sweepOut} ${x2} ${y2} L ${x3} ${y3} A ${rIn} ${rIn} 0 ${largeArcFlag} ${1 - sweepIn} ${x4} ${y4} Z`);
+                
+                updateBounds(x1, y1); updateBounds(x2, y2);
+                updateBounds(x3, y3); updateBounds(x4, y4);
+
+                checkArcCardinalBounds(cX, cY, rOut, rIn, startDeg, arcAngle, updateBounds);
+            } else {
+                // ballastWidth === 0 の場合はガイド線中心円弧のみでバウンディングボックス計算
+                const x1 = cX + r * Math.cos(startRad);
+                const y1 = cY + r * Math.sin(startRad);
+                const x2 = cX + r * Math.cos(endRad);
+                const y2 = cY + r * Math.sin(endRad);
+                updateBounds(x1, y1);
+                updateBounds(x2, y2);
+                checkArcCardinalBounds(cX, cY, r, r, startDeg, arcAngle, updateBounds);
+            }
 
             if (shouldRenderRails) {
                 const rRailIn = r - halfGauge;
@@ -261,14 +288,12 @@ function generateGenericRailData(catalogItem) {
                 railPaths.push(`M ${rx1} ${ry1} A ${r} ${r} 0 ${largeArcFlag} ${sweepOut} ${rx2} ${ry2}`);
             }
 
-            // まだ文字を描画していない場合のみ、最初の曲線要素に描画
             if (displayText && !hasRenderedText) {
                 const midDeg = startDeg + arcAngle / 2;
                 const midRad = (midDeg * Math.PI) / 180;
                 const textX = cX + r * Math.cos(midRad);
                 const textY = cY + r * Math.sin(midRad);
 
-                // 接線方向の角度計算
                 const rawAngle = midDeg + (arcAngle >= 0 ? 90 : -90);
 
                 textDataList.push({
@@ -289,17 +314,15 @@ function generateGenericRailData(catalogItem) {
             const offY = shape.offsetY || 0;
             const shapeAngle = shape.angle || 0;
 
-            // ローカル座標系での4頂点（中心原点 (0,0) からの相対位置）
-            const x1_loc = -w / 2, y1_loc = -h / 2; // 左上
-            const x2_loc =  w / 2, y2_loc = -h / 2; // 右上
-            const x3_loc =  w / 2, y3_loc =  h / 2; // 右下
-            const x4_loc = -w / 2, y4_loc =  h / 2; // 左下
+            const x1_loc = -w / 2, y1_loc = -h / 2;
+            const x2_loc =  w / 2, y2_loc = -h / 2;
+            const x3_loc =  w / 2, y3_loc =  h / 2;
+            const x4_loc = -w / 2, y4_loc =  h / 2;
 
             const rad = (shapeAngle * Math.PI) / 180;
             const cos = Math.cos(rad);
             const sin = Math.sin(rad);
 
-            // 回転・オフセット座標変換関数
             const trans = (lx, ly) => ({
                 x: offX + (lx * cos - ly * sin),
                 y: offY + (lx * sin + ly * cos)
@@ -310,16 +333,13 @@ function generateGenericRailData(catalogItem) {
             const p3 = trans(x3_loc, y3_loc);
             const p4 = trans(x4_loc, y4_loc);
 
-            // 外形パス（Base Path）の登録
-            basePaths.push(`M ${p1.x} ${p1.y} L ${p2.x} ${p2.y} L ${p3.x} ${p3.y} L ${p4.x} ${p4.y} Z`);
+            if (shapeBallastWidth > 0) {
+                basePaths.push(`M ${p1.x} ${p1.y} L ${p2.x} ${p2.y} L ${p3.x} ${p3.y} L ${p4.x} ${p4.y} Z`);
+            }
 
-            // バウンディングボックス用の境界更新
-            updateBounds(p1.x, p1.y);
-            updateBounds(p2.x, p2.y);
-            updateBounds(p3.x, p3.y);
-            updateBounds(p4.x, p4.y);
+            updateBounds(p1.x, p1.y); updateBounds(p2.x, p2.y);
+            updateBounds(p3.x, p3.y); updateBounds(p4.x, p4.y);
 
-            // テキスト未描画の場合、矩形の中心（offX, offY）にラベルを割り当て
             if (displayText && !hasRenderedText) {
                 textDataList.push({
                     text: displayText,
