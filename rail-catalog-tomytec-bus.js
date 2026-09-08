@@ -54,6 +54,56 @@ registerRailParts({
             { "type": "line", "length": 70, "offsetX": 0, "offsetY": 0 }
         ]
     },
+    // --- バス道路 直線端数 74mm (S74-RO) ---
+    "TOMYTEC-BUS-S74-RO": {
+        systemId: "TOMYTEC-BUS-N",
+        category: "straight",
+        name: "S74-RO",
+        description: "直線道路 S74-RO (74mm)",
+        nodes: [
+            { "id": 0, "name": "左端", "relX": -37, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "name": "右端", "relX":  37, "relY": 0, "facingAngle":   0 },
+            // 側面ジョイント（端から 9.25mm）
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX": -27.75, "relY": -18.5, "facingAngle": 270 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX": -27.75, "relY":  18.5, "facingAngle":  90 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX":  27.75, "relY": -18.5, "facingAngle": 270 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX":  27.75, "relY":  18.5, "facingAngle":  90 }
+        ],
+        shapes: [
+            { "type": "line", "length": 74, "offsetX": 0, "offsetY": 0, "angle": 0 }
+        ]
+    },
+    // --- バス道路 直線端数 37mm (S37-RO) ---
+    "TOMYTEC-BUS-S37-RO": {
+        systemId: "TOMYTEC-BUS-N",
+        category: "straight",
+        name: "S37-RO",
+        description: "直線道路 S37-RO (37mm) (側面ジョイントなし)",
+        nodes: [
+            { "id": 0, "name": "左端", "relX": -18.5, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "name": "右端", "relX":  18.5, "relY": 0, "facingAngle":   0 }
+        ],
+        shapes: [
+            { "type": "line", "length": 37, "offsetX": 0, "offsetY": 0, "angle": 0 }
+        ]
+    },
+    // --- バス道路 直線端数 18.5mm (S18.5-RO) ---
+    "TOMYTEC-BUS-S18.5-RO": {
+        systemId: "TOMYTEC-BUS-N",
+        category: "straight",
+        name: "S18.5-RO",
+        description: "直線道路 S18.5-RO (18.5mm)",
+        nodes: [
+            { "id": 0, "name": "左端", "relX": -9.25, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "name": "右端", "relX":  9.25, "relY": 0, "facingAngle":   0 },
+            // 側面ジョイント（中央 X=0）
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX": 0, "relY": -18.5, "facingAngle": 270 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX": 0, "relY":  18.5, "facingAngle":  90 }
+        ],
+        shapes: [
+            { "type": "line", "length": 18.5, "offsetX": 0, "offsetY": 0, "angle": 0 }
+        ]
+    },
 
     // --- トラムレール付き交差点パーツ (X37-WT-RO) ---
     "TOMYTEC-BUS-X37-WT-RO": {
