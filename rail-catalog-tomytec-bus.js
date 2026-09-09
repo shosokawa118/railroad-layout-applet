@@ -289,5 +289,86 @@ registerRailParts({
             // 合流用カーブ（ballastWidth: 0 により道路面を描かずガイド線のみ描画）
             { "type": "arc", "radius": 66, "arcAngle": -45, "centerX": 66, "centerY": 66, "startAngle": 270, "ballastWidth": 0 }
         ]
+    },
+
+    // --- 幅寄せ用道路 アプローチ側 (S70-RO-S1) ---
+    "TOMYTEC-BUS-S70-RO-S1": {
+        systemId: "TOMYTEC-BUS-N",
+        category: "structure",
+        subCategory: "バス停",
+        name: "S70-RO-S1",
+        description: "幅寄せ道路 アプローチ (70mm)",
+        nodes: [
+            { "id": 0, "name": "左端", "relX": -35, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "name": "右端", "relX":  35, "relY": 9.5, "facingAngle": 0 },
+            // 側面ジョイント（端から 9.25mm）
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX": -25.75, "relY": -18.5, "facingAngle": 270 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX": -25.75, "relY":  18.5, "facingAngle":  90 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX":  25.75, "relY": -18.5, "facingAngle": 270 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX":  25.75, "relY":  18.5, "facingAngle":  90 }
+        ],
+        shapes: [
+            // 37mm幅の道路背景
+            { "type": "rect", "width": 70, "height": 37, "offsetX": 0, "offsetY": 0 },
+
+            // ガイド線（Y=0 から Y=9.5 へ半幅シフト）
+            {
+                "type": "path",
+                "pathData": "M -35 0 L -17.5 0 L 17.5 9.5 L 35 9.5",
+                "ballastWidth": 0,
+                "gauge": 0
+            }
+        ]
+    },
+
+    // --- 幅寄せ用道路 脱出側 (S70-RO-S2) ---
+    "TOMYTEC-BUS-S70-RO-S2": {
+        systemId: "TOMYTEC-BUS-N",
+        category: "structure",
+        subCategory: "バス停",
+        name: "S70-RO-S2",
+        description: "幅寄せ道路 脱出 (70mm)",
+        nodes: [
+            { "id": 0, "name": "左端", "relX": -35, "relY": 9.5, "facingAngle": 180 },
+            { "id": 1, "name": "右端", "relX":  35, "relY": 0, "facingAngle": 0 },
+            // 側面ジョイント（端から 9.25mm）
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX": -25.75, "relY": -18.5, "facingAngle": 270 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX": -25.75, "relY":  18.5, "facingAngle":  90 },
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX":  25.75, "relY": -18.5, "facingAngle": 270 },
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX":  25.75, "relY":  18.5, "facingAngle":  90 }
+        ],
+        shapes: [
+            // 37mm幅の道路背景
+            { "type": "rect", "width": 70, "height": 37, "offsetX": 0, "offsetY": 0 },
+
+            // ガイド線（Y=9.5 から Y=0 へ復帰シフト）
+            {
+                "type": "path",
+                "pathData": "M -35 9.5 L -17.5 9.5 L 17.5 0 L 35 0",
+                "ballastWidth": 0,
+                "gauge": 0
+            }
+        ]
+    },
+
+    // --- バス停ユニット (BUS-STOP-UNIT) ---
+    "TOMYTEC-BUS-STOP-UNIT": {
+        systemId: "TOMYTEC-BUS-N",
+        category: "structure",
+        subCategory: "バス停",
+        name: "バス停ユニット",
+        description: "走行バスコレ用 停車バス停ユニット",
+        nodes: [
+            // 道路側面と接続するサイドジョイント (X=±9.25, Y=0, 上向き)
+            { "id": 0, "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX": -9.25, "relY": 0, "facingAngle": 270 },
+            { "id": 1, "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX":  9.25, "relY": 0, "facingAngle": 270 }
+        ],
+        shapes: [
+            // バス停土台部 (幅100mm × 奥行22mm)
+            { "type": "rect", "width": 100, "height": 22, "offsetX": 0, "offsetY": 11 },
+
+            // レバー操作部 (幅26mm × 奥行24mm)
+            { "type": "rect", "width": 26, "height": 24, "offsetX": 0, "offsetY": 34 }
+        ]
     }
 });
