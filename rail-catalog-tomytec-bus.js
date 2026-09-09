@@ -300,7 +300,7 @@ registerRailParts({
         description: "幅寄せ道路 アプローチ (70mm)",
         nodes: [
             { "id": 0, "name": "左端", "relX": -35, "relY": 0, "facingAngle": 180 },
-            { "id": 1, "name": "右端", "relX":  35, "relY": 9.5, "facingAngle": 0 },
+            { "id": 1, "name": "右端", "relX":  35, "relY": 0, "facingAngle": 0 },
             // 側面ジョイント（端から 9.25mm）
             { "id": 2, "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX": -25.75, "relY": -18.5, "facingAngle": 270 },
             { "id": 3, "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX": -25.75, "relY":  18.5, "facingAngle":  90 },
@@ -312,8 +312,7 @@ registerRailParts({
             { "type": "rect", "width": 70, "height": 37, "offsetX": 0, "offsetY": 0 },
 
             // ガイド線（Y=0 から Y=9.5 へ半幅シフト）
-            { "type": "line", "length": 35, "offsetX": -17.5, "offsetY": 0, "angle": 0, "ballastWidth": 0 },
-            { "type": "line", "length": 36.266, "offsetX": 0, "offsetY": 4.75, "angle": 15.192, "ballastWidth": 0 },
+            { "type": "line", "length": 36.266, "offsetX": -17.5, "offsetY": 4.75, "angle": 15.192, "ballastWidth": 0 },
             { "type": "line", "length": 35, "offsetX": 17.5, "offsetY": 9.5, "angle": 0, "ballastWidth": 0 }
         ]
     },
@@ -326,7 +325,7 @@ registerRailParts({
         name: "S70-RO-S2",
         description: "幅寄せ道路 脱出 (70mm)",
         nodes: [
-            { "id": 0, "name": "左端", "relX": -35, "relY": 9.5, "facingAngle": 180 },
+            { "id": 0, "name": "左端", "relX": -35, "relY": 0, "facingAngle": 180 },
             { "id": 1, "name": "右端", "relX":  35, "relY": 0, "facingAngle": 0 },
             // 側面ジョイント（端から 9.25mm）
             { "id": 2, "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX": -25.75, "relY": -18.5, "facingAngle": 270 },
@@ -340,8 +339,7 @@ registerRailParts({
 
             // ガイド線（Y=9.5 から Y=0 へ復帰シフト）
             { "type": "line", "length": 35, "offsetX": -17.5, "offsetY": 9.5, "angle": 0, "ballastWidth": 0 },
-            { "type": "line", "length": 36.266, "offsetX": 0, "offsetY": 4.75, "angle": -15.192, "ballastWidth": 0 },
-            { "type": "line", "length": 35, "offsetX": 17.5, "offsetY": 0, "angle": 0, "ballastWidth": 0 }
+            { "type": "line", "length": 36.266, "offsetX": 17.5, "offsetY": 4.75, "angle": -15.192, "ballastWidth": 0 }
         ]
     },
 
