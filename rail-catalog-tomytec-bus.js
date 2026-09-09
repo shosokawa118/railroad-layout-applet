@@ -312,12 +312,9 @@ registerRailParts({
             { "type": "rect", "width": 70, "height": 37, "offsetX": 0, "offsetY": 0 },
 
             // ガイド線（Y=0 から Y=9.5 へ半幅シフト）
-            {
-                "type": "path",
-                "pathData": "M -35 0 L -17.5 0 L 17.5 9.5 L 35 9.5",
-                "ballastWidth": 0,
-                "gauge": 0
-            }
+            { "type": "line", "length": 35, "offsetX": -17.5, "offsetY": 0, "angle": 0, "ballastWidth": 0 },
+            { "type": "line", "length": 36.266, "offsetX": 0, "offsetY": 4.75, "angle": 15.192, "ballastWidth": 0 },
+            { "type": "line", "length": 35, "offsetX": 17.5, "offsetY": 9.5, "angle": 0, "ballastWidth": 0 }
         ]
     },
 
@@ -342,12 +339,9 @@ registerRailParts({
             { "type": "rect", "width": 70, "height": 37, "offsetX": 0, "offsetY": 0 },
 
             // ガイド線（Y=9.5 から Y=0 へ復帰シフト）
-            {
-                "type": "path",
-                "pathData": "M -35 9.5 L -17.5 9.5 L 17.5 0 L 35 0",
-                "ballastWidth": 0,
-                "gauge": 0
-            }
+            { "type": "line", "length": 35, "offsetX": -17.5, "offsetY": 9.5, "angle": 0, "ballastWidth": 0 },
+            { "type": "line", "length": 36.266, "offsetX": 0, "offsetY": 4.75, "angle": -15.192, "ballastWidth": 0 },
+            { "type": "line", "length": 35, "offsetX": 17.5, "offsetY": 0, "angle": 0, "ballastWidth": 0 }
         ]
     },
 
@@ -364,10 +358,10 @@ registerRailParts({
             { "id": 1, "jointType": "side-joiner", "jointGroup": "widetram-side-straight", "relX":  9.25, "relY": 0, "facingAngle": 270 }
         ],
         shapes: [
-            // バス停土台部 (幅100mm × 奥行22mm)
-            { "type": "rect", "width": 100, "height": 22, "offsetX": 0, "offsetY": 11 },
+            // バス停土台部 (幅100mm × 奥行22mm、非対称オフセット X=12)
+            { "type": "rect", "width": 100, "height": 22, "offsetX": 12, "offsetY": 11 },
 
-            // レバー操作部 (幅26mm × 奥行24mm)
+            // レバー操作部 (幅26mm × 奥行24mm、中心 X=0)
             { "type": "rect", "width": 26, "height": 24, "offsetX": 0, "offsetY": 34 }
         ]
     }
