@@ -43,13 +43,18 @@ registerRailParts({
     "KATO-UNITRAM-S186D": {
         systemId: "KATO-UNITRAM-N",
         category: "straight",
-        name: "複線直線軌道 186mm",
+        name: "TWS186",
         description: "186mm 複線プレート (軌道間隔25mm)",
         nodes: [
             { "id": 0, "name": "内軌-左(進入)", "relX": -93, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
             { "id": 1, "name": "外軌-左(進入)", "relX": -93, "relY":  12.5, "facingAngle": 180, "polarity": -1 },
             { "id": 2, "name": "外軌-右(出口)", "relX":  93, "relY":  12.5, "facingAngle": 0, "polarity": 1 },
-            { "id": 3, "name": "内軌-右(出口)", "relX":  93, "relY": -12.5, "facingAngle": 0, "polarity": -1 }
+            { "id": 3, "name": "内軌-右(出口)", "relX":  93, "relY": -12.5, "facingAngle": 0, "polarity": -1 },
+            // --- 側面ジョイント（端から62mm位置: relX = -31, +31） ---
+            { "id": 4, "name": "側面-北-左", "relX": -31, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 5, "name": "側面-北-右", "relX":  31, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 6, "name": "側面-南-左", "relX": -31, "relY":  31, "facingAngle": 90,  "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 7, "name": "側面-南-右", "relX":  31, "relY":  31, "facingAngle": 90,  "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
             { "type": "line", "length": 186, "offsetX": 0, "offsetY": -12.5 },
@@ -61,13 +66,16 @@ registerRailParts({
     "KATO-UNITRAM-S124D": {
         systemId: "KATO-UNITRAM-N",
         category: "straight",
-        name: "複線直線軌道 124mm",
+        name: "TWS124",
         description: "124mm 複線プレート (軌道間隔25mm)",
         nodes: [
             { "id": 0, "name": "内軌-左(進入)", "relX": -62, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
             { "id": 1, "name": "外軌-左(進入)", "relX": -62, "relY":  12.5, "facingAngle": 180, "polarity": -1 },
             { "id": 2, "name": "外軌-右(出口)", "relX":  62, "relY":  12.5, "facingAngle": 0, "polarity": 1 },
-            { "id": 3, "name": "内軌-右(出口)", "relX":  62, "relY": -12.5, "facingAngle": 0, "polarity": -1 }
+            { "id": 3, "name": "内軌-右(出口)", "relX":  62, "relY": -12.5, "facingAngle": 0, "polarity": -1 },
+            // --- 側面ジョイント（端から62mm位置: relX = 0） ---
+            { "id": 4, "name": "側面-北", "relX": 0, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 5, "name": "側面-南", "relX": 0, "relY":  31, "facingAngle": 90,  "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
             { "type": "line", "length": 124, "offsetX": 0, "offsetY": -12.5 },
@@ -79,13 +87,16 @@ registerRailParts({
     "KATO-UNITRAM-S62D": {
         systemId: "KATO-UNITRAM-N",
         category: "straight",
-        name: "複線直線軌道 62mm",
+        name: "TWS62",
         description: "62mm 複線プレート (軌道間隔25mm)",
         nodes: [
             { "id": 0, "name": "内軌-左(進入)", "relX": -31, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
             { "id": 1, "name": "外軌-左(進入)", "relX": -31, "relY":  12.5, "facingAngle": 180, "polarity": -1 },
             { "id": 2, "name": "外軌-右(出口)", "relX":  31, "relY":  12.5, "facingAngle": 0, "polarity": 1 },
-            { "id": 3, "name": "内軌-右(出口)", "relX":  31, "relY": -12.5, "facingAngle": 0, "polarity": -1 }
+            { "id": 3, "name": "内軌-右(出口)", "relX":  31, "relY": -12.5, "facingAngle": 0, "polarity": -1 },
+            // --- 側面ジョイント ---
+            { "id": 4, "name": "側面-北", "relX": 0, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 5, "name": "側面-南", "relX": 0, "relY":  31, "facingAngle": 90,  "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
             { "type": "line", "length": 62, "offsetX": 0, "offsetY": -12.5 },
@@ -97,20 +108,28 @@ registerRailParts({
     "KATO-UNITRAM-C-L": {
         systemId: "KATO-UNITRAM-N",
         category: "curve",
-        name: "複線交差点/交差角 曲線 L",
+        name: "TWR180L",
         description: "交差点 曲線軌道 (進入25mm / 出口33mm+R180)",
         nodes: [
             { "id": 0, "name": "直線側-内軌(進入)", "relX": -62.0, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
             { "id": 1, "name": "直線側-外軌(進入)", "relX": -62.0, "relY":  12.5, "facingAngle": 180, "polarity": -1 },
             // 出口側の33mmノードに jointGroup を明示指定して上書き
             { "id": 2, "name": "45°頂点-外軌(出口)", "relX": 115.28, "relY": -40.22, "facingAngle": -45, "jointGroup": "unijoiner-33mm", "polarity": 1 },
-            { "id": 3, "name": "45°頂点-内軌(出口)", "relX":  90.28, "relY": -65.22, "facingAngle": -45, "jointGroup": "unijoiner-33mm", "polarity": -1 }
+            { "id": 3, "name": "45°頂点-内軌(出口)", "relX":  90.28, "relY": -65.22, "facingAngle": -45, "jointGroup": "unijoiner-33mm", "polarity": -1 },
+            // --- 側面ジョイント ---
+            { "id": 4, "name": "側面-直線南-左", "relX": 0, "relY": 31, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 5, "name": "側面-直線南-右", "relX": 62, "relY": 31, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 6, "name": "側面-カーブ内側", "relX": 24.77, "relY": -43.27, "facingAngle": 247.5, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // --- 外側プレート東端(X=124, 幅62mmの中央Y=0)ジョイント ---
+            { "id": 7, "name": "側面-東端先端", "relX": 124, "relY": 0, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
-            { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": -12.5 },
-            { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -37.0, "centerY": -192.5, "startAngle": 90 },
+            // 背景埋め用のプレート矩形 (幅186mm, 高さ62mm, 中心: offsetX 31, offsetY 0)
+            { "type": "rect", "width": 186, "height": 62, "offsetX": 31, "offsetY": 0 },
             { "type": "line", "length": 50, "offsetX": -37.0, "offsetY": 12.5 },
-            { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -12.0, "centerY": -167.5, "startAngle": 90 }
+            { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -12.0, "centerY": -167.5, "startAngle": 90 },
+            { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": -12.5 },
+            { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -37.0, "centerY": -192.5, "startAngle": 90 }
         ]
     },
 
@@ -118,20 +137,28 @@ registerRailParts({
     "KATO-UNITRAM-C-R": {
         systemId: "KATO-UNITRAM-N",
         category: "curve",
-        name: "複線交差点/交差角 曲線 R",
+        name: "TWR180R",
         description: "交差点 曲線軌道 (進入25mm / 出口33mm+R180)",
         nodes: [
             { "id": 0, "name": "直線側-外軌(進入)", "relX": -62.0, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
             { "id": 1, "name": "直線側-内軌(進入)", "relX": -62.0, "relY":  12.5, "facingAngle": 180, "polarity": -1 },
             // 出口側の33mmノードに jointGroup を明示指定して上書き
             { "id": 2, "name": "45°頂点-内軌(出口)", "relX":  90.28, "relY":  65.22, "facingAngle": 45, "jointGroup": "unijoiner-33mm", "polarity": 1 },
-            { "id": 3, "name": "45°頂点-外軌(出口)", "relX": 115.28, "relY":  40.22, "facingAngle": 45, "jointGroup": "unijoiner-33mm", "polarity": -1 }
+            { "id": 3, "name": "45°頂点-外軌(出口)", "relX": 115.28, "relY":  40.22, "facingAngle": 45, "jointGroup": "unijoiner-33mm", "polarity": -1 },
+            // --- 側面ジョイント ---
+            { "id": 4, "name": "側面-直線北-左", "relX": 0, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 5, "name": "側面-直線北-右", "relX": 62, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 6, "name": "側面-カーブ内側", "relX": 24.77, "relY": 43.27, "facingAngle": 112.5, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // --- 外側プレート東端(X=124, 幅62mmの中央Y=0)ジョイント ---
+            { "id": 7, "name": "側面-東端先端", "relX": 124, "relY": 0, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
-            { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": 12.5 },
-            { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -37.0, "centerY": 192.5, "startAngle": 270 },
+            // 背景埋め用のプレート矩形 (幅186mm, 高さ62mm, 中心: offsetX 31, offsetY 0)
+            { "type": "rect", "width": 186, "height": 62, "offsetX": 31, "offsetY": 0 },
             { "type": "line", "length": 50, "offsetX": -37.0, "offsetY": -12.5 },
-            { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -12.0, "centerY": 167.5, "startAngle": 270 }
+            { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -12.0, "centerY": 167.5, "startAngle": 270 },
+            { "type": "line", "length": 25, "offsetX": -49.5, "offsetY": 12.5 },
+            { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -37.0, "centerY": 192.5, "startAngle": 270 }
         ]
     },
 
@@ -139,7 +166,7 @@ registerRailParts({
     "KATO-UNITRAM-TURNOUT-L": {
         systemId: "KATO-UNITRAM-N",
         category: "turnout",
-        name: "複線分岐ポイント L",
+        name: "TWEP180L",
         description: "電動複線分岐ポイント (186mm直進25mm + C-L曲線分岐33mm)",
         nodes: [
             { "id": 0, "name": "進入-内軌", "relX": -93.0, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
@@ -148,15 +175,19 @@ registerRailParts({
             { "id": 2, "name": "分岐-外軌", "relX":  84.28, "relY": -40.22, "facingAngle": -45, "jointGroup": "unijoiner-33mm", "polarity": 1 },
             { "id": 3, "name": "分岐-内軌", "relX":  59.28, "relY": -65.22, "facingAngle": -45, "jointGroup": "unijoiner-33mm", "polarity": -1 },
             { "id": 4, "name": "直進-外軌", "relX":  93.0,  "relY":  12.5, "facingAngle": 0, "polarity": 1 },
-            { "id": 5, "name": "直進-内軌", "relX":  93.0,  "relY": -12.5, "facingAngle": 0, "polarity": -1 }
+            { "id": 5, "name": "直進-内軌", "relX":  93.0,  "relY": -12.5, "facingAngle": 0, "polarity": -1 },
+            // --- 側面ジョイント ---
+            { "id": 6, "name": "側面-直線南-左", "relX": -31, "relY": 31, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 7, "name": "側面-直線南-右", "relX":  31, "relY": 31, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 8, "name": "側面-分岐内側",   "relX": -6.23, "relY": -43.27, "facingAngle": 247.5, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
             { "type": "line", "length": 186, "offsetX": 0, "offsetY": -12.5 },
             { "type": "line", "length": 186, "offsetX": 0, "offsetY":  12.5 },
-            { "type": "line", "length": 25, "offsetX": -80.5, "offsetY": -12.5 },
-            { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -68.0, "centerY": -192.5, "startAngle": 90 },
             { "type": "line", "length": 50, "offsetX": -68.0, "offsetY": 12.5 },
-            { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -43.0, "centerY": -167.5, "startAngle": 90 }
+            { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -43.0, "centerY": -167.5, "startAngle": 90 },
+            { "type": "line", "length": 25, "offsetX": -80.5, "offsetY": -12.5 },
+            { "type": "arc", "radius": 180, "arcAngle": -45, "centerX": -68.0, "centerY": -192.5, "startAngle": 90 }
         ]
     },
 
@@ -164,7 +195,7 @@ registerRailParts({
     "KATO-UNITRAM-TURNOUT-R": {
         systemId: "KATO-UNITRAM-N",
         category: "turnout",
-        name: "複線分岐ポイント R",
+        name: "TWEP180R",
         description: "電動複線分岐ポイント (186mm直進25mm + C-R曲線分岐33mm)",
         nodes: [
             { "id": 0, "name": "進入-外軌", "relX": -93.0, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
@@ -173,15 +204,19 @@ registerRailParts({
             { "id": 2, "name": "分岐-内軌", "relX":  59.28, "relY":  65.22, "facingAngle": 45, "jointGroup": "unijoiner-33mm", "polarity": 1 },
             { "id": 3, "name": "分岐-外軌", "relX":  84.28, "relY":  40.22, "facingAngle": 45, "jointGroup": "unijoiner-33mm", "polarity": -1 },
             { "id": 4, "name": "直進-外軌", "relX":  93.0,  "relY":  12.5, "facingAngle": 0, "polarity": 1 },
-            { "id": 5, "name": "直進-内軌", "relX":  93.0,  "relY": -12.5, "facingAngle": 0, "polarity": -1 }
+            { "id": 5, "name": "直進-内軌", "relX":  93.0,  "relY": -12.5, "facingAngle": 0, "polarity": -1 },
+            // --- 側面ジョイント ---
+            { "id": 6, "name": "側面-直線北-左", "relX": -31, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 7, "name": "側面-直線北-右", "relX":  31, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 8, "name": "側面-分岐内側",   "relX": -6.23, "relY":  43.27, "facingAngle": 112.5, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
         ],
         shapes: [
             { "type": "line", "length": 186, "offsetX": 0, "offsetY": -12.5 },
             { "type": "line", "length": 186, "offsetX": 0, "offsetY":  12.5 },
-            { "type": "line", "length": 25, "offsetX": -80.5, "offsetY": 12.5 },
-            { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -68.0, "centerY": 192.5, "startAngle": 270 },
             { "type": "line", "length": 50, "offsetX": -37.0, "offsetY": -12.5 },
-            { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -43.0, "centerY": 167.5, "startAngle": 270 }
+            { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -43.0, "centerY": 167.5, "startAngle": 270 },
+            { "type": "line", "length": 25, "offsetX": -80.5, "offsetY": 12.5 },
+            { "type": "arc", "radius": 180, "arcAngle": 45, "centerX": -68.0, "centerY": 192.5, "startAngle": 270 }
         ]
     },
 
@@ -189,7 +224,7 @@ registerRailParts({
     "KATO-UNITRAM-CROSS-62D": {
         systemId: "KATO-UNITRAM-N",
         category: "turnout",
-        name: "複線十字軌道 62mm",
+        name: "TWX62-90",
         description: "62mm×62mm 複線十字交差点軌道 (全ノード25mm間隔)",
         nodes: [
             { "id": 0, "name": "西-内軌(進入)", "relX": -31, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
@@ -206,6 +241,147 @@ registerRailParts({
             { "type": "line", "length": 62, "offsetX": 0, "offsetY":  12.5, "angle": 0 },
             { "type": "line", "length": 62, "offsetX": -12.5, "offsetY": 0, "angle": 90 },
             { "type": "line", "length": 62, "offsetX":  12.5, "offsetY": 0, "angle": 90 }
+        ]
+    },
+
+    // --- 道路プレート TSC62 ---
+    "KATO-UNITRAM-ROAD-TSC62": {
+        systemId: "KATO-UNITRAM-N",
+        category: "road",
+        name: "TSC62",
+        description: "ユニトラム道路中央62mm",
+        nodes: [
+            // 西(左: X=-31, Y=0, 向き=180°)
+            { "id": 0, "name": "西", "relX": -31, "relY": 0, "facingAngle": 180, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // 北(上: X=0, Y=-31, 向き=270°)
+            { "id": 1, "name": "北", "relX": 0, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // 南(下: X=0, Y=31, 向き=90°)
+            { "id": 2, "name": "南", "relX": 0, "relY": 31, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // 東(右: X=31, Y=0, 向き=0°)
+            { "id": 3, "name": "東", "relX": 31, "relY": 0, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
+        ],
+        shapes: [
+            { "type": "rect", "width": 62, "height": 62, "offsetX": 0, "offsetY": 0 }
+        ]
+    },
+
+    // --- 道路プレート TSC186C ---
+    "KATO-UNITRAM-ROAD-TSC186C": {
+        systemId: "KATO-UNITRAM-N",
+        category: "road",
+        name: "TSC186C",
+        description: "ユニトラム道路中央186mm 交差点用",
+        nodes: [
+            // 西(左: 2箇所 Y=-31, Y=31, 向き=180°)
+            { "id": 0, "name": "西-上", "relX": -31, "relY": -31, "facingAngle": 180, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 1, "name": "西-下", "relX": -31, "relY": 31, "facingAngle": 180, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // 北(上: X=0, Y=-93, 向き=270°)
+            { "id": 2, "name": "北", "relX": 0, "relY": -93, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // 南(下: X=0, Y=93, 向き=90°)
+            { "id": 3, "name": "南", "relX": 0, "relY": 93, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // 東(右: 2箇所 Y=-31, Y=31, 向き=0°)
+            { "id": 4, "name": "東-下", "relX": 31, "relY": 31, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 5, "name": "東-上", "relX": 31, "relY": -31, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
+        ],
+        shapes: [
+            { "type": "rect", "width": 62, "height": 186, "offsetX": 0, "offsetY": 0 }
+        ]
+    },
+
+    // --- 道路プレート TS124 ---
+    "KATO-UNITRAM-ROAD-TS124": {
+        systemId: "KATO-UNITRAM-N",
+        category: "road",
+        name: "TS124",
+        description: "ユニトラム直線道路プレート124mm",
+        nodes: [
+            // 西(左: 186mm辺 2箇所 Y=-31, Y=31, 向き=180°)
+            { "id": 0, "name": "西-上", "relX": -62, "relY": -31, "facingAngle": 180, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 1, "name": "西-下", "relX": -62, "relY": 31, "facingAngle": 180, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // 北(上: 124mm辺 1箇所 X=0, Y=-93, 向き=270°)
+            { "id": 2, "name": "北", "relX": 0, "relY": -93, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // 南(下: 124mm辺 1箇所 X=0, Y=93, 向き=90°)
+            { "id": 3, "name": "南", "relX": 0, "relY": 93, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // 東(右: 186mm辺 2箇所 Y=-31, Y=31, 向き=0°)
+            { "id": 4, "name": "東-下", "relX": 62, "relY": 31, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 5, "name": "東-上", "relX": 62, "relY": -31, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
+        ],
+        shapes: [
+            { "type": "rect", "width": 124, "height": 186, "offsetX": 0, "offsetY": 0 }
+        ]
+    },
+
+    // --- 道路プレート TR180 ---
+    "KATO-UNITRAM-ROAD-TR180": {
+        systemId: "KATO-UNITRAM-N",
+        category: "road",
+        name: "TR180",
+        description: "ユニトラム 曲線軌道プレート R180 (交差点・内側)",
+        nodes: [
+            // 南(下: 186mm辺 2箇所 X=-31, X=31, 向き=90°)
+            { "id": 0, "name": "南-左", "relX": -31, "relY": 93, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 1, "name": "南-右", "relX": 31, "relY": 93, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // 東(右: 186mm辺 2箇所 Y=-31, Y=31, 向き=0°)
+            { "id": 2, "name": "東-下", "relX": 93, "relY": 31, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 3, "name": "東-上", "relX": 93, "relY": -31, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // カーブ円弧対向ジョイント (円弧開始から22.5°および67.5°位置)
+            { "id": 4, "name": "カーブ対向-下(22.5°)", "relX": -80.71, "relY": 6.70, "facingAngle": 202.5, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 5, "name": "カーブ対向-上(67.5°)", "relX": 6.70, "relY": -80.71, "facingAngle": 247.5, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
+        ],
+        shapes: [
+            {
+                "type": "path",
+                // 左下(-93,93) -> 直進24.5mm(-93,68.5)
+                // -> 中心(68.5, 68.5)/半径161.5で90度時計回り円弧 -> 上辺(68.5,-93)
+                // -> 右上(93,-93) -> 右下(93,93) で外枠を閉じる
+                "pathData": "M -93 93 L -93 68.5 A 161.5 161.5 0 0 1 68.5 -93 L 93 -93 L 93 93 Z"
+            }
+        ]
+    },
+
+    // --- 道路プレート TC186 ---
+    "KATO-UNITRAM-ROAD-TC186": {
+        systemId: "KATO-UNITRAM-N",
+        category: "road",
+        name: "TC186",
+        description: "ユニトラム道路プレート交差点・角地",
+        nodes: [
+            // 西(左: 186mm辺 2箇所 Y=-31, Y=31, 向き=180°)
+            { "id": 0, "name": "西-上", "relX": -93, "relY": -31, "facingAngle": 180, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 1, "name": "西-下", "relX": -93, "relY": 31, "facingAngle": 180, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // 北(上: 186mm辺 2箇所 X=-31, X=31, 向き=270°)
+            { "id": 2, "name": "北-左", "relX": -31, "relY": -93, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 3, "name": "北-右", "relX": 31, "relY": -93, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // 南(下: 186mm辺 2箇所 X=-31, X=31, 向き=90°)
+            { "id": 4, "name": "南-左", "relX": -31, "relY": 93, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 5, "name": "南-右", "relX": 31, "relY": 93, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // 東(右: 186mm辺 2箇所 Y=-31, Y=31, 向き=0°)
+            { "id": 6, "name": "東-下", "relX": 93, "relY": 31, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            { "id": 7, "name": "東-上", "relX": 93, "relY": -31, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
+        ],
+        shapes: [
+            { "type": "rect", "width": 186, "height": 186, "offsetX": 0, "offsetY": 0 }
+        ]
+    },
+
+    // --- 道路プレート TQ62 ---
+    "KATO-UNITRAM-ROAD-TQ62": {
+        systemId: "KATO-UNITRAM-N",
+        category: "road",
+        name: "TQ62",
+        description: "ユニトラム道路プレート交差点・中央",
+        nodes: [
+            // 西(左: X=-31, Y=0, 向き=180°)
+            { "id": 0, "name": "西", "relX": -31, "relY": 0, "facingAngle": 180, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // 北(上: X=0, Y=-31, 向き=270°)
+            { "id": 1, "name": "北", "relX": 0, "relY": -31, "facingAngle": 270, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // 南(下: X=0, Y=31, 向き=90°)
+            { "id": 2, "name": "南", "relX": 0, "relY": 31, "facingAngle": 90, "jointType": "side-joiner", "jointGroup": "unitram-plate" },
+            // 東(右: X=31, Y=0, 向き=0°)
+            { "id": 3, "name": "東", "relX": 31, "relY": 0, "facingAngle": 0, "jointType": "side-joiner", "jointGroup": "unitram-plate" }
+        ],
+        shapes: [
+            { "type": "rect", "width": 62, "height": 62, "offsetX": 0, "offsetY": 0 }
         ]
     }
 });

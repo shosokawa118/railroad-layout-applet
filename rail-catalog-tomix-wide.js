@@ -44,7 +44,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "straight",
-        name: "S280-WP(F)",
+        name: "S280-WP",
         description: "ワイドPCレール S280-WP (幅37mm)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -140, "relY": 0, "facingAngle": 180 },
@@ -65,7 +65,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "straight",
-        name: "S158.5-WP(F)",
+        name: "S158.5-WP",
         description: "ワイドPCレール S158.5-WP",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -79.25, "relY": 0, "facingAngle": 180 },
@@ -82,7 +82,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "straight",
-        name: "S140-WP(F)",
+        name: "S140-WP",
         description: "ワイドPCレール S140-WP (幅37mm)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -70, "relY": 0, "facingAngle": 180 },
@@ -99,7 +99,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "straight",
-        name: "S99-WP(F)",
+        name: "S99-WP",
         description: "ワイドPCレール S99-WP",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -49.5, "relY": 0, "facingAngle": 180 },
@@ -116,7 +116,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "straight",
-        name: "S72.5-WP(F)",
+        name: "S72.5-WP",
         description: "ワイドPCレール S72.5-WP",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -36.25, "relY": 0, "facingAngle": 180 },
@@ -133,7 +133,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "straight",
-        name: "S70-WP(F)",
+        name: "S70-WP",
         description: "ワイドPCレール S70-WP",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -35, "relY": 0, "facingAngle": 180 },
@@ -150,7 +150,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "straight",
-        name: "S33-WP(F)",
+        name: "S33-WP",
         description: "ワイドPC端数レール S33-WP",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -16.5, "relY": 0, "facingAngle": 180 },
@@ -165,7 +165,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "straight",
-        name: "S18.5-WP(F)",
+        name: "S18.5-WP",
         description: "ワイドPC端数レール S18.5-WP",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -9.25, "relY": 0, "facingAngle": 180 },
@@ -190,7 +190,7 @@ registerRailParts({
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C280",
-        name: "CR280-22.5-WP(F)",
+        name: "CR280-22.5-WP",
         description: "アプローチPCレール CR280-22.5-WP-F (水平→カント-)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -54.62, "relY": -274.62, "facingAngle": 168.75, "polarity": "*" },
@@ -208,7 +208,7 @@ registerRailParts({
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C280",
-        name: "C280-45-WP(F)",
+        name: "C280-45-WP",
         description: "ワイドPCカーブレール C280-45-WP(F)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "カント流入端", "relX": -107.15, "relY": -258.68, "facingAngle": 157.5, "jointGroup": "tomix-cant", "polarity": 1 },
@@ -230,7 +230,7 @@ registerRailParts({
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C280",
-        name: "CL280-22.5-WP(F)",
+        name: "CL280-22.5-WP",
         description: "アプローチPCレール CL280-22.5-WP-F (カント+→水平)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "カント端", "relX": -54.62, "relY": -274.62, "facingAngle": 168.75, "jointGroup": "tomix-cant", "polarity": 1 },
@@ -250,7 +250,7 @@ registerRailParts({
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C317",
-        name: "CR317-22.5-WP(F)",
+        name: "CR317-22.5-WP",
         description: "アプローチPCレール CR317-22.5-WP-F (水平→カント-)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -61.85, "relY": -310.91, "facingAngle": 168.75, "polarity": "*" },
@@ -268,7 +268,7 @@ registerRailParts({
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C317",
-        name: "C317-45-WP(F)",
+        name: "C317-45-WP",
         description: "ワイドPCカーブレール C317-45-WP(F)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "カント流入端", "relX": -121.32, "relY": -292.86, "facingAngle": 157.5, "jointGroup": "tomix-cant", "polarity": 1 },
@@ -290,7 +290,7 @@ registerRailParts({
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C317",
-        name: "CL317-22.5-WP(F)",
+        name: "CL317-22.5-WP",
         description: "アプローチPCレール CL317-22.5-WP-F (カント+→水平)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "カント端", "relX": -61.85, "relY": -310.91, "facingAngle": 168.75, "jointGroup": "tomix-cant", "polarity": 1 },
@@ -310,7 +310,7 @@ registerRailParts({
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C354",
-        name: "CR354-22.5-WP(F)",
+        name: "CR354-22.5-WP",
         description: "アプローチPCレール CR354-22.5-WP-F (水平→カント-)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -69.07, "relY": -347.20, "facingAngle": 168.75, "polarity": "*" },
@@ -328,7 +328,7 @@ registerRailParts({
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C354",
-        name: "C354-45-WP(F)",
+        name: "C354-45-WP",
         description: "ワイドPCカーブレール C354-45-WP(F)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "カント流入端", "relX": -135.47, "relY": -327.05, "facingAngle": 157.5, "jointGroup": "tomix-cant", "polarity": 1 },
@@ -350,7 +350,7 @@ registerRailParts({
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C354",
-        name: "CL354-22.5-WP(F)",
+        name: "CL354-22.5-WP",
         description: "アプローチPCレール CL354-22.5-WP-F (カント+→水平)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "カント端", "relX": -69.07, "relY": -347.20, "facingAngle": 168.75, "jointGroup": "tomix-cant", "polarity": 1 },
@@ -370,7 +370,7 @@ registerRailParts({
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C391",
-        name: "CR391-22.5-WP(F)",
+        name: "CR391-22.5-WP",
         description: "アプローチPCレール CR391-22.5-WP-F (水平→カント-)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "水平端", "relX": -76.30, "relY": -383.49, "facingAngle": 168.75, "polarity": "*" },
@@ -388,7 +388,7 @@ registerRailParts({
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C391",
-        name: "C391-45-WP(F)",
+        name: "C391-45-WP",
         description: "ワイドPCカーブレール C391-45-WP(F)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "カント流入端", "relX": -149.63, "relY": -361.23, "facingAngle": 157.5, "jointGroup": "tomix-cant", "polarity": 1 },
@@ -410,7 +410,7 @@ registerRailParts({
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C391",
-        name: "CL391-22.5-WP(F)",
+        name: "CL391-22.5-WP",
         description: "アプローチPCレール CL391-22.5-WP-F (カント+→水平)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "カント端", "relX": -76.30, "relY": -383.49, "facingAngle": 168.75, "jointGroup": "tomix-cant", "polarity": 1 },
@@ -429,7 +429,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
-        name: "C541-15-WP(F)",
+        name: "C541-15-WP",
         description: "ワイドPCカーブレール C541-15-WP",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -70.61, "relY": -536.36, "facingAngle": 172.5 },
@@ -446,7 +446,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
-        name: "C605-10-WP(F)A・B",
+        name: "C605-10-WP",
         description: "ワイドPCカーブレール C605-10-WP",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -52.68, "relY": -602.69, "facingAngle": 175.0 },
@@ -467,7 +467,7 @@ registerRailParts({
         systemId: "TOMIX-WIDE-N",
         compatibleSystems: ["TOMIX-WIDE-N"],
         category: "straight",
-        name: "E-WI-WP(F)",
+        name: "E-WI-WP",
         description: "ワイドエンドレール E-WI-WP(F)",
         nodes: [
             { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -35, "relY": 0, "facingAngle": 180 },
@@ -484,7 +484,7 @@ registerRailParts({
     "TOMIX-N-PX280-WB": {
         systemId: "TOMIX-WIDE-N",
         category: "turnout",
-        name: "N-PX280-WB",
+        name: "PX280-WB",
         description: "ワイドPC電動複線両渡りポイント PX280",
         ballastWidth: 18.5,
         nodes: [
@@ -537,7 +537,7 @@ registerRailParts({
     "TOMIX-N-WPR541-15": {
         systemId: "TOMIX-WIDE-N",
         category: "turnout",
-        name: "N-WPR541-15-WB",
+        name: "WPR541-15-WB",
         description: "ワイドPC電動ポイント (右)",
         ballastWidth: 18.5,
         nodes: [
@@ -559,7 +559,7 @@ registerRailParts({
     "TOMIX-N-WPL541-15": {
         systemId: "TOMIX-WIDE-N",
         category: "turnout",
-        name: "N-WPL541-15-WB",
+        name: "WPL541-15-WB",
         description: "ワイドPC電動ポイント (左)",
         ballastWidth: 18.5,
         nodes: [
@@ -622,7 +622,7 @@ registerRailParts({
     "TOMIX-N-WPR280-30": {
         systemId: "TOMIX-WIDE-N",
         category: "turnout",
-        name: "N-WPR280-30-WB",
+        name: "WPR280-30-WB",
         description: "ワイドPC電動ポイント PR280-30 (右)",
         ballastWidth: 18.5,
         nodes: [
@@ -644,7 +644,7 @@ registerRailParts({
     "TOMIX-N-WPL280-30": {
         systemId: "TOMIX-WIDE-N",
         category: "turnout",
-        name: "N-WPL280-30-WB",
+        name: "WPL280-30-WB",
         description: "ワイドPC電動ポイント PL280-30 (左)",
         ballastWidth: 18.5,
         nodes: [
