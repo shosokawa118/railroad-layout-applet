@@ -228,7 +228,10 @@
         */
         function openSystemDialog() {
             const dialog = document.getElementById('systemSelectDialog');
-            if (!dialog) return;
+            if (!dialog) {
+                console.warn('No dialog');
+                return;
+            }
 
             // 現在選択中のシステムIDを一時変数にセット
             tempSelectedSystemId = currentSystemId;
@@ -237,11 +240,7 @@
             initSystemFilters();
             renderSystemList();
 
-            if (typeof dialog.showModal === 'function') {
-                dialog.showModal();
-            } else {
-                dialog.setAttribute('open', '');
-            }
+            dialog.showModal();
         }
 
         /**
@@ -249,13 +248,12 @@
          */
         function closeSystemDialog() {
             const dialog = document.getElementById('systemSelectDialog');
-            if (!dialog) return;
-
-            if (typeof dialog.close === 'function') {
-                dialog.close();
-            } else {
-                dialog.removeAttribute('open');
+            if (!dialog) {
+                console.warn('No dialog');
+                return;
             }
+
+            dialog.close();
         }
 
         /**
@@ -363,9 +361,7 @@
             currentSystemId = tempSelectedSystemId;
 
             // LocalStorageへ自動保存
-            if (typeof saveUserSetting === 'function') {
-                saveUserSetting('systemSelect', currentSystemId);
-            }
+            saveUserSetting('systemSelect', currentSystemId);
 
             closeSystemDialog();
 
@@ -456,9 +452,9 @@
             }
 
             const dialog = document.getElementById('railOptionsDialog');
-            if (dialog && typeof dialog.showModal === 'function') {
+            if (dialog) {
                 dialog.showModal();
-            }
+            } else { console.warn('No dialog') }
         }
 
         // ダイアログを閉じる処理
@@ -519,8 +515,8 @@
             }
 
             closeRailOptionsDialog();
-            if (typeof updateJointIndicators === 'function') updateJointIndicators();
-            if (typeof draw === 'function') draw(); // 描画更新
+            updateJointIndicators();
+            draw(); // 描画更新
         }
 
         // =============================================================================
@@ -564,9 +560,9 @@
             });
 
             // 選択状態変更時にUIの状態（ボタン無効化など）を同期更新
-            canvas.on('selection:created', () => { if (typeof updateUIState === 'function') updateUIState(); });
-            canvas.on('selection:updated', () => { if (typeof updateUIState === 'function') updateUIState(); });
-            canvas.on('selection:cleared', () => { if (typeof updateUIState === 'function') updateUIState(); });
+            canvas.on('selection:created', () => { updateUIState(); });
+            canvas.on('selection:updated', () => { updateUIState(); });
+            canvas.on('selection:cleared', () => { updateUIState(); });
 
             canvas.on('mouse:wheel', function(opt) {
                 if (!opt || !opt.e) return;
@@ -648,7 +644,7 @@
         }
 
         function showContextMenu(x, y) {
-            if (typeof updateUIState === 'function') updateUIState();
+            updateUIState();
             const menu = document.getElementById('contextMenu');
             if (!menu) return;
             menu.style.left = `${x}px`;
@@ -663,16 +659,16 @@
 
         function execMenuAction(action) {
             hideContextMenu();
-            if (action === 'selectConnected' && typeof selectConnectedRails === 'function') selectConnectedRails();
-            if (action === 'selectAll' && typeof selectAllRails === 'function') selectAllRails();
-            if (action === 'undo' && typeof undoLayout === 'function') undoLayout();
-            if (action === 'redo' && typeof redoLayout === 'function') redoLayout();
-            if (action === 'cut' && typeof cutSelectedRails === 'function') cutSelectedRails();
-            if (action === 'copy' && typeof copySelectedRails === 'function') copySelectedRails();
-            if (action === 'paste' && typeof pasteRails === 'function') pasteRails();
-            if (action === 'duplicate' && typeof duplicateSelectedRails === 'function') duplicateSelectedRails();
-            if (action === 'delete' && typeof deleteSelectedRails === 'function') deleteSelectedRails();
-            if (action === 'options' && typeof openRailOptionsDialog === 'function') openRailOptionsDialog();
+            if (action === 'selectConnected') selectConnectedRails();
+            if (action === 'selectAll') selectAllRails();
+            if (action === 'undo') undoLayout();
+            if (action === 'redo') redoLayout();
+            if (action === 'cut') cutSelectedRails();
+            if (action === 'copy') copySelectedRails();
+            if (action === 'paste') pasteRails();
+            if (action === 'duplicate') duplicateSelectedRails();
+            if (action === 'delete') deleteSelectedRails();
+            if (action === 'options') openRailOptionsDialog();
         }
 
         function startApplication() {
@@ -683,23 +679,21 @@
                     allowTouchScrolling: false
                 });
 
-                if (typeof initCameraControls === 'function') initCameraControls();
-                if (typeof initTouchControls === 'function') initTouchControls();
-                if (typeof initContextMenu === 'function') initContextMenu();
+                initCameraControls();
+                initTouchControls();
+                initContextMenu();
 
                 // ファイルドラッグ＆ドロップのレシーバー設定
                 const canvasContainer = document.querySelector('.canvas-container') || document.getElementById('layoutCanvas');
-                if (typeof setupFileDropZone === 'function') setupFileDropZone(canvasContainer);
+                setupFileDropZone(canvasContainer);
 
                 initPaletteUI();
 
                 console.log("[%s] Canvas初期化成功。初期配置データをロードします...", CODE_VERSION);
 
                 loadSystemLibrary(currentSystemId).then(() => {
-                    if (typeof loadDebugSampleLayout === 'function') {
-                        loadDebugSampleLayout();
-                    }
-                    if (typeof updateUIState === 'function') updateUIState();
+                    loadDebugSampleLayout();
+                    updateUIState();
                 }).catch(err => {
                     console.error("初期ライブラリの読み込みに失敗しました:", err);
                 });
@@ -713,7 +707,7 @@
             if (!railCatalog) return;
 
             // 保存された設定の読み込み
-            const savedSettings = (typeof loadUserSettings === 'function') ? loadUserSettings() : {};
+            const savedSettings = loadUserSettings();
 
             // 保存済みの規格IDが存在しかつ選択肢にあれば優先適用
             if (savedSettings.systemSelect && railCatalog.systems[savedSettings.systemSelect]) {
@@ -844,9 +838,7 @@
                 jointSelect.value = savedSettings.jointDisplaySelect;
 
                 // layout-engine側の初期描画変数にも反映
-                if (typeof setJointDisplayMode === 'function') {
-                    setJointDisplayMode(savedSettings.jointDisplaySelect);
-                }
+                setJointDisplayMode(savedSettings.jointDisplaySelect);
             }
         });
     </script>

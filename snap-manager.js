@@ -29,8 +29,6 @@ function autoConnectNearbyNodes(targetRails, distTol = 8, angleTol = 10) {
 
     validRails.forEach(rRail => {
         const rId = rRail.customData.instanceId;
-        if (typeof getAbsoluteNodePos !== 'function') return;
-        
         const rNodes = getAbsoluteNodePos(rRail);
 
         allRails.forEach(oRail => {
@@ -41,20 +39,16 @@ function autoConnectNearbyNodes(targetRails, distTol = 8, angleTol = 10) {
             const oNodes = getAbsoluteNodePos(oRail);
 
             rNodes.forEach(mN => {
-                if (typeof isNodeOccupied === 'function' && isNodeOccupied(rId, mN.nodeId)) return;
+                if (isNodeOccupied(rId, mN.nodeId)) return;
 
                 oNodes.forEach(oN => {
-                    if (typeof isNodeOccupied === 'function' && isNodeOccupied(oId, oN.nodeId)) return;
+                    if (isNodeOccupied(oId, oN.nodeId)) return;
                     
-                    const canConnect = (typeof canConnectNodes === 'function') 
-                        ? canConnectNodes(rRail, mN.nodeId, oRail, oN.nodeId) 
-                        : true;
+                    const canConnect = canConnectNodes(rRail, mN.nodeId, oRail, oN.nodeId);
 
-                    if (canConnect && typeof isNodePositionCompatible === 'function') {
+                    if (canConnect) {
                         if (isNodePositionCompatible(mN, oN, distTol, angleTol)) {
-                            if (typeof addGlobalJointIfFree === 'function') {
-                                addGlobalJointIfFree(rId, mN.nodeId, oId, oN.nodeId);
-                            }
+                            addGlobalJointIfFree(rId, mN.nodeId, oId, oN.nodeId);
                         }
                     }
                 });
