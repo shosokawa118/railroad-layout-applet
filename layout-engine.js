@@ -127,19 +127,31 @@ function loadSystemLibrary(systemId) {
     return loadingPromises[fileName];
 }
 
+/**
+ * コントロールハンドルの設定
+ * @param {Object} fabricObj - Fabricオブジェクト
+ */
 function configureControls(fabricObj) {
     if (!fabricObj) return;
 
+    // 可変長レール（variable-straight）かどうかの判定
+    const isVariable = fabricObj.customData && 
+                       railCatalog.items[fabricObj.customData.partId] && 
+                       railCatalog.items[fabricObj.customData.partId].dynamicType === 'variable-straight';
+
     fabricObj.set({
         hasControls: true,
-        lockScalingX: true,
+        lockScalingX: !isVariable, // 可変長レールの場合はX方向の伸縮を許可
         lockScalingY: true,
         lockUniScaling: true
     });
 
     fabricObj.setControlsVisibility({
         tl: false, tr: false, br: false, bl: false,
-        ml: false, mt: false, mr: false, mb: false,
+        ml: isVariable, // 可変長レールの場合は左右ハンドルを表示
+        mt: false, 
+        mr: isVariable, 
+        mb: false,
         mtr: true
     });
 
@@ -265,6 +277,9 @@ function alignRailToParentNode(newRail, parentRail, parentNodeId) {
     return true;
 }
 
+/**
+ * イベント登録
+ */
 function registerGlobalCanvasEvents() {
     if (globalEventsRegistered || !canvas) return;
     globalEventsRegistered = true;
@@ -284,6 +299,19 @@ function registerGlobalCanvasEvents() {
     canvas.on('object:rotating', (options) => { 
         isDraggingRail = true;
         if (options && options.target) onGeneralTransform(options.target); 
+    });
+
+    // --- 【追加】変形確定時（伸縮・回転・移動完了時） ---
+    canvas.on('object:modified', (options) => {
+        if (!options || !options.target) return;
+        const target = options.target;
+        const action = options.action; // 'scale', 'scaleX' 等
+        const corner = options.transform ? options.transform.corner : null; // 'ml', 'mr' 等
+
+        // 可変長レールの伸縮操作だった場合
+        if ((action === 'scale' || action === 'scaleX') && (corner === 'ml' || corner === 'mr')) {
+            handleVariableRailResizeEnd(target, corner);
+        }
     });
     
     canvas.on('mouse:up', () => {
@@ -320,6 +348,74 @@ function registerGlobalCanvasEvents() {
     canvas.on('selection:updated', handleSelection);
 }
 
+/**
+ * 可変長レールの伸縮完了時処理
+ * @param {Object} rail - Fabricオブジェクト
+ * @param {string} corner - 操作されたハンドル ('ml' または 'mr')
+ */
+function handleVariableRailResizeEnd(rail, corner) {
+    if (!rail || !rail.customData) return;
+    
+    const catalogItem = railCatalog.items[rail.customData.partId];
+    if (!catalogItem || catalogItem.dynamicType !== 'variable-straight') return;
+
+    // 1. 現在の長さとスケール値から新長さを算出
+    const oldLength = (rail.partOptions && typeof rail.partOptions.length === 'number')
+        ? rail.partOptions.length
+        : (catalogItem.defaultLength || 78);
+    
+    const scaleX = rail.scaleX || 1;
+    let newLength = oldLength * scaleX;
+
+    // 範囲内にクランプ (78～108mm)
+    const minL = catalogItem.minLength || 78;
+    const maxL = catalogItem.maxLength || 108;
+    newLength = Math.max(minL, Math.min(maxL, newLength));
+
+    // 2. 移動量の計算準備
+    const deltaL = newLength - oldLength;
+    const angleRad = ((rail.angle || 0) * Math.PI) / 180;
+
+    // mr (右): ノード1側を移動（ノード0固定） -> 中心は右(+方向)へ移動
+    // ml (左): ノード0側を移動（ノード1固定） -> 中心は左(-方向)へ移動
+    const movingNodeId = (corner === 'mr') ? 1 : 0;
+    const directionSign = (corner === 'mr') ? 1 : -1;
+
+    // 3. 動かした側のジョイントを解除
+    if (typeof disconnectJointsAtNode === 'function') {
+        disconnectJointsAtNode(rail, movingNodeId);
+    }
+
+    // 4. 固定端の位置を基準とした中心座標 (left, top) の補正
+    const shift = (deltaL / 2) * directionSign;
+    const newLeft = rail.left + shift * Math.cos(angleRad);
+    const newTop = rail.top + shift * Math.sin(angleRad);
+
+    // 5. プロパティの更新とスケールリセット
+    if (!rail.partOptions) rail.partOptions = {};
+    rail.partOptions.length = newLength;
+
+    rail.set({
+        scaleX: 1,
+        scaleY: 1,
+        left: newLeft,
+        top: newTop
+    });
+
+    // 6. 正規の再描画処理 (SVGパス等の再生成・再セット)
+    if (typeof updateRailGraphics === 'function') {
+        updateRailGraphics(rail);
+    }
+
+    // 7. 新しいノード位置でのスナップ・接続判定
+    if (typeof applyClusterSnapLogic === 'function') {
+        applyClusterSnapLogic(rail);
+    }
+
+    rail.setCoords();
+    canvas.requestRenderAll();
+}
+
 // レール名描画設定
 let DEFAULT_RAIL_NAME_FONT_SIZE = 8;
 let SHOW_RAIL_NAMES = true;
@@ -347,21 +443,13 @@ function updateRailTextOrientation(target) {
                 let flip = (absAngle > 90 && absAngle < 270) ? 180 : 0;
                 let newLocalAngle = obj.baseAngle + flip;
 
-                console.log(`[TextDebug:Orient] Rail[${idx}] Part: "${railGroup.customData.partId}"`, {
-                    globalRailAngle,
-                    baseAngle: obj.baseAngle,
-                    absAngle,
-                    flip,
-                    newLocalAngle,
-                    textPosInGroup: { left: obj.left, top: obj.top }
-                });
-
                 obj.set('angle', newLocalAngle);
             }
         });
     });
 }
 
+// キャンバスにレールを追加する関数
 function addRailToCanvas(partId, options = {}) {
     if (!canvas) return null;
 
@@ -372,7 +460,7 @@ function addRailToCanvas(partId, options = {}) {
     }
 
     const currentId = `rail-${railCount++}`;
-    const geoData = generateGenericRailData(catalogItem);
+    const geoData = generateGenericRailData(catalogItem, options);
 
     const baseObjects = geoData.basePaths.map(pStr => new fabric.Path(pStr, { fill: '#888888', stroke: null, originX: 'center', originY: 'center' }));
     const railObjects = geoData.railPaths.map(pStr => new fabric.Path(pStr, { fill: null, stroke: '#222222', strokeWidth: 1.5, strokeLineCap: 'round', originX: 'center', originY: 'center' }));
@@ -412,6 +500,13 @@ function addRailToCanvas(partId, options = {}) {
         geoCenterX: geoData.centerX,
         geoCenterY: geoData.centerY
     };
+
+    // partOptions (可変レールの長さ等) が渡されていた場合は保持
+    if (options.partOptions) {
+        railObject.partOptions = JSON.parse(JSON.stringify(options.partOptions));
+    } else if (typeof options.length === 'number') {
+        railObject.partOptions = { length: options.length };
+    }
 
     const jointsBefore = typeof globalJoints !== 'undefined' ? [...globalJoints] : [];
 
@@ -467,8 +562,8 @@ function addRailToCanvas(partId, options = {}) {
                 partId: partId,
                 x: railObject.left,
                 y: railObject.top,
-                angle: railObject.angle
-                // partOptions は必要時のみ recordAction 側で参照
+                angle: railObject.angle,
+                partOptions: railObject.partOptions ? JSON.parse(JSON.stringify(railObject.partOptions)) : undefined
             }],
             jointsBefore: jointsBefore,
             jointsAfter: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
@@ -597,6 +692,7 @@ function exportLayoutData() {
     };
 }
 
+// レイアウトデータを読み込む関数
 async function importLayoutData(layoutData, isOverwrite = true) {
     if (!canvas) return;
     if (!layoutData || !Array.isArray(layoutData.rails)) {
@@ -631,18 +727,24 @@ async function importLayoutData(layoutData, isOverwrite = true) {
             return;
         }
         
-        const newObj = addRailToCanvas(r.partId, { skipAutoConnect: true, skipSelect: true });
+        // partOptions を addRailToCanvas に引き継いで動的サイズを適用して描画
+        const addOptions = { skipAutoConnect: true, skipSelect: true };
+        if (r.partOptions) {
+            addOptions.partOptions = r.partOptions;
+        }
+
+        const newObj = addRailToCanvas(r.partId, addOptions);
         if (newObj) {
             newObj.set({ left: r.x, top: r.y, angle: r.angle });
             
-            // ===== 修正: partOptions が存在する場合のみ復元 =====
+            // ===== partOptions が存在する場合のみ復元 =====
             if (r.partOptions && typeof r.partOptions === 'object') {
                 newObj.partOptions = JSON.parse(JSON.stringify(r.partOptions));
             }
 
             newObj.setCoords();
 
-            // ★ 修正: 読込データの角度 (r.angle) 適用後にテキストの向きを再計算
+            // 読込データの角度 (r.angle) 適用後にテキストの向きを再計算
             if (typeof updateRailTextOrientation === 'function') {
                 updateRailTextOrientation(newObj);
             }

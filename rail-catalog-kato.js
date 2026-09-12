@@ -89,6 +89,21 @@ registerRailParts({
     // =========================================================
     // KATO その他直線レール
     // =========================================================
+    "KATO-S78S": {
+        systemId: "KATO-UNITRACK-N",
+        category: "straight",
+        name: "S78S",
+        description: "スライド線路 78～108mm",
+        dynamicType: "variable-straight",
+        minLength: 78,
+        maxLength: 108,
+        defaultLength: 78,
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "relX": -39, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "relX": 39, "relY": 0, "facingAngle": 0 }
+        ],
+        shapes: [{ "type": "line", "length": 78, "offsetX": 0, "offsetY": 0 }]
+    },
     "KATO-S64": {
         systemId: "KATO-UNITRACK-N",
         category: "straight",

@@ -30,19 +30,50 @@ function checkArcCardinalBounds(cX, cY, rOut, rIn, startDeg, arcAngle, updateBou
     });
 }
 
-function generateGenericRailData(catalogItem) {
+// レールの汎用描画データを生成する関数
+function generateGenericRailData(catalogItem, options = {}) {
     const basePaths = [];
     const railPaths = [];
     const textDataList = [];
 
-    const sys = catalogItem && catalogItem.systemId ? railCatalog.systems[catalogItem.systemId] : null;
+    if (!catalogItem || !catalogItem.shapes) {
+        return { basePaths: ["M 0 0 L 10 0"], railPaths: [], textDataList: [], centerX: 0, centerY: 0 };
+    }
 
-    const defaultBallastWidth = (catalogItem && typeof catalogItem.ballastWidth === 'number')
-        ? catalogItem.ballastWidth
+    // --- 可変レールの長さを動的決定 ---
+    let effectiveCatalogItem = catalogItem;
+    if (catalogItem.dynamicType === "variable-straight") {
+        let currentLength = catalogItem.defaultLength || 78;
+        if (typeof options.length === 'number') {
+            currentLength = options.length;
+        } else if (options.partOptions && typeof options.partOptions.length === 'number') {
+            currentLength = options.partOptions.length;
+        }
+        
+        // 範囲内にクランプ
+        const minL = catalogItem.minLength || currentLength;
+        const maxL = catalogItem.maxLength || currentLength;
+        currentLength = Math.max(minL, Math.min(maxL, currentLength));
+
+        // 描画用に shapes の length のみを動的変更
+        effectiveCatalogItem = JSON.parse(JSON.stringify(catalogItem));
+        if (Array.isArray(effectiveCatalogItem.shapes)) {
+            effectiveCatalogItem.shapes.forEach(shape => {
+                if (shape.type === "line") {
+                    shape.length = currentLength;
+                }
+            });
+        }
+    }
+
+    const sys = effectiveCatalogItem.systemId ? railCatalog.systems[effectiveCatalogItem.systemId] : null;
+
+    const defaultBallastWidth = (typeof effectiveCatalogItem.ballastWidth === 'number')
+        ? effectiveCatalogItem.ballastWidth
         : (sys ? sys.ballastWidth : 16);
 
     // 表示テキスト（label 優先、無ければ name）
-    const displayText = (catalogItem && (catalogItem.label || catalogItem.name)) ? (catalogItem.label || catalogItem.name) : "";
+    const displayText = (effectiveCatalogItem.label || effectiveCatalogItem.name) ? (effectiveCatalogItem.label || effectiveCatalogItem.name) : "";
 
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     let hasRenderedText = false;
@@ -52,11 +83,7 @@ function generateGenericRailData(catalogItem) {
         if (y < minY) minY = y; if (y > maxY) maxY = y;
     }
 
-    if (!catalogItem || !catalogItem.shapes) {
-        return { basePaths: ["M 0 0 L 10 0"], railPaths: [], textDataList: [], centerX: 0, centerY: 0 };
-    }
-
-    catalogItem.shapes.forEach((shape, sIdx) => {
+    effectiveCatalogItem.shapes.forEach((shape, sIdx) => {
         // --- shape 個別の ballastWidth 判定 (指定があれば優先、無ければ既定値) ---
         const shapeBallastWidth = (typeof shape.ballastWidth === 'number') ? shape.ballastWidth : defaultBallastWidth;
         const halfW = shapeBallastWidth / 2;
@@ -368,7 +395,7 @@ function generateGenericRailData(catalogItem) {
 }
 
 /**
- * ノード定義に nodeOffsets (補正値) が存在する場合、適用後の relX, relY, facingAngle を返すヘルパー関数
+ * ノード定義に nodeOffsets (補正値) や dynamicType (可変レール長) が存在する場合、適用後の relX, relY, facingAngle を返すヘルパー関数
  * @param {Object} rail - Fabricオブジェクト
  * @param {Object} catalogNode - カタログ上のノード定義オブジェクト
  * @returns {{relX: number, relY: number, facingAngle: number}}
@@ -381,11 +408,29 @@ function getEffectiveNodeDef(rail, catalogNode) {
     let facingAngle = catalogNode.facingAngle || 0;
 
     const jointType = catalogNode.jointType || 'rail-end';
+
+    // --- 1. 可変レール (variable-straight) の長さによるノード位置動的補正 ---
+    if (rail && rail.customData && rail.customData.partId) {
+        const catalogItem = railCatalog.items[rail.customData.partId];
+        if (catalogItem && catalogItem.dynamicType === 'variable-straight') {
+            let currentLength = catalogItem.defaultLength || 78;
+            if (rail.partOptions && typeof rail.partOptions.length === 'number') {
+                currentLength = rail.partOptions.length;
+            }
+            // 範囲内にクランプ
+            const minL = catalogItem.minLength || currentLength;
+            const maxL = catalogItem.maxLength || currentLength;
+            currentLength = Math.max(minL, Math.min(maxL, currentLength));
+
+            const halfL = currentLength / 2;
+            if (catalogNode.id === 0) relX = -halfL;
+            if (catalogNode.id === 1) relX = halfL;
+        }
+    }
     
-    // PartOption 配下の nodeOffsets を安全に参照
+    // --- 2. nodeOffsets (手動微調整) の適用 ---
     const nodeOffsets = rail && rail.partOptions ? rail.partOptions.nodeOffsets : null;
 
-    // jointType: 'rail-end' の場合のみ nodeOffsets を適用
     if (jointType === 'rail-end' && nodeOffsets && catalogNode.id !== undefined) {
         const offset = nodeOffsets[catalogNode.id];
         if (offset) {
