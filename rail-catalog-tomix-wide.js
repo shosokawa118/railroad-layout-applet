@@ -42,8 +42,8 @@ registerRailParts({
     // =========================================================
     "TOMIX-S280-WP": {
         systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
         category: "straight",
+        subCategory: "標準",
         name: "S280-WP",
         description: "ワイドPCレール S280-WP (幅37mm)",
         nodes: [
@@ -63,8 +63,8 @@ registerRailParts({
     },
     "TOMIX-S158.5-WP": {
         systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
         category: "straight",
+        subCategory: "端数・調整",
         name: "S158.5-WP",
         description: "ワイドPCレール S158.5-WP",
         nodes: [
@@ -80,8 +80,8 @@ registerRailParts({
     },
     "TOMIX-S140-WP": {
         systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
         category: "straight",
+        subCategory: "標準",
         name: "S140-WP",
         description: "ワイドPCレール S140-WP (幅37mm)",
         nodes: [
@@ -97,8 +97,8 @@ registerRailParts({
     },
     "TOMIX-S99-WP": {
         systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
         category: "straight",
+        subCategory: "端数・調整",
         name: "S99-WP",
         description: "ワイドPCレール S99-WP",
         nodes: [
@@ -112,44 +112,10 @@ registerRailParts({
         ],
         shapes: [{ "type": "line", "length": 99, "offsetX": 0, "offsetY": 0 }]
     },
-    "TOMIX-S72.5-WP": {
-        systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
-        category: "straight",
-        name: "S72.5-WP",
-        description: "ワイドPCレール S72.5-WP",
-        nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -36.25, "relY": 0, "facingAngle": 180 },
-            { "id": 1, "jointType": "rail-end", "name": "延伸端", "relX": 36.25,  "relY": 0, "facingAngle": 0 },
-            // --- 側面ジョイント ---
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": -33.25, "relY": -18.5, "facingAngle": -90, "polarity": 1 },  // 左上
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": 33.25,  "relY": -18.5, "facingAngle": -90, "polarity": -1 }, // 右上
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": 33.25,  "relY": 18.5,  "facingAngle": 90,  "polarity": 1 },  // 右下
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": -33.25, "relY": 18.5,  "facingAngle": 90,  "polarity": -1 }  // 左下
-        ],
-        shapes: [{ "type": "line", "length": 72.5, "offsetX": 0, "offsetY": 0 }]
-    },
-    "TOMIX-S70-WP": {
-        systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
-        category: "straight",
-        name: "S70-WP",
-        description: "ワイドPCレール S70-WP",
-        nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -35, "relY": 0, "facingAngle": 180 },
-            { "id": 1, "jointType": "rail-end", "name": "延伸端", "relX": 35,  "relY": 0, "facingAngle": 0 },
-            // --- 側面ジョイント ---
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": -32, "relY": -18.5, "facingAngle": -90, "polarity": 1 },  // 左上
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": 32,  "relY": -18.5, "facingAngle": -90, "polarity": -1 }, // 右上
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": 32,  "relY": 18.5,  "facingAngle": 90,  "polarity": 1 },  // 右下
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": -32, "relY": 18.5,  "facingAngle": 90,  "polarity": -1 }  // 左下
-        ],
-        shapes: [{ "type": "line", "length": 70, "offsetX": 0, "offsetY": 0 }]
-    },
     "TOMIX-S33-WP": {
         systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
         category: "straight",
+        subCategory: "端数・調整",
         name: "S33-WP",
         description: "ワイドPC端数レール S33-WP",
         nodes: [
@@ -163,8 +129,8 @@ registerRailParts({
     },
     "TOMIX-S18.5-WP": {
         systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
         category: "straight",
+        subCategory: "端数・調整",
         name: "S18.5-WP",
         description: "ワイドPC端数レール S18.5-WP",
         nodes: [
@@ -179,7 +145,7 @@ registerRailParts({
     "TOMIX-V70-WP": {
         systemId: "TOMIX-WIDE-N",
         category: "straight",
-        subCategory: "特殊",
+        subCategory: "端数・調整",
         name: "V70-WP",
         description: "バリアブルレール 70～90mm",
         dynamicType: "variable-straight",
@@ -194,6 +160,25 @@ registerRailParts({
         shapes: [{ "type": "line", "length": 70, "offsetX": 0, "offsetY": 0 }]
     },
 
+    // 車止めレール
+    "TOMIX-E-WI": {
+        systemId: "TOMIX-WIDE-N",
+        category: "straight",
+        subCategory: "終端",
+        name: "E-WI",
+        description: "ワイドエンドレール E-WI(F)",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -20, "relY": 0, "facingAngle": 180 },
+            // --- 側面ジョイント ---
+            { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": -17, "relY": -18.5, "facingAngle": -90, "polarity": 1 },  // 左上
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": -17, "relY": 18.5,  "facingAngle": 90,  "polarity": -1 }  // 左下
+        ],
+        shapes: [
+            { "type": "line", "length": 37, "offsetX": -1.5, "offsetY": 0 },
+            { "type": "rect", "width": 40, "height": 37, "offsetX": 0, "offsetY": 0 }
+        ]
+    },
+
     // =========================================================
     // 曲線レール（修正版）
     // facingAngle定義:
@@ -204,7 +189,6 @@ registerRailParts({
     // --- R280 シリーズ ---
     "TOMIX-CR280-22.5-FLAT-CANT": {
         systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C280",
         name: "CR280-22.5-WP",
@@ -222,7 +206,6 @@ registerRailParts({
     },
     "TOMIX-C280-45-V": {
         systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C280",
         name: "C280-45-WP",
@@ -244,7 +227,6 @@ registerRailParts({
     },
     "TOMIX-CR280-22.5-CANT-FLAT": {
         systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C280",
         name: "CL280-22.5-WP",
@@ -264,7 +246,6 @@ registerRailParts({
     // --- R317 シリーズ ---
     "TOMIX-CR317-22.5-FLAT-CANT": {
         systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C317",
         name: "CR317-22.5-WP",
@@ -282,7 +263,6 @@ registerRailParts({
     },
     "TOMIX-C317-45-V": {
         systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C317",
         name: "C317-45-WP",
@@ -304,7 +284,6 @@ registerRailParts({
     },
     "TOMIX-CR317-22.5-CANT-FLAT": {
         systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C317",
         name: "CL317-22.5-WP",
@@ -324,7 +303,6 @@ registerRailParts({
     // --- R354 シリーズ ---
     "TOMIX-CR354-22.5-FLAT-CANT": {
         systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C354",
         name: "CR354-22.5-WP",
@@ -342,7 +320,6 @@ registerRailParts({
     },
     "TOMIX-C354-45-V": {
         systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C354",
         name: "C354-45-WP",
@@ -364,7 +341,6 @@ registerRailParts({
     },
     "TOMIX-CR354-22.5-CANT-FLAT": {
         systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C354",
         name: "CL354-22.5-WP",
@@ -384,7 +360,6 @@ registerRailParts({
     // --- R391 シリーズ ---
     "TOMIX-CR391-22.5-FLAT-CANT": {
         systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C391",
         name: "CR391-22.5-WP",
@@ -402,7 +377,6 @@ registerRailParts({
     },
     "TOMIX-C391-45-V": {
         systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C391",
         name: "C391-45-WP",
@@ -424,7 +398,6 @@ registerRailParts({
     },
     "TOMIX-CR391-22.5-CANT-FLAT": {
         systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
         category: "curve",
         subCategory: "C391",
         name: "CL391-22.5-WP",
@@ -441,53 +414,13 @@ registerRailParts({
         shapes: [{ "type": "arc", "radius": 391, "arcAngle": 22.5, "centerX": 0, "centerY": 0, "startAngle": 258.75 }]
     },
 
-    "TOMIX-C605-10-WP": {
-        systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
-        category: "curve",
-        name: "C605-10-WP",
-        description: "ワイドPCカーブレール C605-10-WP",
-        nodes: [
-            { "id": 0, "jointType": "rail-end", "relX": -52.68, "relY": -602.69, "facingAngle": 175.0 },
-            { "id": 1, "jointType": "rail-end", "relX": 52.68,  "relY": -602.69, "facingAngle": 5.0 },
-            // --- 側面ジョイント ---
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R623.5", "relX": -47.69, "relY": -621.67, "facingAngle": -94.386, "polarity": 1 },
-            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R623.5", "relX": 47.69,  "relY": -621.67, "facingAngle": -85.614, "polarity": -1 },
-            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-R586.5", "relX": 44.86,  "relY": -584.78, "facingAngle": 94.386,  "polarity": 1 },
-            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-R586.5", "relX": -44.86, "relY": -584.78, "facingAngle": 85.614,  "polarity": -1 }
-        ],
-        shapes: [{ "type": "arc", "radius": 605, "arcAngle": 10, "centerX": 0, "centerY": 0, "startAngle": 265.0 }]
-    },
-
-    // =========================================================
-    // 車止めレール
-    // =========================================================
-    "TOMIX-E-WI": {
-        systemId: "TOMIX-WIDE-N",
-        compatibleSystems: ["TOMIX-WIDE-N"],
-        category: "straight",
-        subCategory: "特殊",
-        name: "E-WI",
-        description: "ワイドエンドレール E-WI(F)",
-        nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -20, "relY": 0, "facingAngle": 180 },
-            // --- 側面ジョイント ---
-            { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": -17, "relY": -18.5, "facingAngle": -90, "polarity": 1 },  // 左上
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": -17, "relY": 18.5,  "facingAngle": 90,  "polarity": -1 }  // 左下
-        ],
-        shapes: [
-            { "type": "line", "length": 37, "offsetX": -1.5, "offsetY": 0 },
-            { "type": "rect", "width": 40, "height": 37, "offsetX": 0, "offsetY": 0 }
-        ]
-    },
-
     // =========================================================
     // TOMIX ワイド化 電動複線両渡りポイント (N-PX280-WB)
     // =========================================================
     "TOMIX-N-PX280-WB": {
         systemId: "TOMIX-WIDE-N",
         category: "turnout",
-        subCategory: "ポイント",
+        subCategory: "渡り線",
         name: "PX280-WB",
         description: "ワイド化 電動複線両渡りポイント PX280",
         ballastWidth: 18.5,
@@ -541,7 +474,7 @@ registerRailParts({
     "TOMIX-N-PR541-15-WB": {
         systemId: "TOMIX-WIDE-N",
         category: "turnout",
-        subCategory: "ポイント",
+        subCategory: "半径541",
         name: "PR541-15-WB",
         description: "ワイド化 電動ポイント (右)",
         ballastWidth: 18.5,
@@ -564,7 +497,7 @@ registerRailParts({
     "TOMIX-N-PL541-15-WB": {
         systemId: "TOMIX-WIDE-N",
         category: "turnout",
-        subCategory: "ポイント",
+        subCategory: "半径541",
         name: "PL541-15-WB",
         description: "ワイド化 電動ポイント (左)",
         ballastWidth: 18.5,
@@ -583,54 +516,11 @@ registerRailParts({
         ]
     },
 
-    // --- S140-WP（ポイント分岐用・片側道床版） ---
-    "TOMIX-N-S140-WP-SINGLE": {
-        systemId: "TOMIX-WIDE-N",
-        category: "turnout",
-        subCategory: "補助線路",
-        name: "S140-WP(片側道床)",
-        description: "ポイント分岐用片側道床直線レール",
-        ballastWidth: 18.5,
-        nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "端点1", "relX": -70.0, "relY": 0, "facingAngle": 180 },
-            { "id": 1, "jointType": "rail-end", "name": "端点2", "relX": 70.0,  "relY": 0, "facingAngle": 0 },
-            // 外側バラスト接続 (極性: +1, 直線専用)
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-ballast-straight", "name": "外側バラスト接続", "relX": 0, "relY": -9.25, "facingAngle": 270, "polarity": 1 }
-        ],
-        shapes: [
-            { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
-            { "type": "path", "pathData": "M -70 18.5 L 70 18.5 L 70 0 L -70 0 Z" }
-        ]
-    },
-
-    // --- C541-15-WP（片側道床） ---
-    "TOMIX-N-C541-15-WP": {
-        systemId: "TOMIX-WIDE-N",
-        category: "turnout",
-        subCategory: "補助線路",
-        name: "C541-15-WP(片側道床)",
-        description: "ポイント接続用片側道床カーブ基幹レール",
-        ballastWidth: 18.5,
-        nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "端点1", "relX": -70.58, "relY": 4.62, "facingAngle": 172.5 },
-            { "id": 1, "jointType": "rail-end", "name": "端点2", "relX": 70.58, "relY": 4.62, "facingAngle": 7.5 },
-            // 内側バラスト接続 (極性: +1, C541専用)
-            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-ballast-C541", "name": "内側バラスト接続", "relX": 0, "relY": 9.25, "facingAngle": 90, "polarity": 1 }
-        ],
-        shapes: [
-            { "type": "arc", "radius": 541, "arcAngle": 15, "centerX": 0, "centerY": 541.0, "startAngle": 262.5 },
-            {
-                "type": "path",
-                "pathData": "M -69.38 13.78 L -73.0 -13.62 A 559.5 559.5 0 0 1 73.0 -13.62 L 69.38 13.78 A 531.75 531.75 0 0 0 -69.38 13.78 Z"
-            }
-        ]
-    },
-
     // TOMIX 電動ポイント PR280-30-WB (右)
     "TOMIX-N-PR280-30-WB": {
         systemId: "TOMIX-WIDE-N",
         category: "turnout",
-        subCategory: "ポイント",
+        subCategory: "半径280",
         name: "PR280-30-WB",
         description: "ワイド化 電動ポイント PR280-30 (右)",
         ballastWidth: 18.5,
@@ -653,7 +543,7 @@ registerRailParts({
     "TOMIX-N-PL280-30-WB": {
         systemId: "TOMIX-WIDE-N",
         category: "turnout",
-        subCategory: "ポイント",
+        subCategory: "半径280",
         name: "WPL280-30-WB",
         description: "ワイド化 電動ポイント PL280-30 (左)",
         ballastWidth: 18.5,
@@ -671,37 +561,207 @@ registerRailParts({
             { "type": "arc", "radius": 280, "arcAngle": -30.0, "centerX": -70.0, "centerY": -280.0, "startAngle": 90 }
         ]
     },
-    
-    // --- 外付け道床パーツ：直線 S140 用 ---
-    "TOMIX-N-BALLAST-S140": {
+
+    // --- S280-WP（ポイント分岐用・片側道床版） ---
+    "TOMIX-S280-WP-SINGLE": {
         systemId: "TOMIX-WIDE-N",
-        category: "turnout",
+        category: "other",
+        subCategory: "補助線路",
+        name: "S280-WP(片側道床)",
+        description: "ポイント分岐用 片側道床直線レール 280mm",
+        ballastWidth: 18.5,
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -140, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "延伸端", "relX": 140,  "relY": 0, "facingAngle": 0 },
+            // 外付け道床用サイドノード (上側: Y = -27.75, 面角 270°)
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-ballast-straight", "name": "上側外付け道床(左)", "relX": -70.0, "relY": -9.25, "facingAngle": 270, "polarity": 1 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-ballast-straight", "name": "上側外付け道床(右)", "relX":  70.0, "relY": -9.25, "facingAngle": 270, "polarity": 1 },
+            // --- 側面ジョイント ---
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": 137,  "relY": 18.5,  "facingAngle": 90,  "polarity": 1 },  // 下面右/右下 (+1)
+            { "id": 5, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": 3,    "relY": 18.5,  "facingAngle": 90,  "polarity": -1 }, // 下面中右 (-1)
+            { "id": 6, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": -3,   "relY": 18.5,  "facingAngle": 90,  "polarity": 1 },  // 下面中左 (+1)
+            { "id": 7, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": -137, "relY": 18.5,  "facingAngle": 90,  "polarity": -1 }  // 下面左/左下 (-1)
+        ],
+        shapes: [
+            { "type": "line", "length": 280, "offsetX": 0, "offsetY": 0 },
+            { "type": "rect", "width": 280, "height": 18.5, "offsetX": 0, "offsetY": 9.25 }]
+    },
+    // --- S140-WP（ポイント分岐用・片側道床版本体） ---
+    "TOMIX-N-S140-WP-SINGLE": {
+        systemId: "TOMIX-WIDE-N",
+        category: "other",
+        subCategory: "補助線路",
+        name: "S140-WP(片側道床)",
+        description: "ポイント分岐用 片側道床直線レール 140mm",
+        ballastWidth: 18.5,
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "端点1", "relX": -70.0, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "端点2", "relX": 70.0,  "relY": 0, "facingAngle": 0 },
+            // 外側バラスト接続 (極性: +1, 直線専用)
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-ballast-straight", "name": "外側バラスト接続", "relX": 0, "relY": -9.25, "facingAngle": 270, "polarity": 1 },
+            // --- 側面ジョイント ---
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": 67,  "relY": 18.5,  "facingAngle": 90,  "polarity": 1 },  // 右下
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": -67, "relY": 18.5,  "facingAngle": 90,  "polarity": -1 }  // 左下
+        ],
+        shapes: [
+            { "type": "line", "length": 140, "offsetX": 0, "offsetY": 0 },
+            { "type": "rect", "width": 140, "height": 18.5, "offsetX": 0, "offsetY": 9.25 }
+        ]
+    },
+    // --- 外付け道床パーツ：S140/S280 用 ---
+    "TOMIX-BALLAST-S140": {
+        systemId: "TOMIX-WIDE-N",
+        category: "other",
         subCategory: "バラスト",
         trackType: "ballast-only",
-        name: "S140-WPバラスト",
-        description: "ポイント分岐用外付け道床（直線用）",
+        name: "S140/280-WPバラスト",
+        description: "ポイント補助用外付け道床 (S140/S280用)",
         ballastWidth: 9.25,
         nodes: [
-            // 直線バラスト受入ノード (極性: -1)
-            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast-straight", "name": "接続端", "relX": 0, "relY": 4.625, "facingAngle": 90, "polarity": -1 }
+            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast-straight", "name": "接続端", "relX": 0, "relY": -9.25, "facingAngle": 90, "polarity": -1 },
+            // --- 側面ジョイント ---
+            { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": -67, "relY": -18.5, "facingAngle": -90, "polarity": 1 },  // 左上
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": 67,  "relY": -18.5, "facingAngle": -90, "polarity": -1 }  // 右上
         ],
         shapes: [
             {
                 "type": "polygon",
                 "points": [
-                    { "x": -70, "y": -4.625 },
-                    { "x": 70, "y": -4.625 },
-                    { "x": 70, "y": 4.625 },
-                    { "x": -70, "y": 4.625 }
+                    { "x": -70, "y": -18.5 },
+                    { "x": 70,  "y": -18.5 },
+                    { "x": 70,  "y": -9.25 },
+                    { "x": -70, "y": -9.25 }
                 ]
             }
         ]
     },
 
+    // --- S70-WP (片側道床本体) ---
+    "TOMIX-S70-WP": {
+        systemId: "TOMIX-WIDE-N",
+        category: "other",
+        subCategory: "補助線路",
+        name: "S70-WP(片側道床)",
+        description: "片側道床直線レール S70-WP",
+        ballastWidth: 18.5,
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -35, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "延伸端", "relX": 35,  "relY": 0, "facingAngle": 0 },
+            // 固定側面ジョイント (下側 Y=+18.5)
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": 32,  "relY": 18.5, "facingAngle": 90, "polarity": 1 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": -32, "relY": 18.5, "facingAngle": 90, "polarity": -1 },
+            // 外付けバラスト着脱用ノード (上側 Y=-9.25)
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast-S70", "name": "外付けバラスト接続", "relX": 0, "relY": -9.25, "facingAngle": 270, "polarity": 1 }
+        ],
+        shapes: [
+            { "type": "line", "length": 70, "offsetX": 0, "offsetY": 0 },
+            { "type": "rect", "width": 70, "height": 27.75, "offsetX": 0, "offsetY": 4.625 }
+        ]
+    },
+    // --- 外付け道床パーツ：S70 用 ---
+    "TOMIX-BALLAST-S70": {
+        systemId: "TOMIX-WIDE-N",
+        category: "other",
+        subCategory: "バラスト",
+        trackType: "ballast-only",
+        name: "S70-WPバラスト",
+        description: "ポイント補助用外付け道床 (S70用)",
+        ballastWidth: 9.25,
+        nodes: [
+            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast-S70", "name": "接続端", "relX": 0, "relY": -9.25, "facingAngle": 90, "polarity": -1 },
+            // --- 側面ジョイント ---
+            { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": -32, "relY": -18.5, "facingAngle": -90, "polarity": 1 },  // 左上
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": 32,  "relY": -18.5, "facingAngle": -90, "polarity": -1 }  // 右上
+        ],
+        shapes: [
+            {
+                "type": "polygon",
+                "points": [
+                    { "x": -35, "y": -18.5 },
+                    { "x": 35,  "y": -18.5 },
+                    { "x": 35,  "y": -9.25 },
+                    { "x": -35, "y": -9.25 }
+                ]
+            }
+        ]
+    },
+
+    // --- S72.5-WP (片側道床本体) ---
+    "TOMIX-S72.5-WP": {
+        systemId: "TOMIX-WIDE-N",
+        category: "other",
+        subCategory: "補助線路",
+        name: "S72.5-WP(片側道床)",
+        description: "片側道床直線レール S72.5-WP",
+        ballastWidth: 18.5,
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -36.25, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "延伸端", "relX": 36.25,  "relY": 0, "facingAngle": 0 },
+            // 固定側面ジョイント (下側 Y=+18.5)
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": 33.25,  "relY": 18.5, "facingAngle": 90, "polarity": 1 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": -33.25, "relY": 18.5, "facingAngle": 90, "polarity": -1 },
+            // 外付けバラスト着脱用ノード (上側 Y=-9.25)
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast-S72.5", "name": "外付けバラスト接続", "relX": 0, "relY": -9.25, "facingAngle": 270, "polarity": 1 }
+        ],
+        shapes: [
+            { "type": "line", "length": 72.5, "offsetX": 0, "offsetY": 0 },
+            { "type": "rect", "width": 72.5, "height": 27.75, "offsetX": 0, "offsetY": 4.625 }
+        ]
+    },
+    // --- 外付け道床パーツ：S72.5 用 ---
+    "TOMIX-BALLAST-S72.5": {
+        systemId: "TOMIX-WIDE-N",
+        category: "other",
+        subCategory: "バラスト",
+        trackType: "ballast-only",
+        name: "S72.5-WPバラスト",
+        description: "ポイント補助用外付け道床 (S72.5用)",
+        ballastWidth: 9.25,
+        nodes: [
+            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast-S72.5", "name": "接続端", "relX": 0, "relY": -9.25, "facingAngle": 90, "polarity": -1 },
+            // --- 側面ジョイント ---
+            { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": -33.25, "relY": -18.5, "facingAngle": -90, "polarity": 1 },  // 左上
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-straight", "relX": 33.25,  "relY": -18.5, "facingAngle": -90, "polarity": -1 }, // 右上
+        ],
+        shapes: [
+            {
+                "type": "polygon",
+                "points": [
+                    { "x": -36.25, "y": -18.5 },
+                    { "x": 36.25,  "y": -18.5 },
+                    { "x": 36.25,  "y": -9.25 },
+                    { "x": -36.25, "y": -9.25 }
+                ]
+            }
+        ]
+    },
+
+    // --- C541-15-WP（片側道床） ---
+    "TOMIX-N-C541-15-WP": {
+        systemId: "TOMIX-WIDE-N",
+        category: "other",
+        subCategory: "補助線路",
+        name: "C541-15-WP(片側道床)",
+        description: "ポイント接続用片側道床カーブ基幹レール",
+        ballastWidth: 18.5,
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "端点1", "relX": -70.58, "relY": 4.62, "facingAngle": 172.5 },
+            { "id": 1, "jointType": "rail-end", "name": "端点2", "relX": 70.58, "relY": 4.62, "facingAngle": 7.5 },
+            // 内側バラスト接続 (極性: +1, C541専用)
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-ballast-C541", "name": "内側バラスト接続", "relX": 0, "relY": 9.25, "facingAngle": 90, "polarity": 1 }
+        ],
+        shapes: [
+            { "type": "arc", "radius": 541, "arcAngle": 15, "centerX": 0, "centerY": 541.0, "startAngle": 262.5 },
+            {
+                "type": "path",
+                "pathData": "M -69.38 13.78 L -73.0 -13.62 A 559.5 559.5 0 0 1 73.0 -13.62 L 69.38 13.78 A 531.75 531.75 0 0 0 -69.38 13.78 Z"
+            }
+        ]
+    },
     // --- 外付け道床パーツ：カーブ C541-15 用（L/R共通部品） ---
     "TOMIX-N-BALLAST-C541-15": {
         systemId: "TOMIX-WIDE-N",
-        category: "turnout",
+        category: "other",
         subCategory: "バラスト",
         trackType: "ballast-only",
         name: "C541-15-WPバラスト",
@@ -719,24 +779,97 @@ registerRailParts({
         ]
     },
 
-    // 外付け道床パーツ：カーブ C280-30 用（左右共通・修正版）
-    "TOMIX-N-BALLAST-C280-30": {
+    // --- C605-10-WP-A (外側バラスト着脱式本体) ---
+    "TOMIX-C605-10-WP-A": {
         systemId: "TOMIX-WIDE-N",
-        category: "turnout",
+        category: "other",
+        subCategory: "補助線路",
+        name: "C605-10-WP-A(内側道床)",
+        description: "ワイドPCカーブレール C605-10-WP A (外側バラスト着脱式)",
+        ballastWidth: 18.5,
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "relX": -52.68, "relY": -602.69, "facingAngle": 175.0 },
+            { "id": 1, "jointType": "rail-end", "relX": 52.68,  "relY": -602.69, "facingAngle": 5.0 },
+            // 内側固定側面ジョイント (R586.5)
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R586.5", "relX": 44.86,  "relY": -584.78, "facingAngle": 94.386,  "polarity": 1 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R586.5", "relX": -44.86, "relY": -584.78, "facingAngle": 85.614,  "polarity": -1 },
+            // 外側バラスト着脱用ノード (R614.25側)
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast-C605-A", "name": "外側バラスト接続", "relX": 0, "relY": -614.25, "facingAngle": 270, "polarity": 1 }
+        ],
+        shapes: [
+            { "type": "arc", "radius": 605, "arcAngle": 10, "centerX": 0, "centerY": 0, "startAngle": 265.0 },
+            {
+                "type": "path",
+                "pathData": "M -53.53 -611.91 L -51.12 -584.27 A 586.5 586.5 0 0 1 51.12 -584.27 L 53.53 -611.91 A 614.25 614.25 0 0 0 -53.53 -611.91 Z"
+            }
+        ]
+    },
+    // --- C605-10-WP-A 用外付け道床 (外側用) ---
+    "TOMIX-BALLAST-C605-10-A": {
+        systemId: "TOMIX-WIDE-N",
+        category: "other",
         subCategory: "バラスト",
         trackType: "ballast-only",
-        name: "C280-30-WPバラスト",
-        description: "ポイント分岐用外付け道床（C280-30用）",
+        name: "C605-10-WP 外側バラスト",
+        description: "C605-10-WP A用 外付けバラスト (外側用)",
         ballastWidth: 9.25,
         nodes: [
-            // 原点(0,0)=円弧中心。外半径の受入面(Y = -270.75)に上向き(270°)のノードを配置
-            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast-C280", "name": "接続端", "relX": 0, "relY": -270.75, "facingAngle": 270.0, "polarity": -1 }
+            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast-C605-A", "name": "接続端", "relX": 0, "relY": -614.25, "facingAngle": 90, "polarity": -1 },
+            // 外側固定側面ジョイント (R623.5)
+            { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-side-R623.5", "relX": -47.69, "relY": -621.67, "facingAngle": -94.386, "polarity": 1 },
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R623.5", "relX": 47.69,  "relY": -621.67, "facingAngle": -85.614, "polarity": -1 }
         ],
         shapes: [
             {
-                // 外半径 R=270.75 から内側へ 9.25mm 狭まる内半径 R=261.50 の扇形
                 "type": "path",
-                "pathData": "M -70.08 -261.53 A 270.75 270.75 0 0 1 70.08 -261.53 L 67.68 -252.59 A 261.50 261.50 0 0 0 -67.68 -252.59 Z"
+                "pathData": "M -54.34 -621.13 L -53.53 -611.91 A 614.25 614.25 0 0 1 53.53 -611.91 L 54.34 -621.13 A 623.5 623.5 0 0 0 -54.34 -621.13 Z"
+            }
+        ]
+    },
+    // --- C605-10-WP-B (内側バラスト着脱式本体) ---
+    "TOMIX-C605-10-WP-B": {
+        systemId: "TOMIX-WIDE-N",
+        category: "other",
+        subCategory: "補助線路",
+        name: "C605-10-WP-B(外側道床)",
+        description: "ワイドPCカーブレール C605-10-WP B (内側バラスト着脱式)",
+        ballastWidth: 18.5,
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "relX": -52.68, "relY": -602.69, "facingAngle": 175.0 },
+            { "id": 1, "jointType": "rail-end", "relX": 52.68,  "relY": -602.69, "facingAngle": 5.0 },
+            // 外側固定側面ジョイント (R623.5)
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R623.5", "relX": -47.69, "relY": -621.67, "facingAngle": -94.386, "polarity": 1 },
+            { "id": 3, "jointType": "side-joiner", "jointGroup": "wide-side-R623.5", "relX": 47.69,  "relY": -621.67, "facingAngle": -85.614, "polarity": -1 },
+            // 内側バラスト着脱用ノード (R595.75側)
+            { "id": 4, "jointType": "side-joiner", "jointGroup": "wide-ballast-C605-B", "name": "内側バラスト接続", "relX": 0, "relY": -595.75, "facingAngle": 90, "polarity": 1 }
+        ],
+        shapes: [
+            { "type": "arc", "radius": 605, "arcAngle": 10, "centerX": 0, "centerY": 0, "startAngle": 265.0 },
+            {
+                "type": "path",
+                "pathData": "M -51.92 -593.48 L -54.34 -621.13 A 623.5 623.5 0 0 1 54.34 -621.13 L 51.92 -593.48 A 595.75 595.75 0 0 0 -51.92 -593.48 Z"
+            }
+        ]
+    },
+    // --- C605-10-WP-B 用外付け道床 (内側用) ---
+    "TOMIX-BALLAST-C605-10-B": {
+        systemId: "TOMIX-WIDE-N",
+        category: "other",
+        subCategory: "バラスト",
+        trackType: "ballast-only",
+        name: "C605-10-WP 内側バラスト",
+        description: "C605-10-WP B用 外付けバラスト (内側用)",
+        ballastWidth: 9.25,
+        nodes: [
+            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast-C605-B", "name": "接続端", "relX": 0, "relY": -595.75, "facingAngle": 270, "polarity": -1 },
+            // 内側固定側面ジョイント (R586.5)
+            { "id": 1, "jointType": "side-joiner", "jointGroup": "wide-side-R586.5", "relX": 44.86,  "relY": -584.78, "facingAngle": 94.386,  "polarity": 1 },
+            { "id": 2, "jointType": "side-joiner", "jointGroup": "wide-side-R586.5", "relX": -44.86, "relY": -584.78, "facingAngle": 85.614,  "polarity": -1 },
+        ],
+        shapes: [
+            {
+                "type": "path",
+                "pathData": "M -51.12 -584.27 L -51.92 -593.48 A 595.75 595.75 0 0 1 51.92 -593.48 L 51.12 -584.27 A 586.5 586.5 0 0 0 -51.12 -584.27 Z"
             }
         ]
     },
@@ -744,7 +877,7 @@ registerRailParts({
     // --- バラストパーツ L5（左ポイント後の隙間埋め用） ---
     "TOMIX-N-BALLAST-L5": {
         systemId: "TOMIX-WIDE-N",
-        category: "turnout",
+        category: "other",
         subCategory: "バラスト",
         trackType: "ballast-only",
         name: "バラストパーツ L5",
@@ -765,7 +898,7 @@ registerRailParts({
     // --- バラストパーツ R5（右ポイント後の隙間埋め用） ---
     "TOMIX-N-BALLAST-R5": {
         systemId: "TOMIX-WIDE-N",
-        category: "turnout",
+        category: "other",
         subCategory: "バラスト",
         trackType: "ballast-only",
         name: "バラストパーツ R5",
@@ -780,6 +913,28 @@ registerRailParts({
         shapes: [
             // 元の正しい path を維持
             { "type": "path", "pathData": "M -70 -9.25 L 70 -9.25 L 70 9.25 A 531.75 531.75 0 0 1 -70 -9.25 Z" }
+        ]
+    },
+
+    // 外付け道床パーツ：カーブ C280-30 用（左右共通・修正版）
+    "TOMIX-N-BALLAST-C280-30": {
+        systemId: "TOMIX-WIDE-N",
+        category: "other",
+        subCategory: "バラスト",
+        trackType: "ballast-only",
+        name: "C280-30-WPバラスト",
+        description: "ポイント分岐用外付け道床（C280-30用）",
+        ballastWidth: 9.25,
+        nodes: [
+            // 原点(0,0)=円弧中心。外半径の受入面(Y = -270.75)に上向き(270°)のノードを配置
+            { "id": 0, "jointType": "side-joiner", "jointGroup": "wide-ballast-C280", "name": "接続端", "relX": 0, "relY": -270.75, "facingAngle": 270.0, "polarity": -1 }
+        ],
+        shapes: [
+            {
+                // 外半径 R=270.75 から内側へ 9.25mm 狭まる内半径 R=261.50 の扇形
+                "type": "path",
+                "pathData": "M -70.08 -261.53 A 270.75 270.75 0 0 1 70.08 -261.53 L 67.68 -252.59 A 261.50 261.50 0 0 0 -67.68 -252.59 Z"
+            }
         ]
     }
 
