@@ -104,6 +104,36 @@ registerRailParts({
         ]
     },
 
+    // --- 併専境界線路 124mm (TWA124PC) ---
+    "KATO-UNITRAM-TWA124PC": {
+        systemId: "KATO-UNITRAM-N",
+        category: "straight",
+        name: "TWA124PC",
+        description: "ユニトラム 併専境界線路 124mm (進入25mm / 出口33mm)",
+        nodes: [
+            { "id": 0, "name": "進入-主線(左)", "relX": -62.0, "relY": -12.5, "facingAngle": 180, "polarity": 1 },
+            { "id": 1, "name": "進入-副線(左)", "relX": -62.0, "relY":  12.5, "facingAngle": 180, "polarity": -1 },
+            { "id": 2, "name": "出口-副線(右)", "relX":  62.0, "relY":  16.5, "facingAngle": 0, "jointGroup": "unijoiner-33mm", "polarity": 1 },
+            { "id": 3, "name": "出口-主線(右)", "relX":  62.0, "relY": -16.5, "facingAngle": 0, "jointGroup": "unijoiner-33mm", "polarity": -1 }
+        ],
+        shapes: [
+            // 背景埋め用のプレート矩形 (長さ124mm, 幅62mm)
+            { "type": "rect", "width": 124, "height": 62, "offsetX": 0, "offsetY": 0 },
+            
+            // --- 主線 (上側レール: -12.5mm -> -16.5mm) ---
+            // 前半S字: 円弧中心=左上 (centerX: -62, centerY: -974.5)
+            { "type": "arc", "radius": 962, "arcAngle": -3.694, "centerX": -62.0, "centerY": -974.5, "startAngle":  90, "ballastWidth": 25 },
+            // 後半S字: 円弧中心=右下 (centerX: 62, centerY: 947.5)
+            { "type": "arc", "radius": 962, "arcAngle": -3.694, "centerX":  62.0, "centerY":  945.5, "startAngle": 270, "ballastWidth": 25 },
+
+            // --- 副線 (下側レール: +12.5mm -> +16.5mm) ---
+            // 前半S字: 円弧中心=左下 (centerX: -62, centerY: 974.5)
+            { "type": "arc", "radius": 962, "arcAngle":  3.694, "centerX": -62.0, "centerY":  974.5, "startAngle": 270, "ballastWidth": 25 },
+            // 後半S字: 円弧中心=右上 (centerX: 62, centerY: -947.5)
+            { "type": "arc", "radius": 962, "arcAngle":  3.694, "centerX":  62.0, "centerY": -945.5, "startAngle":  90, "ballastWidth": 25 }
+        ]
+    },
+
     // --- 複線曲線軌道 L (左) ---
     "KATO-UNITRAM-C-L": {
         systemId: "KATO-UNITRAM-N",

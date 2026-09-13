@@ -96,6 +96,47 @@ registerRailParts({
             { "type": "line", "length": 62, "offsetX": 0, "offsetY":  16.5 }
         ]
     },
+    // =========================================================
+    // KATO 複線拡幅線路 (WA310)
+    // =========================================================
+    "KATO-WA310-L": {
+        systemId: "KATO-DOUBLETRACK-N",
+        category: "straight",
+        name: "WA310PC-L",
+        description: "複線拡幅線路 左 310mm",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端-主線(上)", "relX": -155, "relY":  16.5, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "進入端-副線(下)", "relX": -155, "relY":  49.5, "facingAngle": 180 },
+            { "id": 2, "jointType": "rail-end", "name": "退出端-副線(下)", "relX":  155, "relY":  49.5, "facingAngle": 0 },
+            { "id": 3, "jointType": "rail-end", "name": "退出端-主線(上)", "relX":  155, "relY": -16.5, "facingAngle": 0 }
+        ],
+        shapes: [
+            // 下線（直線）
+            { "type": "line", "length": 310, "offsetX": 0, "offsetY":  49.5 },
+            // 上線（拡幅）
+            { "type": "arc", "radius": 736.28, "arcAngle": -12.2, "centerX":  155, "centerY":  719.78, "startAngle": 270 },
+            { "type": "arc", "radius": 736.28, "arcAngle": -12.2, "centerX": -155, "centerY": -719.78, "startAngle": 90 }
+        ]
+    },
+    "KATO-WA310-R": {
+        systemId: "KATO-DOUBLETRACK-N",
+        category: "straight",
+        name: "WA310PC-R",
+        description: "複線拡幅線路 右 310mm",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端-主線(上)", "relX": -155, "relY": -16.5, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "進入端-副線(下)", "relX": -155, "relY":  49.5, "facingAngle": 180 },
+            { "id": 2, "jointType": "rail-end", "name": "退出端-副線(下)", "relX":  155, "relY":  49.5, "facingAngle": 0 },
+            { "id": 3, "jointType": "rail-end", "name": "退出端-主線(上)", "relX":  155, "relY":  16.5, "facingAngle": 0 }
+        ],
+        shapes: [
+            // 下線（直線）
+            { "type": "line", "length": 310, "offsetX": 0, "offsetY":  49.5 },
+            // 上線（拡幅）
+            { "type": "arc", "radius": 736.28, "arcAngle": 12.2, "centerX":  155, "centerY": -719.78, "startAngle": 90 },
+            { "type": "arc", "radius": 736.28, "arcAngle": 12.2, "centerX": -155, "centerY":  719.78, "startAngle": 270 }
+        ]
+    },
 
     // =========================================================
     // KATO 複線カント付き曲線線路 (WR315/282)
