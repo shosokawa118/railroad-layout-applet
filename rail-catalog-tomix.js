@@ -121,6 +121,22 @@ registerRailParts({
         ],
         shapes: [{ "type": "line", "length": 18.5, "offsetX": 0, "offsetY": 0 }]
     },
+    "TOMIX-V70": {
+        systemId: "TOMIX-FINETRACK-N",
+        category: "straight",
+        subCategory: "特殊",
+        name: "V70",
+        description: "バリアブルレール 70～90mm",
+        dynamicType: "variable-straight",
+        minLength: 70,
+        maxLength: 90,
+        defaultLength: 70,
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "relX": -35, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "relX":  35, "relY": 0, "facingAngle": 0 }
+        ],
+        shapes: [{ "type": "line", "length": 70, "offsetX": 0, "offsetY": 0 }]
+    },
     // ---------------------------------------------------------
     // ジョイントレール S35-J
     // ノード0 (左端): TOMIX標準 (tomix-clapper)
@@ -129,7 +145,7 @@ registerRailParts({
     "TOMIX-1525": {
         systemId: "TOMIX-FINETRACK-N",
         category: "straight",
-        subCategory: "特殊レール",
+        subCategory: "特殊",
         name: "S35-J",
         description: "ジョイントレール S35-J",
         nodes: [

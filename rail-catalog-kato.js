@@ -92,6 +92,7 @@ registerRailParts({
     "KATO-S64": {
         systemId: "KATO-UNITRACK-N",
         category: "straight",
+        subCategory: "端数・調整",
         name: "S64",
         description: "直線線路 64mm",
         nodes: [
@@ -100,20 +101,82 @@ registerRailParts({
         ],
         shapes: [{ "type": "line", "length": 64, "offsetX": 0, "offsetY": 0 }]
     },
-    "KATO-S60": {
+    "KATO-S60R": {
         systemId: "KATO-UNITRACK-N",
         category: "straight",
-        name: "S60",
-        description: "端数線路 60mm",
+        subCategory: "端数・調整",
+        name: "S60R",
+        description: "端数線路 60mm（右切り欠き）",
         nodes: [
             { "id": 0, "jointType": "rail-end", "relX": -30, "relY": 0, "facingAngle": 180 },
             { "id": 1, "jointType": "rail-end", "relX": 30,  "relY": 0, "facingAngle": 0 }
         ],
-        shapes: [{ "type": "line", "length": 60, "offsetX": 0, "offsetY": 0 }]
+        shapes: [
+            { "type": "line", "length": 60, "offsetX": 0, "offsetY": 0, "ballastWidth": 0 },
+            {
+                "type": "polygon",
+                "points": [
+                    { "x": -30, "y": -12.5 },
+                    { "x":  30, "y": -12.5 },
+                    { "x":  30, "y":   5.0 },
+                    { "x":   0, "y":  12.5 },
+                    { "x": -30, "y":  12.5 }
+                ]
+            }
+        ]
+    },
+    "KATO-S60L": {
+        systemId: "KATO-UNITRACK-N",
+        category: "straight",
+        subCategory: "端数・調整",
+        name: "S60L",
+        description: "端数線路 60mm（左切り欠き）",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "relX": -30, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "relX": 30,  "relY": 0, "facingAngle": 0 }
+        ],
+        shapes: [
+            { "type": "line", "length": 60, "offsetX": 0, "offsetY": 0, "ballastWidth": 0 },
+            {
+                "type": "polygon",
+                "points": [
+                    { "x": -30, "y": -12.5 },
+                    { "x":  30, "y": -12.5 },
+                    { "x":  30, "y":  12.5 },
+                    { "x":   0, "y":  12.5 },
+                    { "x": -30, "y":   5.0 }
+                ]
+            }
+        ]
+    },
+    "KATO-S45": {
+        systemId: "KATO-UNITRACK-N",
+        category: "straight",
+        subCategory: "端数・調整",
+        name: "S45",
+        description: "端数線路 45.5mm",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "relX": -22.75, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "relX": 22.75,  "relY": 0, "facingAngle": 0 }
+        ],
+        shapes: [{ "type": "line", "length": 45.5, "offsetX": 0, "offsetY": 0 }]
+    },
+    "KATO-S33": {
+        systemId: "KATO-UNITRACK-N",
+        category: "straight",
+        subCategory: "端数・調整",
+        name: "S33",
+        description: "端数線路 33mm",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "relX": -16.5, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "relX": 16.5,  "relY": 0, "facingAngle": 0 }
+        ],
+        shapes: [{ "type": "line", "length": 33, "offsetX": 0, "offsetY": 0 }]
     },
     "KATO-S29": {
         systemId: "KATO-UNITRACK-N",
         category: "straight",
+        subCategory: "端数・調整",
         name: "S29",
         description: "端数線路 29mm",
         nodes: [
@@ -122,9 +185,26 @@ registerRailParts({
         ],
         shapes: [{ "type": "line", "length": 29, "offsetX": 0, "offsetY": 0 }]
     },
+    "KATO-S78S": {
+        systemId: "KATO-UNITRACK-N",
+        category: "straight",
+        subCategory: "端数・調整",
+        name: "S78S",
+        description: "スライド線路 78～108mm",
+        dynamicType: "variable-straight",
+        minLength: 78,
+        maxLength: 108,
+        defaultLength: 78,
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "relX": -39, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "relX": 39, "relY": 0, "facingAngle": 0 }
+        ],
+        shapes: [{ "type": "line", "length": 78, "offsetX": 0, "offsetY": 0 }]
+    },
     "KATO-S62J": {
         systemId: "KATO-UNITRACK-N",
         category: "straight",
+        subCategory: "特殊",
         name: "S62J",
         description: "ジョイントレール 62mm (+10mm)",
         nodes: [
@@ -153,6 +233,7 @@ registerRailParts({
     "KATO-BUMPER": {
         systemId: "KATO-UNITRACK-N",
         category: "straight",
+        subCategory: "特殊",
         name: "S64B",
         description: "車止め線路 64mm",
         nodes: [
@@ -211,6 +292,7 @@ registerRailParts({
     "KATO-R481-15": {
         systemId: "KATO-UNITRACK-N",
         category: "curve",
+        subCategory: "緩曲線",
         name: "R481-15",
         description: "曲線線路",
         nodes: [
@@ -222,6 +304,7 @@ registerRailParts({
     "KATO-R718-15": {
         systemId: "KATO-UNITRACK-N",
         category: "curve",
+        subCategory: "緩曲線",
         name: "R718-15",
         description: "曲線線路",
         nodes: [
@@ -237,6 +320,7 @@ registerRailParts({
     "KATO-EP4-L": {
         systemId: "KATO-UNITRACK-N",
         category: "turnout",
+        subCategory: "分岐",
         name: "EP481-15L",
         description: "電動ポイント4番 (左)",
         nodes: [
@@ -252,6 +336,7 @@ registerRailParts({
     "KATO-EP4-R": {
         systemId: "KATO-UNITRACK-N",
         category: "turnout",
+        subCategory: "分岐",
         name: "EP481-15R",
         description: "電動ポイント4番 (右)",
         nodes: [
@@ -267,12 +352,13 @@ registerRailParts({
     "KATO-EP6-L": {
         systemId: "KATO-UNITRACK-N",
         category: "turnout",
+        subCategory: "分岐",
         name: "EP718-15L",
         description: "電動ポイント6番 (左)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -93.0, "relY": 0,     "facingAngle": 180 },
-            { "id": 1, "jointType": "rail-end", "name": "分岐端", "relX": 91.4,  "relY": -24.5, "facingAngle": -15.0 },
-            { "id": 2, "jointType": "rail-end", "name": "直進端", "relX": 93.0,  "relY": 0,     "facingAngle": 0 }
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -93, "relY":   0,    "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "分岐端", "relX":  93, "relY": -24.75, "facingAngle": -15 },
+            { "id": 2, "jointType": "rail-end", "name": "直進端", "relX":  93, "relY":   0,    "facingAngle": 0 }
         ],
         shapes: [
             { "type": "line", "length": 186, "offsetX": 0, "offsetY": 0 },
@@ -282,16 +368,72 @@ registerRailParts({
     "KATO-EP6-R": {
         systemId: "KATO-UNITRACK-N",
         category: "turnout",
+        subCategory: "分岐",
         name: "EP718-15R",
         description: "電動ポイント6番 (右)",
         nodes: [
-            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -93.0, "relY": 0,    "facingAngle": 180 },
-            { "id": 1, "jointType": "rail-end", "name": "分岐端", "relX": 91.4,  "relY": 24.5, "facingAngle": 15.0 },
-            { "id": 2, "jointType": "rail-end", "name": "直進端", "relX": 93.0,  "relY": 0,    "facingAngle": 0 }
+            { "id": 0, "jointType": "rail-end", "name": "進入端", "relX": -93, "relY":  0,    "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "分岐端", "relX":  93, "relY": 24.75, "facingAngle":  15 },
+            { "id": 2, "jointType": "rail-end", "name": "直進端", "relX":  93, "relY":  0,    "facingAngle":   0 }
         ],
         shapes: [
             { "type": "line", "length": 186, "offsetX": 0, "offsetY": 0 },
             { "type": "arc", "radius": 718, "arcAngle": 15, "centerX": -93.0, "centerY": 718.0, "startAngle": 270 }
+        ]
+    },
+
+    // ---------------------------------------------------------
+    // 交差レール (subCategory: 交差)
+    // ---------------------------------------------------------
+    "KATO-X90": {
+        systemId: "KATO-UNITRACK-N",
+        category: "turnout",
+        subCategory: "交差",
+        name: "X90",
+        description: "交差線路90度",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端-左", "relX": -16.5, "relY":   0,   "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "進入端-下", "relX":   0,   "relY":  16.5, "facingAngle":  90 },
+            { "id": 2, "jointType": "rail-end", "name": "退出端-上", "relX":   0,   "relY": -16.5, "facingAngle": 270 },
+            { "id": 3, "jointType": "rail-end", "name": "退出端-右", "relX":  16.5, "relY":   0,   "facingAngle":   0 }
+        ],
+        shapes: [
+            { "type": "line", "length": 33, "offsetX": 0, "offsetY": 0 },
+            { "type": "line", "length": 33, "offsetX": 0, "offsetY": 0, "angle": 90 }
+        ]
+    },
+    "KATO-X15L": {
+        systemId: "KATO-UNITRACK-N",
+        category: "turnout",
+        subCategory: "交差",
+        name: "X15L",
+        description: "交差線路15度 (左)",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端-主線", "relX": -93, "relY":   0,    "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "進入端-副線", "relX": -93, "relY":  24.75, "facingAngle": 165 },
+            { "id": 2, "jointType": "rail-end", "name": "退出端-副線", "relX":  93, "relY": -24.75, "facingAngle": -15 },
+            { "id": 3, "jointType": "rail-end", "name": "退出端-主線", "relX":  93, "relY":   0,    "facingAngle":   0 }
+        ],
+        shapes: [
+            { "type": "line", "length": 186, "offsetX": 0, "offsetY": 0 },
+            { "type": "line", "length": 192, "offsetX": 0, "offsetY": 0, "angle": -15 }
+        ]
+    },
+    "KATO-X15R": {
+        systemId: "KATO-UNITRACK-N",
+        category: "turnout",
+        subCategory: "交差",
+        name: "X15R",
+        description: "交差線路15度 (右)",
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "name": "進入端-主線", "relX": -93, "relY":   0,    "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "name": "進入端-副線", "relX": -93, "relY": -24.75, "facingAngle": 195 },
+            { "id": 2, "jointType": "rail-end", "name": "退出端-副線", "relX":  93, "relY":  24.75, "facingAngle":  15 },
+            { "id": 3, "jointType": "rail-end", "name": "退出端-主線", "relX":  93, "relY":   0,    "facingAngle":   0 }
+        ],
+        shapes: [
+            { "type": "line", "length": 186, "offsetX": 0, "offsetY": 0 },
+            { "type": "line", "length": 192, "offsetX": 0, "offsetY": 0, "angle": 15 }
         ]
     },
 

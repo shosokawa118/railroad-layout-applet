@@ -49,11 +49,7 @@ function markAsClean() {
         ? historyUndoStack[historyUndoStack.length - 1] 
         : null;
     
-    if (typeof updateUIState === 'function') {
-        updateUIState();
-    } else {
-        updateTitleBar();
-    }
+    updateUIState();
 }
 
 // ページ離脱時に未保存の変更があれば警告を表示
@@ -87,7 +83,7 @@ function recordAction(action) {
     }
     historyRedoStack.length = 0; // 新規操作でRedoクリア
     
-    if (typeof updateUIState === 'function') updateUIState();
+    updateUIState();
 }
 
 /**
@@ -98,7 +94,7 @@ function undoLayout() {
     const action = historyUndoStack.pop();
     historyRedoStack.push(action);
     executeAction(action, true);
-    if (typeof updateUIState === 'function') updateUIState();
+    updateUIState();
 }
 
 /**
@@ -109,7 +105,7 @@ function redoLayout() {
     const action = historyRedoStack.pop();
     historyUndoStack.push(action);
     executeAction(action, false);
-    if (typeof updateUIState === 'function') updateUIState();
+    updateUIState();
 }
 
 /**
@@ -158,19 +154,17 @@ function executeAction(action, isUndo) {
                 }
             } else {
                 action.rails.forEach(r => {
-                    if (typeof addRailToCanvas === 'function') {
-                        const newObj = addRailToCanvas(r.partId, { skipAutoConnect: true, skipSelect: true });
-                        if (newObj) {
-                            newObj.customData.instanceId = r.instanceId;
-                            newObj.set({ left: r.x, top: r.y, angle: r.angle });
-                            
-                            // ===== 修正: partOptions が存在する場合のみ復元 =====
-                            if (r.partOptions && typeof r.partOptions === 'object') {
-                                newObj.partOptions = JSON.parse(JSON.stringify(r.partOptions));
-                            }
-                            
-                            newObj.setCoords();
+                    const newObj = addRailToCanvas(r.partId, { skipAutoConnect: true, skipSelect: true });
+                    if (newObj) {
+                        newObj.customData.instanceId = r.instanceId;
+                        newObj.set({ left: r.x, top: r.y, angle: r.angle });
+                        
+                        // ===== 修正: partOptions が存在する場合のみ復元 =====
+                        if (r.partOptions && typeof r.partOptions === 'object') {
+                            newObj.partOptions = JSON.parse(JSON.stringify(r.partOptions));
                         }
+                        
+                        newObj.setCoords();
                     }
                 });
                 if (typeof globalJoints !== 'undefined' && action.jointsAfter) {
@@ -184,19 +178,17 @@ function executeAction(action, isUndo) {
         case 'DELETE': {
             if (isUndo) {
                 action.rails.forEach(r => {
-                    if (typeof addRailToCanvas === 'function') {
-                        const newObj = addRailToCanvas(r.partId, { skipAutoConnect: true, skipSelect: true });
-                        if (newObj) {
-                            newObj.customData.instanceId = r.instanceId;
-                            newObj.set({ left: r.x, top: r.y, angle: r.angle });
-                            
-                            // ===== 修正: partOptions が存在する場合のみ復元 =====
-                            if (r.partOptions && typeof r.partOptions === 'object') {
-                                newObj.partOptions = JSON.parse(JSON.stringify(r.partOptions));
-                            }
-                            
-                            newObj.setCoords();
+                    const newObj = addRailToCanvas(r.partId, { skipAutoConnect: true, skipSelect: true });
+                    if (newObj) {
+                        newObj.customData.instanceId = r.instanceId;
+                        newObj.set({ left: r.x, top: r.y, angle: r.angle });
+                        
+                        // ===== 修正: partOptions が存在する場合のみ復元 =====
+                        if (r.partOptions && typeof r.partOptions === 'object') {
+                            newObj.partOptions = JSON.parse(JSON.stringify(r.partOptions));
                         }
+                        
+                        newObj.setCoords();
                     }
                 });
                 if (typeof globalJoints !== 'undefined' && action.jointsBefore) {
@@ -217,7 +209,7 @@ function executeAction(action, isUndo) {
         }
     }
 
-    if (typeof updateJointIndicators === 'function') updateJointIndicators();
+    updateJointIndicators();
     canvas.requestRenderAll();
 }
 
@@ -272,7 +264,7 @@ function selectAllRails() {
     }
 
     canvas.requestRenderAll();
-    if (typeof updateUIState === 'function') updateUIState();
+    updateUIState();
 }
 
 /**
@@ -338,7 +330,7 @@ function selectConnectedRails() {
     }
 
     canvas.requestRenderAll();
-    if (typeof updateUIState === 'function') updateUIState();
+    updateUIState();
 }
 
 /**
@@ -387,9 +379,7 @@ function updateUIState() {
     if (menuOptions) menuOptions.disabled = !isSingleRailSelected;
 
     // タイトルバーの未保存（*）表示を連動更新
-    if (typeof updateTitleBar === 'function') {
-        updateTitleBar();
-    }
+    updateTitleBar();
 }
 
 
@@ -505,16 +495,14 @@ async function cutSelectedRails() {
     await copySelectedRails();
 
     // 2. 削除を実行（履歴記録は deleteSelectedRails 内で行われます）
-    if (typeof deleteSelectedRails === 'function') {
-        deleteSelectedRails();
-    }
+    deleteSelectedRails();
 }
 
 /**
  * 選択中レールおよび関係するジョイント群をJSON形式でクリップボードへコピー
  */
 async function copySelectedRails() {
-    if (!canvas || typeof exportLayoutData !== 'function') return;
+    if (!canvas) return;
 
     const activeObject = canvas.getActiveObject();
     if (!activeObject) return;
@@ -745,11 +733,9 @@ function cycleSelectedRailNode(direction) {
         const candidateNode = selfNodesList[nextIdx];
         
         // canConnectNodes を用いて接続互換性を確認（親と子を正しく判定）
-        const canConnect = (typeof canConnectNodes === 'function')
-            ? (isSelfA 
-                ? canConnectNodes(activeObj, candidateNode.id, targetRailObj, targetNodeId)
-                : canConnectNodes(targetRailObj, targetNodeId, activeObj, candidateNode.id))
-            : true;
+        const canConnect = isSelfA 
+            ? canConnectNodes(activeObj, candidateNode.id, targetRailObj, targetNodeId)
+            : canConnectNodes(targetRailObj, targetNodeId, activeObj, candidateNode.id);
 
         if (canConnect) {
             nextSelfNodeDef = candidateNode;
@@ -799,54 +785,48 @@ function cycleSelectedRailNode(direction) {
     }
 
     // 7. 位置不整合ジョイントの削除 ＆ 接触した近傍ノードの自動結合
-    if (typeof getAbsoluteNodePos === 'function' && typeof isNodePositionCompatible === 'function') {
-        const currentSelfAbsNodes = getAbsoluteNodePos(activeObj);
-        
-        // A. 回転後に離れた不整合ジョイントを削除
-        for (let i = globalJoints.length - 1; i >= 0; i--) {
-            const j = globalJoints[i];
-            if (j.railA !== selfId && j.railB !== selfId) continue;
-            if (i === jointIndex) continue;
+    const currentSelfAbsNodes = getAbsoluteNodePos(activeObj);
+    
+    // A. 回転後に離れた不整合ジョイントを削除
+    for (let i = globalJoints.length - 1; i >= 0; i--) {
+        const j = globalJoints[i];
+        if (j.railA !== selfId && j.railB !== selfId) continue;
+        if (i === jointIndex) continue;
 
-            const checkSelfIsA = (j.railA === selfId);
-            const checkSelfNodeId = checkSelfIsA ? j.nodeA : j.nodeB;
-            const checkOtherRailId = checkSelfIsA ? j.railB : j.railA;
-            const checkOtherNodeId = checkSelfIsA ? j.nodeB : j.nodeA;
+        const checkSelfIsA = (j.railA === selfId);
+        const checkSelfNodeId = checkSelfIsA ? j.nodeA : j.nodeB;
+        const checkOtherRailId = checkSelfIsA ? j.railB : j.railA;
+        const checkOtherNodeId = checkSelfIsA ? j.nodeB : j.nodeA;
 
-            const otherObj = findRailByInstanceId(checkOtherRailId);
-            if (!otherObj) {
-                globalJoints.splice(i, 1);
-                continue;
-            }
-
-            const otherAbsNodes = getAbsoluteNodePos(otherObj);
-            const selfNodeAbs = currentSelfAbsNodes.find(n => String(n.nodeId) === String(checkSelfNodeId));
-            const otherNodeAbs = otherAbsNodes.find(n => String(n.nodeId) === String(checkOtherNodeId));
-
-            if (!isNodePositionCompatible(selfNodeAbs, otherNodeAbs)) {
-                globalJoints.splice(i, 1);
-            }
+        const otherObj = findRailByInstanceId(checkOtherRailId);
+        if (!otherObj) {
+            globalJoints.splice(i, 1);
+            continue;
         }
 
-        // B. 回転後に新たに接触した近傍ノードの自動結合（共通関数呼出）
-        if (typeof autoConnectNearbyNodes === 'function') {
-            autoConnectNearbyNodes(activeObj, 8, 10);
+        const otherAbsNodes = getAbsoluteNodePos(otherObj);
+        const selfNodeAbs = currentSelfAbsNodes.find(n => String(n.nodeId) === String(checkSelfNodeId));
+        const otherNodeAbs = otherAbsNodes.find(n => String(n.nodeId) === String(checkOtherNodeId));
+
+        if (!isNodePositionCompatible(selfNodeAbs, otherNodeAbs)) {
+            globalJoints.splice(i, 1);
         }
     }
+
+    // B. 回転後に新たに接触した近傍ノードの自動結合（共通関数呼出）
+    autoConnectNearbyNodes(activeObj, 8, 10);
 
     // 8. 履歴記録と表示更新
     itemBefore.to = { x: newSelfX, y: newSelfY, angle: newSelfAngle };
-    if (typeof recordAction === 'function') {
-        recordAction({
-            type: 'CYCLE_NODE',
-            selectedInstanceIds: [selfId], // Undo時の選択復元用IDを追加
-            items: [itemBefore],
-            jointsFrom: jointsBefore,
-            jointsTo: JSON.parse(JSON.stringify(globalJoints))
-        });
-    }
+    recordAction({
+        type: 'CYCLE_NODE',
+        selectedInstanceIds: [selfId], // Undo時の選択復元用IDを追加
+        items: [itemBefore],
+        jointsFrom: jointsBefore,
+        jointsTo: JSON.parse(JSON.stringify(globalJoints))
+    });
 
-    if (typeof updateJointIndicators === 'function') updateJointIndicators();
+    updateJointIndicators();
     canvas.requestRenderAll();
 }
 
@@ -904,21 +884,15 @@ document.addEventListener('keydown', (e) => {
         switch (e.key.toLowerCase()) {
             case 's':
                 e.preventDefault();
-                if (typeof exportLayoutToFile === 'function') {
-                    exportLayoutToFile();
-                }
+                exportLayoutToFile();
                 break;
             case 'o':
                 e.preventDefault();
-                if (typeof importLayoutFromFile === 'function') {
-                    importLayoutFromFile();
-                }
+                importLayoutFromFile();
                 break;
             case ',': // Ctrl + , でノード補正ダイアログを開く
                 e.preventDefault();
-                if (typeof openNodeOffsetDialog === 'function') {
-                    openNodeOffsetDialog();
-                }
+                openNodeOffsetDialog();
                 break;
             case 'a':
                 e.preventDefault();
@@ -958,7 +932,7 @@ document.addEventListener('keydown', (e) => {
     } else if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault();
         // 履歴記録および削除処理は deleteSelectedRails() 側に一任します
-        if (typeof deleteSelectedRails === 'function') deleteSelectedRails();
+        deleteSelectedRails();
     }
 });
 
@@ -991,9 +965,7 @@ function setupFileDropZone(targetElement) {
                 reader.onload = async function(event) {
                     try {
                         const jsonData = JSON.parse(event.target.result);
-                        if (typeof importLayoutData === 'function') {
-                            await importLayoutData(jsonData, true);
-                        }
+                        await importLayoutData(jsonData, true);
                     } catch (err) {
                         alert("JSONの読み込みに失敗しました。ファイル形式を確認してください。");
                     }
@@ -1008,7 +980,10 @@ function setupFileDropZone(targetElement) {
  * レイアウトデータをJSONファイルとしてダウンロード保存する
  */
 function exportLayoutToFile() {
-    if (typeof exportLayoutData !== 'function') return;
+    if (typeof exportLayoutData !== 'function') {
+        console.error('exportLayoutData 関数が見つかりません');
+        return;
+    }
     const layoutData = exportLayoutData();
     if (!layoutData || !Array.isArray(layoutData.rails) || layoutData.rails.length === 0) {
         alert('保存するレイアウトデータがありません。');

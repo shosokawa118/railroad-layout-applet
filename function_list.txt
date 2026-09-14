@@ -250,12 +250,6 @@ PARAMS: target
 USAGE: 移動操作対象となったレールに紐付くジョイント情報を削除（移動中のレール分離）
 ---
 
-FUNCTION: exportLayoutData
-FILE: layout-state.js
-PARAMS: なし
-USAGE: キャンバス上の全レール配置とジョイント情報をJSON形式で出力（layout-engine.jsの同名関数と共存）
----
-
 FUNCTION: autoConnectNearbyNodes
 FILE: snap-manager.js
 PARAMS: targetRails, distTol, angleTol
