@@ -154,6 +154,24 @@ PARAMS: なし
 USAGE: キャンバス上のレール移動・回転イベントを登録、ドラッグ開始/終了時のコールバック・スナップ処理を実行
 ---
 
+FUNCTION: handleVariableRailResizeEnd
+FILE: layout-engine.js
+PARAMS: rail, corner
+USAGE: 可変長レールの伸縮完了時の新長さ計算、移動量補正、切り離し、再描画およびスナップ接続処理を実行
+---
+
+FUNCTION: handleVariableRailScaling
+FILE: layout-engine.js
+PARAMS: e
+USAGE: 可変長レールのドラッグ変形中リアルタイム制御（スケール制限・固定端基準の中心座標補正）
+---
+
+FUNCTION: rebuildVariableRailPaths
+FILE: layout-engine.js
+PARAMS: rail, catalogItem
+USAGE: 可変長レールのグループ内パスを現在の長さに合わせて生成し直し、描画オブジェクトを再構築
+---
+
 FUNCTION: addRailToCanvas
 FILE: layout-engine.js
 PARAMS: partId, options
