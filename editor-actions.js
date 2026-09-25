@@ -154,17 +154,22 @@ function executeAction(action, isUndo) {
                 }
             } else {
                 action.rails.forEach(r => {
-                    const newObj = addRailToCanvas(r.partId, { skipAutoConnect: true, skipSelect: true });
-                    if (newObj) {
-                        newObj.customData.instanceId = r.instanceId;
-                        newObj.set({ left: r.x, top: r.y, angle: r.angle });
-                        
-                        // ===== 修正: partOptions が存在する場合のみ復元 =====
-                        if (r.partOptions && typeof r.partOptions === 'object') {
-                            newObj.partOptions = JSON.parse(JSON.stringify(r.partOptions));
-                        }
-                        
-                        newObj.setCoords();
+                    const addResult = addRailToCanvas(r.partId, { skipAutoConnect: true, skipSelect: true });
+                    if (addResult) {
+                        // 復元された単一または複数の Fabric オブジェクトに対して一括で座標・プロパティ設定を行う処理です
+                        const newObjects = Array.isArray(addResult) ? addResult : [addResult];
+
+                        newObjects.forEach(newObj => {
+                            newObj.customData.instanceId = r.instanceId;
+                            newObj.set({ left: r.x, top: r.y, angle: r.angle });
+                            
+                            // ===== 修正: partOptions が存在する場合のみ復元 =====
+                            if (r.partOptions && typeof r.partOptions === 'object') {
+                                newObj.partOptions = JSON.parse(JSON.stringify(r.partOptions));
+                            }
+                            
+                            newObj.setCoords();
+                        });
                     }
                 });
                 if (typeof globalJoints !== 'undefined' && action.jointsAfter) {
@@ -178,17 +183,22 @@ function executeAction(action, isUndo) {
         case 'DELETE': {
             if (isUndo) {
                 action.rails.forEach(r => {
-                    const newObj = addRailToCanvas(r.partId, { skipAutoConnect: true, skipSelect: true });
-                    if (newObj) {
-                        newObj.customData.instanceId = r.instanceId;
-                        newObj.set({ left: r.x, top: r.y, angle: r.angle });
-                        
-                        // ===== 修正: partOptions が存在する場合のみ復元 =====
-                        if (r.partOptions && typeof r.partOptions === 'object') {
-                            newObj.partOptions = JSON.parse(JSON.stringify(r.partOptions));
-                        }
-                        
-                        newObj.setCoords();
+                    const addResult = addRailToCanvas(r.partId, { skipAutoConnect: true, skipSelect: true });
+                    if (addResult) {
+                        // 復元された単一または複数の Fabric オブジェクトに対して一括で座標・プロパティ設定を行う処理です
+                        const newObjects = Array.isArray(addResult) ? addResult : [addResult];
+
+                        newObjects.forEach(newObj => {
+                            newObj.customData.instanceId = r.instanceId;
+                            newObj.set({ left: r.x, top: r.y, angle: r.angle });
+                            
+                            // ===== 修正: partOptions が存在する場合のみ復元 =====
+                            if (r.partOptions && typeof r.partOptions === 'object') {
+                                newObj.partOptions = JSON.parse(JSON.stringify(r.partOptions));
+                            }
+                            
+                            newObj.setCoords();
+                        });
                     }
                 });
                 if (typeof globalJoints !== 'undefined' && action.jointsBefore) {
@@ -500,11 +510,19 @@ async function cutSelectedRails() {
 
 /**
  * 選択中レールおよび関係するジョイント群をJSON形式でクリップボードへコピー
+ * フレキシブルレールのパーツが含まれる場合は事前に3点セット全体へ選択を拡張してコピーします
  */
 async function copySelectedRails() {
     if (!canvas) return;
 
-    const activeObject = canvas.getActiveObject();
+    let activeObject = canvas.getActiveObject();
+    if (!activeObject) return;
+
+    // 選択対象にフレキシブルレールが含まれている場合、コピー前に3点セット選択へ拡張する処理です
+    expandFlexibleRailSelection(activeObject, canvas);
+
+    // 拡張後に最新のアクティブオブジェクトを取得し直す処理です
+    activeObject = canvas.getActiveObject();
     if (!activeObject) return;
 
     let targetRails = [];
@@ -1052,4 +1070,102 @@ function importLayoutFromFile() {
     };
 
     fileInput.click();
+}
+
+
+/**
+ * フレキシブルレールのいずれかのパーツが選択された際、
+ * 残りのパーツも含めた3点セット（startRail - bridgePath - endRail）へと
+ * 選択状態を自動的に拡張する処理です。
+ * 
+ * @param {fabric.Object} target - 現在操作・選択されたFabricオブジェクト
+ * @param {fabric.Canvas} canvas - 対象のFabricキャンバス
+ */
+let isSelectingExtension_dummy_flag = false; // 無限再帰防止用の処理中フラグ
+
+function expandFlexibleRailSelection(target, canvas) {
+    // 必須パラメータの欠落時はフォールバックせず TypeError を発生させる処理です
+    if (!canvas || !target) {
+        throw new TypeError("expandFlexibleRailSelection: canvas または target が不正です。");
+    }
+
+    // 処理中フラグによる無限ループ（無限再帰）の防止ガードです
+    if (isSelectingExtension_dummy_flag) return;
+
+    const customData = target.customData;
+    if (!customData || !customData.flexibleId) return;
+
+    const targetFlexibleId = customData.flexibleId;
+
+    try {
+        isSelectingExtension_dummy_flag = true;
+
+        const activeObj = canvas.getActiveObject();
+        const allObjects = canvas.getObjects();
+        const groupParts = allObjects.filter(obj => 
+            obj && obj.customData && obj.customData.flexibleId === targetFlexibleId
+        );
+
+        if (groupParts.length === 3) {
+            const currentSelected = (activeObj && activeObj.type === 'activeSelection') 
+                ? activeObj.getObjects() 
+                : [activeObj];
+
+            const isAllSelected = groupParts.every(part => currentSelected.includes(part));
+
+            if (!isAllSelected) {
+                canvas.discardActiveObject();
+                const sel = new fabric.ActiveSelection(groupParts, { canvas: canvas });
+                canvas.setActiveObject(sel);
+                canvas.requestRenderAll();
+            }
+        }
+    } finally {
+        isSelectingExtension_dummy_flag = false;
+    }
+}
+
+/**
+ * フレキシブルレールの変形ロック状態（isLocked）を切り替え、
+ * 編集モード（個別変形可）とロックモード（固定一体化）の挙動を制御する処理です。
+ * 
+ * @param {fabric.Object} target - 対象のフレキシブルレール構成要素
+ * @param {fabric.Canvas} canvas - 対象のFabricキャンバス
+ */
+function toggleFlexibleRailLock(target, canvas) {
+    // 必須パラメータの欠落時はフォールバックせず TypeError を発生させる処理です
+    if (!canvas || !target) {
+        throw new TypeError("toggleFlexibleRailLock: canvas または target が不正です。");
+    }
+
+    const customData = target.customData;
+    if (!customData || !customData.flexibleId) {
+        throw new TypeError("toggleFlexibleRailLock: 指定されたオブジェクトはフレキシブルレールではありません。");
+    }
+
+    const targetFlexibleId = customData.flexibleId;
+    const allObjects = canvas.getObjects();
+    const groupParts = allObjects.filter(obj => 
+        obj && obj.customData && obj.customData.flexibleId === targetFlexibleId
+    );
+
+    if (groupParts.length !== 3) {
+        throw new Error("toggleFlexibleRailLock: フレキシブルレールの構成要素（3点）が正しく揃っていません。");
+    }
+
+    const currentLocked = !!customData.isLocked;
+    const nextLockedState = !currentLocked;
+
+    groupParts.forEach(part => {
+        if (part.customData) {
+            part.customData.isLocked = nextLockedState;
+        }
+        part.set({
+            lockMovementX: nextLockedState,
+            lockMovementY: nextLockedState,
+            hasControls: !nextLockedState
+        });
+    });
+
+    canvas.requestRenderAll();
 }

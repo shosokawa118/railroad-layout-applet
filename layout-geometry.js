@@ -37,13 +37,13 @@ function generateGenericRailData(catalogItem, options = {}) {
     const textDataList = [];
 
     if (!catalogItem || !catalogItem.shapes) {
-        return { basePaths: ["M 0 0 L 10 0"], railPaths: [], textDataList: [], centerX: 0, centerY: 0 };
+        throw new Error("no catalogItem shapes defined.");
     }
 
     // --- 可変レールの長さを動的決定 ---
     let effectiveCatalogItem = catalogItem;
     if (catalogItem.dynamicType === "variable-straight") {
-        let currentLength = catalogItem.defaultLength || 78;
+        let currentLength = catalogItem.defaultLength;
         if (typeof options.length === 'number') {
             currentLength = options.length;
         } else if (options.partOptions && typeof options.partOptions.length === 'number') {
@@ -70,7 +70,7 @@ function generateGenericRailData(catalogItem, options = {}) {
 
     const defaultBallastWidth = (typeof effectiveCatalogItem.ballastWidth === 'number')
         ? effectiveCatalogItem.ballastWidth
-        : (sys ? sys.ballastWidth : 16);
+        : sys.ballastWidth;
 
     // 表示テキスト（label 優先、無ければ name）
     const displayText = (effectiveCatalogItem.label || effectiveCatalogItem.name) ? (effectiveCatalogItem.label || effectiveCatalogItem.name) : "";

@@ -112,6 +112,18 @@ PARAMS: targetElement
 USAGE: ドラッグ&ドロップでJSONファイルを読み込む機能を設定
 ---
 
+FUNCTION: expandFlexibleRailSelection
+FILE: editor-actions.js
+PARAMS: target, canvas
+USAGE: フレキシブルレールの構成要素が選択された際、処理中フラグで無限再帰をガードしながら3点セット全体へと選択状態を自動拡張する
+---
+
+FUNCTION: toggleFlexibleRailLock
+FILE: editor-actions.js
+PARAMS: target, canvas
+USAGE: フレキシブルレールの変形ロック状態（isLocked）を切り替え、編集モード（個別変形可）とロックモード（固定一体化）を制御する
+---
+
 FUNCTION: getEffectiveNodeDef
 FILE: layout-geometry.js
 PARAMS: rail, catalogNode
@@ -212,6 +224,18 @@ FUNCTION: loadDebugSampleLayout
 FILE: layout-engine.js
 PARAMS: なし
 USAGE: INITIAL_SAMPLE_LAYOUTデータを読み込み、初期ズーム・ビューポート設定を適用
+---
+
+FUNCTION: addFlexibleRailToCanvas
+FILE: layout-engine.js
+PARAMS: canvas, catalogItem, options
+USAGE: カタログ定義に基づきフレキシブルレールの3点セット（startRail, bridgePath, endRail）を生成してキャンバスに追加し、flexibleIdで相互リンクさせる
+---
+
+FUNCTION: rebuildFlexibleRailBridge
+FILE: layout-engine.js
+PARAMS: bridgePath, startRail, endRail
+USAGE: 仮想レールの位置・角度・伸縮（引き出し量 L_A, L_B）の変化に追従し、中央の3次ベジェ曲線（bridgePath）のパスデータを再計算して描画を更新する
 ---
 
 FUNCTION: checkArcCardinalBounds
