@@ -426,8 +426,28 @@ function handleVariableRailScaling(e) {
     const target = e.target;
     if (!target || !target.customData || !e.transform) return;
 
-    const catalogItem = railCatalog.items[target.customData.partId];
-    if (!catalogItem || catalogItem.dynamicType !== 'variable-straight') return;
+    const rawCatalog = railCatalog.items[target.customData.partId];
+    if (!rawCatalog) return;
+
+    const railType = target.customData.railType;
+    const isFlexibleComponent = railType === 'flexible_start' || railType === 'flexible_end';
+
+    // カタログ取得およびフレキシブル端部の疑似カタログ置換
+    let effectiveCatalogItem = rawCatalog;
+    if (isFlexibleComponent) {
+        if (typeof rawCatalog.maxLength !== 'number') {
+            throw new TypeError(`catalogItem.maxLength is missing or not a number for flexible rail: ${target.customData.partId}`);
+        }
+        effectiveCatalogItem = {
+            ...rawCatalog,
+            dynamicType: 'variable-straight',
+            minLength: 10,
+            maxLength: rawCatalog.maxLength / 2
+        };
+    }
+
+    // 対象タイプチェック
+    if (effectiveCatalogItem.dynamicType !== 'variable-straight') return;
 
     const corner = e.transform.corner;
     if (corner !== 'ml' && corner !== 'mr') return;
@@ -437,14 +457,16 @@ function handleVariableRailScaling(e) {
     if (!fixedPoint) return;
 
     // 上下限の取得（未定義時は処理しない）
-    const minL = catalogItem.minLength;
-    const maxL = catalogItem.maxLength;
-    if (typeof minL !== 'number' || typeof maxL !== 'number') return;
+    const minL = effectiveCatalogItem.minLength;
+    const maxL = effectiveCatalogItem.maxLength;
+    if (typeof minL !== 'number' || typeof maxL !== 'number') {
+        throw new TypeError(`minLength or maxLength is missing in catalogItem for variable-straight rail: ${target.customData.partId}`);
+    }
 
     // 基準長
     const baseLength = (target.partOptions && typeof target.partOptions.length === 'number')
         ? target.partOptions.length
-        : catalogItem.defaultLength;
+        : effectiveCatalogItem.defaultLength;
     if (typeof baseLength !== 'number') return;
 
     // 現在のマウスドラッグによる予測長さ
@@ -488,40 +510,31 @@ function handleVariableRailResizeEnd(rail, corner) {
     if (!rail || !rail.customData) return;
     
     const catalogItem = railCatalog.items[rail.customData.partId];
-    if (!catalogItem || catalogItem.dynamicType !== 'variable-straight') return;
+    if (!catalogItem) return;
 
-    // カタログから上下限を取得（未定義時は警告して中断）
-    const minL = catalogItem.minLength;
-    const maxL = catalogItem.maxLength;
-    if (typeof minL !== 'number' || typeof maxL !== 'number') {
-        console.warn(`[${ENGINE_VERSION}] 可変長レールの上下限値(minLength/maxLength)が定義されていません: ${rail.customData.partId}`);
-        return;
-    }
+    const railType = rail.customData.railType;
+    const isFlexibleComponent = railType === 'flexible_start' || railType === 'flexible_end';
+    
+    if (catalogItem.dynamicType !== 'variable-straight' && !isFlexibleComponent) return;
 
-    // 基準長の取得（未定義時は警告して中断）
+    // カタログから上下限を取得
+    const minL = catalogItem.minLength || 1;
+    const maxL = catalogItem.maxLength || 1000;
+
+    // 基準長の取得
     const baseLength = (rail.partOptions && typeof rail.partOptions.length === 'number')
         ? rail.partOptions.length
         : catalogItem.defaultLength;
 
-    if (typeof baseLength !== 'number') {
-        console.warn(`[${ENGINE_VERSION}] 可変長レールの基準長さ(length/defaultLength)が定義されていません: ${rail.customData.partId}`);
-        return;
-    }
+    if (typeof baseLength !== 'number') return;
 
     // 変形開始時に記録した固定端座標の取得
     const fixedPoint = rail.customData.fixedPoint;
-    if (!fixedPoint) {
-        console.warn(`[${ENGINE_VERSION}] 変形開始時の固定端座標が記録されていません: ${rail.customData.partId}`);
-        return;
-    }
+    if (!fixedPoint) return;
 
     // 1. スケール適用後の長さとクランプ処理
-    const oldLength = (rail.partOptions && typeof rail.partOptions.length === 'number')
-        ? rail.partOptions.length
-        : baseLength;
-    
     const rawScaleX = Math.max(0.01, rail.scaleX || 1);
-    let newLength = oldLength * rawScaleX;
+    let newLength = baseLength * rawScaleX;
     newLength = Math.max(minL, Math.min(maxL, newLength));
 
     // 2. 記憶していた「元の固定端」を起点に、新しい中心位置を計算
@@ -553,14 +566,32 @@ function handleVariableRailResizeEnd(rail, corner) {
     });
 
     // 4. 新しい長さに合わせたシェイプの再生成
-    rebuildVariableRailPaths(rail, catalogItem);
+    // フレキシブルレールの場合は、そのパーツ用の疑似カタログ定義が必要
+    let renderCatalogItem = catalogItem;
+    if (isFlexibleComponent) {
+        renderCatalogItem = JSON.parse(JSON.stringify(catalogItem));
+        renderCatalogItem.dynamicType = "variable-straight";
+        renderCatalogItem.nodes = rail.customData.nodes;
+    }
+    rebuildVariableRailPaths(rail, renderCatalogItem);
 
     // 5. 新しいノード位置でのスナップ・接続判定
     applyClusterSnapLogic(rail);
 
+    // フレキシブルレールの場合はブリッジを最終更新
+    if (isFlexibleComponent) {
+        const fid = rail.customData.flexibleId;
+        const all = canvas.getObjects();
+        const b = all.find(o => o.customData && o.customData.flexibleId === fid && o.customData.railType === 'flexible_bridge');
+        const s = all.find(o => o.customData && o.customData.flexibleId === fid && o.customData.railType === 'flexible_start');
+        const e = all.find(o => o.customData && o.customData.flexibleId === fid && o.customData.railType === 'flexible_end');
+        if (b && s && e) rebuildFlexibleRailBridge(b, s, e);
+    }
+
     rail.setCoords();
     canvas.requestRenderAll();
 }
+
 
 /**
  * 可変長レールのグループ内パスを新長さに合わせて位置を壊さず再生成する
@@ -677,135 +708,194 @@ function addRailToCanvas(partId, options = {}) {
         return null;
     }
 
-    // カタログ定義がフレキシブルレールの場合は専用の生成処理へ分岐させる処理です
+    const jointsBefore = typeof globalJoints !== 'undefined' ? [...globalJoints] : [];
+    let railResult;
+
+    // --- 1. オブジェクト生成（Factory分岐） ---
     if (catalogItem.dynamicType === 'flexible') {
-        return addFlexibleRailToCanvas(canvas, catalogItem, options);
-    }
+        // フレキシブルレールの生成 (3点セット [start, bridge, end])
+        // ※内部での canvas.add は addFlexibleRailToCanvas に任せる（現状の仕様維持）
+        railResult = addFlexibleRailToCanvas(canvas, partId, options);
+    } else {
+        // 通常レールの生成
+        const currentId = `rail-${railCount++}`;
+        const geoData = generateGenericRailData(catalogItem, options);
 
-    const currentId = `rail-${railCount++}`;
-    const geoData = generateGenericRailData(catalogItem, options);
+        const baseObjects = geoData.basePaths.map(pStr => new fabric.Path(pStr, { fill: '#888888', stroke: null, originX: 'center', originY: 'center' }));
+        const railObjects = geoData.railPaths.map(pStr => new fabric.Path(pStr, { fill: null, stroke: '#222222', strokeWidth: 1.5, strokeLineCap: 'round', originX: 'center', originY: 'center' }));
 
-    const baseObjects = geoData.basePaths.map(pStr => new fabric.Path(pStr, { fill: '#888888', stroke: null, originX: 'center', originY: 'center' }));
-    const railObjects = geoData.railPaths.map(pStr => new fabric.Path(pStr, { fill: null, stroke: '#222222', strokeWidth: 1.5, strokeLineCap: 'round', originX: 'center', originY: 'center' }));
-
-    // テキストオブジェクトの生成
-    const textObjects = [];
-    if (SHOW_RAIL_NAMES && geoData.textDataList) {
-        const fontSize = options.fontSize || DEFAULT_RAIL_NAME_FONT_SIZE;
-        geoData.textDataList.forEach(tData => {
-            const tObj = new fabric.Text(tData.text, {
-                fontSize: fontSize,
-                fill: '#111111',
-                fontFamily: 'sans-serif',
-                left: tData.x,
-                top: tData.y,
-                angle: tData.baseAngle,
-                originX: 'center',
-                originY: 'center',
-                textBaseline: 'alphabetic'
+        // テキストオブジェクトの生成
+        const textObjects = [];
+        if (SHOW_RAIL_NAMES && geoData.textDataList) {
+            const fontSize = options.fontSize || DEFAULT_RAIL_NAME_FONT_SIZE;
+            geoData.textDataList.forEach(tData => {
+                const tObj = new fabric.Text(tData.text, {
+                    fontSize: fontSize,
+                    fill: '#111111',
+                    fontFamily: 'sans-serif',
+                    left: tData.x,
+                    top: tData.y,
+                    angle: tData.baseAngle,
+                    originX: 'center',
+                    originY: 'center',
+                    textBaseline: 'alphabetic'
+                });
+                tObj.isRailText = true;
+                tObj.baseAngle = tData.baseAngle;
+                textObjects.push(tObj);
             });
-            tObj.isRailText = true;
-            tObj.baseAngle = tData.baseAngle;
-            textObjects.push(tObj);
+        }
+
+        const railObject = new fabric.Group([...baseObjects, ...railObjects, ...textObjects], {
+            left: 0, top: 0, originX: 'center', originY: 'center', angle: 0
         });
+
+        // customData の設定
+        railObject.customData = { 
+            instanceId: currentId, 
+            partId: partId, 
+            isRail: true,
+            geoCenterX: geoData.centerX,
+            geoCenterY: geoData.centerY
+        };
+
+        // partOptions (可変レールの長さ等) の保持
+        if (options.partOptions) {
+            railObject.partOptions = JSON.parse(JSON.stringify(options.partOptions));
+        } else if (typeof options.length === 'number') {
+            railObject.partOptions = { length: options.length };
+        }
+
+        // コントロール設定
+        configureControls(railObject);
+
+        // キャンバスへ追加
+        canvas.add(railObject);
+        railResult = railObject;
     }
 
-    const railObject = new fabric.Group([...baseObjects, ...railObjects, ...textObjects], {
-        left: 0, top: 0, originX: 'center', originY: 'center', angle: 0
+    // --- 2. 共通ライフサイクル処理 ---
+    const isFlexible = Array.isArray(railResult);
+    const mainRail = isFlexible ? railResult[0] : railResult; // 代表オブジェクト
+    const allAddedObjects = isFlexible ? railResult : [railResult];
+
+    // イベント監視登録 (移動・回転ハンドラ)
+    allAddedObjects.forEach(obj => {
+        if (obj.customData && obj.customData.isRail) {
+            obj.on('moving', function() { 
+                isDraggingRail = true; 
+                onGeneralTransform(this); 
+            });
+            obj.on('rotating', function() { 
+                isDraggingRail = true; 
+                updateRailTextOrientation(this); 
+                onGeneralTransform(this); 
+            });
+        }
     });
 
-    // 1. customData の設定
-    railObject.customData = { 
-        instanceId: currentId, 
-        partId: partId, 
-        isRail: true,
-        geoCenterX: geoData.centerX,
-        geoCenterY: geoData.centerY
-    };
-
-    // 2. partOptions (可変レールの長さ等) が渡されていた場合は保持
-    if (options.partOptions) {
-        railObject.partOptions = JSON.parse(JSON.stringify(options.partOptions));
-    } else if (typeof options.length === 'number') {
-        railObject.partOptions = { length: options.length };
+    // フレキシブルレールの構成パーツが個別に動かされた場合、または一括で動かされた場合にブリッジを再描画する監視
+    if (isFlexible) {
+        const [startRail, bridgePath, endRail] = railResult;
+        const updateBridge = () => rebuildFlexibleRailBridge(bridgePath, startRail, endRail);
+        
+        startRail.on('moving', updateBridge);
+        startRail.on('rotating', updateBridge);
+        endRail.on('moving', updateBridge);
+        endRail.on('rotating', updateBridge);
     }
 
-    // 3. データ設定が完了した後にコントロールの設定を実行
-    configureControls(railObject);
 
-    const jointsBefore = typeof globalJoints !== 'undefined' ? [...globalJoints] : [];
-
+    // オートコネクト処理
     if (!options.skipAutoConnect) {
         const activeObj = canvas.getActiveObject();
         const parentRail = (activeObj && activeObj.customData && activeObj.customData.isRail) ? activeObj : null;
         const targetNodeId = parentRail ? findTargetNodeForAutoConnect(parentRail) : null;
 
-        let autoConnected = false;
+                let autoConnected = false;
         if (parentRail && targetNodeId !== null) {
-            autoConnected = alignRailToParentNode(railObject, parentRail, targetNodeId);
+            autoConnected = alignRailToParentNode(mainRail, parentRail, targetNodeId);
+            // フレキシブルレールの場合は起点移動に合わせてブリッジを再計算
+            if (isFlexible) {
+                // startRail/endRail 両方の位置を確定させてからブリッジを更新
+                if (autoConnected) {
+                   // 接続された mainRail (startRail) の位置を基準に endRail 等も配置し直す必要がある
+                   // (ここでは簡易的にメインの座標確定後にブリッジ再構築)
+                }
+                rebuildFlexibleRailBridge(railResult[1], railResult[0], railResult[2]);
+            }
         }
 
-        // オートコネクト未実施または接続不可（異システム等）の場合の配置フォールバック
+
+        // 配置フォールバック (接続されなかった場合)
         if (!autoConnected) {
             if (parentRail) {
-                // 接続失敗時：選択中（親）レールの近傍（オフセット位置）に落とす
-                railObject.set({ 
-                    left: parentRail.left + 30, 
-                    top: parentRail.top + 30, 
-                    angle: parentRail.angle 
-                });
-                railObject.setCoords();
+                mainRail.set({ left: parentRail.left + 30, top: parentRail.top + 30, angle: parentRail.angle });
             } else if (lastCanvasClickPos) {
-                railObject.set({ left: lastCanvasClickPos.x, top: lastCanvasClickPos.y, angle: 0 });
-                railObject.setCoords();
+                mainRail.set({ left: lastCanvasClickPos.x, top: lastCanvasClickPos.y, angle: 0 });
             } else {
-                railObject.set({ left: 250 + (railCount % 5) * 25, top: 450 + (railCount % 5) * 25, angle: 0 });
-                railObject.setCoords();
+                mainRail.set({ left: 250 + (railCount % 5) * 25, top: 450 + (railCount % 5) * 25, angle: 0 });
+            }
+            mainRail.setCoords();
+            
+            if (isFlexible && parentRail) {
+                // 親レールの位置に合わせて全体を再配置する簡易的な調整
+                const dx = mainRail.left - railResult[0].left;
+                const dy = mainRail.top - railResult[0].top;
+                railResult.forEach(obj => {
+                   if (obj !== mainRail) {
+                       obj.set({ left: obj.left + dx, top: obj.top + dy });
+                       obj.setCoords();
+                   }
+                });
+                rebuildFlexibleRailBridge(railResult[1], railResult[0], railResult[2]);
             }
         }
     }
 
-    // キャンバスへ追加（位置・角度決定後）
-    canvas.add(railObject);
-    
-    railObject.on('moving', function() { isDraggingRail = true; onGeneralTransform(this); });
-    railObject.on('rotating', function() { 
-        isDraggingRail = true; 
-        updateRailTextOrientation(this); // 回転中も向きを更新
-        onGeneralTransform(this); 
-    });
-
+    // 全局イベント監視登録
     registerGlobalCanvasEvents();
 
+    // Undo / Redo 履歴登録
     if (!options.skipAutoConnect && !options.skipSelect) {
+        const historyRails = allAddedObjects.filter(o => o.customData && o.customData.isRail).map(obj => ({
+            instanceId: obj.customData.instanceId,
+            partId: obj.customData.partId,
+            x: obj.left,
+            y: obj.top,
+            angle: obj.angle,
+            partOptions: obj.partOptions ? JSON.parse(JSON.stringify(obj.partOptions)) : undefined
+        }));
+
         recordAction({
             type: 'ADD',
-            rails: [{
-                instanceId: railObject.customData.instanceId,
-                partId: partId,
-                x: railObject.left,
-                y: railObject.top,
-                angle: railObject.angle,
-                partOptions: railObject.partOptions ? JSON.parse(JSON.stringify(railObject.partOptions)) : undefined
-            }],
+            rails: historyRails,
             jointsBefore: jointsBefore,
             jointsAfter: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
         });
     }
 
+    // アクティブ選択設定
     if (!options.skipSelect) {
-        canvas.setActiveObject(railObject);
+        if (isFlexible) {
+            const sel = new fabric.ActiveSelection(allAddedObjects, { canvas: canvas });
+            canvas.setActiveObject(sel);
+        } else {
+            canvas.setActiveObject(mainRail);
+        }
     }
 
-    // キャンバス追加と選択状態確定後にテキスト向きの補正を実行
-    updateRailTextOrientation(railObject);
+    // テキスト向き補正
+    allAddedObjects.forEach(obj => updateRailTextOrientation(obj));
 
+    // ジョイント描画更新 & キャンバス再描画
     updateJointIndicators();
     canvas.calcOffset();
     canvas.requestRenderAll();
-    
-    return railObject;
+
+    return railResult;
 }
+
 
 /**
  * フレキシブルレールを構成する3点セット（startRail, bridgePath, endRail）を生成し、
@@ -813,11 +903,13 @@ function addRailToCanvas(partId, options = {}) {
  * 仮想レール（startRail/endRail）の Fabric オブジェクト構築も関数内で直接行います。
  *
  * @param {fabric.Canvas} canvas - 追加対象のFabric.jsキャンバスインスタンス
- * @param {Object} catalogItem - カタログの基本定義データ
+ * @param {Object} partId - 
  * @param {Object} [options={}] - 配置座標、回転角度、パーツオプション等の設定オブジェクト
  * @returns {Array<fabric.Object>} [startRail, bridgePath, endRail] のFabricオブジェクト配列
  */
-function addFlexibleRailToCanvas(canvas, catalogItem, options = {}) {
+function addFlexibleRailToCanvas(canvas, partId, options = {}) {
+    const catalogItem = railCatalog.items[partId];
+
     // --- 0. 必須引数の存在判定 (Fail-First原則) ---
     if (!canvas) {
         throw new TypeError("canvas instance is required.");
@@ -939,7 +1031,7 @@ function addFlexibleRailToCanvas(canvas, catalogItem, options = {}) {
         }
     });
 
-// --- 9. 端部仮想レール1 (startRail) の Fabric グループ化構築 ---
+    // --- 9. 端部仮想レール1 (startRail) の Fabric グループ化構築 ---
     // startRailData からベース・レール線・テキストオブジェクトを組み立てる処理です
     const startBaseObjects = startRailData.basePaths.map(pStr => 
         new fabric.Path(pStr, { fill: '#888888', stroke: null, originX: 'center', originY: 'center' })
@@ -978,7 +1070,8 @@ function addFlexibleRailToCanvas(canvas, catalogItem, options = {}) {
 
     startRail.customData = {
         instanceId: `rail-${railCount++}`,
-        partId: catalogItem.id || options.partId,
+        partId: partId,
+        nodes: startPseudoItem.nodes, // 仮想パーツ用のノード定義を保持
         isRail: true,
         railType: "flexible_start",
         flexibleId: flexibleId,
@@ -987,6 +1080,7 @@ function addFlexibleRailToCanvas(canvas, catalogItem, options = {}) {
         geoCenterX: startRailData.centerX,
         geoCenterY: startRailData.centerY
     };
+
     // exportLayoutData でシリアライズ・保存対象となるよう partOptions に長さおよびフレキシブル識別情報を保持させる処理です
     startRail.partOptions = { 
         length: currentStartLength,
@@ -1034,7 +1128,8 @@ function addFlexibleRailToCanvas(canvas, catalogItem, options = {}) {
 
     endRail.customData = {
         instanceId: `rail-${railCount++}`,
-        partId: catalogItem.id || options.partId,
+        partId: partId,
+        nodes: endPseudoItem.nodes, // 仮想パーツ用のノード定義を保持
         isRail: true,
         railType: "flexible_end",
         flexibleId: flexibleId,
@@ -1043,6 +1138,7 @@ function addFlexibleRailToCanvas(canvas, catalogItem, options = {}) {
         geoCenterX: endRailData.centerX,
         geoCenterY: endRailData.centerY
     };
+
     // exportLayoutData でシリアライズ・保存対象となるよう partOptions に長さおよびフレキシブル識別情報を保持させる処理です
     endRail.partOptions = { 
         length: currentEndLength,
@@ -1080,8 +1176,8 @@ function rebuildFlexibleRailBridge(bridgePath, startRail, endRail) {
         throw new TypeError("rebuildFlexibleRailBridge: endRail が指定されていません。");
     }
 
-    const startLength = startRail.customData.length || startRail.partOptions?.length || 10;
-    const endLength = endRail.customData.length || endRail.partOptions?.length || 10;
+    const startLength = startRail.partOptions?.length || 10;
+    const endLength = endRail.partOptions?.length || 10;
 
     const startRad = (startRail.angle * Math.PI) / 180;
     const endRad = (endRail.angle * Math.PI) / 180;
@@ -1415,14 +1511,20 @@ function updateJointIndicators() {
     rails.forEach(rail => {
         if (!rail || !rail.customData) return;
         const railId = rail.customData.instanceId;
-        const catalogItem = railCatalog.items[rail.customData.partId];
+        
+        // カタログからではなく customData.nodes を優先的に参照するように変更
+        const nodesSource = rail.customData.nodes || (railCatalog.items[rail.customData.partId] ? railCatalog.items[rail.customData.partId].nodes : null);
+        if (!nodesSource) return;
+
         const absoluteNodes = getAbsoluteNodePos(rail);
 
         absoluteNodes.forEach(node => {
             if (!node) return;
 
-            // ジョイントタイプの取得 (デフォルト: 'rail-end')
-            const catalogNode = catalogItem ? catalogItem.nodes.find(n => n.id === node.nodeId) : null;
+            // 修正: nodeSource から該当ノードを検索し、存在しない場合は描画をスキップ（仮想パーツ対応）
+            const catalogNode = nodesSource.find(n => n.id === node.nodeId);
+            if (!catalogNode) return;
+
             const jointType = (catalogNode && catalogNode.jointType) ? catalogNode.jointType : 'rail-end';
 
             // レールエンドのみ表示モードの場合、'rail-end' 以外の描画をスキップ
@@ -1431,6 +1533,7 @@ function updateJointIndicators() {
             }
 
             const isOccupied = isNodeOccupied(railId, node.nodeId);
+
 
             const dot = new fabric.Circle({
                 left: node.x, top: node.y, radius: 4,

@@ -409,24 +409,30 @@ function getEffectiveNodeDef(rail, catalogNode) {
 
     const jointType = catalogNode.jointType || 'rail-end';
 
-    // --- 1. 可変レール (variable-straight) の長さによるノード位置動的補正 ---
-    if (rail && rail.customData && rail.customData.partId) {
+    // --- 1. 動的長さ（可変レール / フレキシブル端部）によるノード位置動的補正 ---
+    if (rail && rail.customData) {
+        const railType = rail.customData.railType;
+        const isFlexibleStart = railType === 'flexible_start';
+        const isFlexibleEnd = railType === 'flexible_end';
+        
         const catalogItem = railCatalog.items[rail.customData.partId];
-        if (catalogItem && catalogItem.dynamicType === 'variable-straight') {
-            let currentLength = catalogItem.defaultLength || 78;
+        
+        if ((catalogItem && catalogItem.dynamicType === 'variable-straight') || isFlexibleStart || isFlexibleEnd) {
+            let currentLength = (catalogItem && catalogItem.defaultLength) || 0;
+            
             if (rail.partOptions && typeof rail.partOptions.length === 'number') {
                 currentLength = rail.partOptions.length;
             }
-            // 範囲内にクランプ
-            const minL = catalogItem.minLength || currentLength;
-            const maxL = catalogItem.maxLength || currentLength;
-            currentLength = Math.max(minL, Math.min(maxL, currentLength));
 
             const halfL = currentLength / 2;
+
+            // startRail (または可変レールのNode 0) は左端 (-halfL)
             if (catalogNode.id === 0) relX = -halfL;
+            // endRail (または可変レールのNode 1) は右端 (halfL)
             if (catalogNode.id === 1) relX = halfL;
         }
     }
+
     
     // --- 2. nodeOffsets (手動微調整) の適用 ---
     const nodeOffsets = rail && rail.partOptions ? rail.partOptions.nodeOffsets : null;
@@ -452,15 +458,17 @@ function getEffectiveNodeDef(rail, catalogNode) {
 
 function getAbsoluteNodePos(rail) {
     if (!rail || !rail.customData) return [];
-    const catalog = railCatalog.items[rail.customData.partId];
-    if (!catalog) return [];
+    
+    // カタログからではなく customData.nodes を優先的に参照するように変更
+    const nodesSource = rail.customData.nodes || (railCatalog.items[rail.customData.partId] ? railCatalog.items[rail.customData.partId].nodes : null);
+    if (!nodesSource) return [];
     
     const cx = rail.customData.geoCenterX || 0;
     const cy = rail.customData.geoCenterY || 0;
     
     if (rail.group && rail.group.type === 'activeSelection') {
         const angleRad = (rail.angle * Math.PI) / 180;
-        return catalog.nodes.map(node => {
+        return nodesSource.map(node => {
             const effDef = getEffectiveNodeDef(rail, node);
             const lx = effDef.relX - cx;
             const ly = effDef.relY - cy;
@@ -475,7 +483,7 @@ function getAbsoluteNodePos(rail) {
     }
 
     const angleRad = (rail.angle * Math.PI) / 180;
-    return catalog.nodes.map(node => {
+    return nodesSource.map(node => {
         const effDef = getEffectiveNodeDef(rail, node);
         const lx = effDef.relX - cx;
         const ly = effDef.relY - cy;
@@ -487,12 +495,74 @@ function getAbsoluteNodePos(rail) {
     });
 }
 
+/**
+ * レールオブジェクトのカスタムデータおよびカタログデータから、仮想レールの特性を反映した実効カタログオブジェクトを取得する関数です。
+ * フレキシブルレールの端部仮想レールの場合は、バリアブル直線レール相当の疑似カタログ情報（単一ノード化）を構築して返却します。
+ *
+ * @param {fabric.Object} rail - 対象のFabricレールオブジェクト
+ * @returns {Object} 判定および座標計算に使用する実効カタログオブジェクト
+ */
+function getEffectiveCatalogItem(rail) {
+    // 必須引数およびプロパティの存在判定を行う処理です (Fail-First原則)
+    if (!rail || !rail.customData) {
+        throw new TypeError("rail or rail.customData is required.");
+    }
+    const partId = rail.customData.partId;
+    if (!partId) {
+        throw new TypeError("rail.customData.partId is missing.");
+    }
+
+    const rawCatalog = railCatalog.items[partId];
+    if (!rawCatalog) {
+        throw new TypeError(`Catalog item not found for partId: ${partId}`);
+    }
+
+    const railType = rail.customData.railType;
+
+    // フレキシブルレールの始点側仮想レールの場合は、ノード0のみを保持するバリアブル直線レールの疑似カタログを構築する処理です
+    if (railType === "flexible_start") {
+        const pseudoItem = JSON.parse(JSON.stringify(rawCatalog));
+        pseudoItem.dynamicType = "variable-straight";
+        if (Array.isArray(rawCatalog.nodes) && rawCatalog.nodes.length > 0) {
+            pseudoItem.nodes = [rawCatalog.nodes[0]];
+        } else {
+            throw new TypeError("rawCatalog.nodes[0] is required for flexible_start.");
+        }
+        return pseudoItem;
+    }
+
+    // フレキシブルレールの終点側仮想レールの場合は、ノード1のみを保持するバリアブル直線レールの疑似カタログを構築する処理です
+    if (railType === "flexible_end") {
+        const pseudoItem = JSON.parse(JSON.stringify(rawCatalog));
+        pseudoItem.dynamicType = "variable-straight";
+        if (Array.isArray(rawCatalog.nodes) && rawCatalog.nodes.length > 1) {
+            pseudoItem.nodes = [rawCatalog.nodes[1]];
+        } else {
+            throw new TypeError("rawCatalog.nodes[1] is required for flexible_end.");
+        }
+        return pseudoItem;
+    }
+
+    // 通常レールおよびその他の動的レールの場合はオリジナル定義をそのまま返却する処理です
+    return rawCatalog;
+}
+
+/**
+ * 指定された2つのレールおよび各ノードID同士が接続可能かを判定する関数です。
+ * 仮想レールの場合は実効カタログ情報（疑似カタログ）を参照してノード互換性を検証します。
+ *
+ * @param {fabric.Object} railA - 1つ目のレールオブジェクト
+ * @param {number} nodeAId - 1つ目のレールのノードID
+ * @param {fabric.Object} railB - 2つ目のレールオブジェクト
+ * @param {number} nodeBId - 2つ目のレールのノードID
+ * @returns {boolean} 接続可能であれば true、不可であれば false
+ */
 function canConnectNodes(railA, nodeAId, railB, nodeBId) {
     if (!railA || !railB || !railCatalog || !railCatalog.items) return false;
 
-    const catalogA = railCatalog.items[railA.customData.partId];
-    const catalogB = railCatalog.items[railB.customData.partId];
-    if (!catalogA || !catalogB) return false;
+    // 仮想レール等の動的特性を考慮した実効カタログ定義を取得する処理です
+    const catalogA = getEffectiveCatalogItem(railA);
+    const catalogB = getEffectiveCatalogItem(railB);
 
     const nodeA = catalogA.nodes.find(n => n.id === nodeAId);
     const nodeB = catalogB.nodes.find(n => n.id === nodeBId);
