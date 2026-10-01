@@ -1196,14 +1196,16 @@ function rebuildFlexibleRailBridge(bridgePath, startRail, endRail) {
     const endRad = (endTransform.angle * Math.PI) / 180;
 
     // 1. 両端の接続点および引き出し制御点 (P0, P1, P2, P3) を計算
-    const p0x = startTransform.left + Math.cos(startRad) * (startLength / 2);
-    const p0y = startTransform.top + Math.sin(startRad) * (startLength / 2);
+    // startRail: 左端 (P0) から右方向 (P1) へ引き出す
+    const p0x = startTransform.left - Math.cos(startRad) * (startLength / 2);
+    const p0y = startTransform.top - Math.sin(startRad) * (startLength / 2);
 
     const p1x = p0x + Math.cos(startRad) * startLength;
     const p1y = p0y + Math.sin(startRad) * startLength;
 
-    const p3x = endTransform.left - Math.cos(endRad) * (endLength / 2);
-    const p3y = endTransform.top - Math.sin(endRad) * (endLength / 2);
+    // endRail: 右端 (P3) から左方向 (P2) へ引き出す
+    const p3x = endTransform.left + Math.cos(endRad) * (endLength / 2);
+    const p3y = endTransform.top + Math.sin(endRad) * (endLength / 2);
 
     const p2x = p3x - Math.cos(endRad) * endLength;
     const p2y = p3y - Math.sin(endRad) * endLength;
