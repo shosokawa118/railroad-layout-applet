@@ -496,14 +496,14 @@ function getAbsoluteNodePos(rail) {
 }
 
 /**
- * レールオブジェクトのカスタムデータおよびカタログデータから、仮想レールの特性を反映した実効カタログオブジェクトを取得する関数です。
+ * レールオブジェクトのカスタムデータおよびカタログデータから、仮想レールの特性を反映した実効カタログオブジェクトを取得
  * フレキシブルレールの端部仮想レールの場合は、バリアブル直線レール相当の疑似カタログ情報（単一ノード化）を構築して返却します。
  *
  * @param {fabric.Object} rail - 対象のFabricレールオブジェクト
  * @returns {Object} 判定および座標計算に使用する実効カタログオブジェクト
  */
 function getEffectiveCatalogItem(rail) {
-    // 必須引数およびプロパティの存在判定を行う処理です (Fail-First原則)
+    // 必須引数およびプロパティの存在判定を行う (Fail-First原則)
     if (!rail || !rail.customData) {
         throw new TypeError("rail or rail.customData is required.");
     }
@@ -519,7 +519,7 @@ function getEffectiveCatalogItem(rail) {
 
     const railType = rail.customData.railType;
 
-    // フレキシブルレールの始点側仮想レールの場合は、ノード0のみを保持するバリアブル直線レールの疑似カタログを構築する処理です
+    // フレキシブルレールの始点側仮想レールの場合は、ノード0のみを保持するバリアブル直線レールの疑似カタログを構築
     if (railType === "flexible_start") {
         const pseudoItem = JSON.parse(JSON.stringify(rawCatalog));
         pseudoItem.dynamicType = "variable-straight";
@@ -531,7 +531,7 @@ function getEffectiveCatalogItem(rail) {
         return pseudoItem;
     }
 
-    // フレキシブルレールの終点側仮想レールの場合は、ノード1のみを保持するバリアブル直線レールの疑似カタログを構築する処理です
+    // フレキシブルレールの終点側仮想レールの場合は、ノード1のみを保持するバリアブル直線レールの疑似カタログを構築
     if (railType === "flexible_end") {
         const pseudoItem = JSON.parse(JSON.stringify(rawCatalog));
         pseudoItem.dynamicType = "variable-straight";
@@ -543,12 +543,12 @@ function getEffectiveCatalogItem(rail) {
         return pseudoItem;
     }
 
-    // 通常レールおよびその他の動的レールの場合はオリジナル定義をそのまま返却する処理です
+    // 通常レールおよびその他の動的レールの場合はオリジナル定義をそのまま返却
     return rawCatalog;
 }
 
 /**
- * 指定された2つのレールおよび各ノードID同士が接続可能かを判定する関数です。
+ * 指定された2つのレールおよび各ノードID同士が接続可能かを判定
  * 仮想レールの場合は実効カタログ情報（疑似カタログ）を参照してノード互換性を検証します。
  *
  * @param {fabric.Object} railA - 1つ目のレールオブジェクト
@@ -560,7 +560,7 @@ function getEffectiveCatalogItem(rail) {
 function canConnectNodes(railA, nodeAId, railB, nodeBId) {
     if (!railA || !railB || !railCatalog || !railCatalog.items) return false;
 
-    // 仮想レール等の動的特性を考慮した実効カタログ定義を取得する処理です
+    // 仮想レール等の動的特性を考慮した実効カタログ定義を取得
     const catalogA = getEffectiveCatalogItem(railA);
     const catalogB = getEffectiveCatalogItem(railB);
 
