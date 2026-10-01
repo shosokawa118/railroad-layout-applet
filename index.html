@@ -553,8 +553,10 @@
 
             // キャンバス上の最後のエレメント非選択クリック座標を記憶
             canvas.on('mouse:down', function(opt) {
-                if (opt.pointer && !opt.target) {
-                    lastCanvasClickPos = { x: opt.pointer.x, y: opt.pointer.y };
+                if (opt.e && !opt.target) {
+                    // ビューポートのパン・ズームを逆算したレイアウト座標を取得
+                    const pointer = canvas.getPointer(opt.e);
+                    lastCanvasClickPos = { x: pointer.x, y: pointer.y };
                 }
                 hideContextMenu();
             });
@@ -677,6 +679,33 @@
                     renderOnAddRemove: true,
                     stateful: true,
                     allowTouchScrolling: false
+                });
+
+                // キャンバス原点(0,0)を通るガイド線の描画
+                canvas.on('before:render', () => {
+                    const ctx = canvas.getContext();
+                    const vpt = canvas.viewportTransform;
+                    if (!vpt) return;
+
+                    ctx.save();
+                    // ビューポート変換（パン・ズーム）の適用
+                    ctx.transform(vpt[0], vpt[1], vpt[2], vpt[3], vpt[4], vpt[5]);
+
+                    ctx.strokeStyle = '#cccccc';
+                    // ズーム時も線の見た目の太さを1pxに維持
+                    ctx.lineWidth = 1 / vpt[0];
+                    ctx.beginPath();
+
+                    // ワールド座標 (y = 0)
+                    ctx.moveTo(-10000, 0);
+                    ctx.lineTo(10000, 0);
+
+                    // ワールド座標 (x = 0)
+                    ctx.moveTo(0, -10000);
+                    ctx.lineTo(0, 10000);
+
+                    ctx.stroke();
+                    ctx.restore();
                 });
 
                 initCameraControls();

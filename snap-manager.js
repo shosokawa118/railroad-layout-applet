@@ -150,6 +150,38 @@ function applyClusterSnapLogic(movedRail) {
         autoConnectNearbyNodes(movedRails, 8, 10);
     }
 
+    // --- 4. 移動・スナップしたレールに含まれるフレキシブルレールのブリッジを更新 ---
+    updateFlexibleBridgesForRails(movedRails);
+
     updateJointIndicators();
     canvas.requestRenderAll();
+}
+
+/**
+ * 指定されたレール群に含まれるフレキシブルレールのブリッジを再構築するヘルパー関数
+ * @param {Array} rails - 移動・変更されたFabricレールの配列
+ */
+function updateFlexibleBridgesForRails(rails) {
+    if (!rails || rails.length === 0) return;
+
+    // 重複を防ぐため Set で flexibleId を収集
+    const targetFlexibleIds = new Set();
+    rails.forEach(r => {
+        if (r.customData && r.customData.flexibleId) {
+            targetFlexibleIds.add(r.customData.flexibleId);
+        }
+    });
+
+    if (targetFlexibleIds.size === 0) return;
+
+    const allObjects = canvas.getObjects();
+    targetFlexibleIds.forEach(fid => {
+        const bridge = allObjects.find(o => o.customData && o.customData.flexibleId === fid && o.customData.railType === 'flexible_bridge');
+        const start = allObjects.find(o => o.customData && o.customData.flexibleId === fid && o.customData.railType === 'flexible_start');
+        const end = allObjects.find(o => o.customData && o.customData.flexibleId === fid && o.customData.railType === 'flexible_end');
+
+        if (bridge && start && end) {
+            rebuildFlexibleRailBridge(bridge, start, end);
+        }
+    });
 }

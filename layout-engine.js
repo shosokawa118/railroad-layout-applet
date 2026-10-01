@@ -578,16 +578,6 @@ function handleVariableRailResizeEnd(rail, corner) {
     // 5. 新しいノード位置でのスナップ・接続判定
     applyClusterSnapLogic(rail);
 
-    // フレキシブルレールの場合はブリッジを最終更新
-    if (isFlexibleComponent) {
-        const fid = rail.customData.flexibleId;
-        const all = canvas.getObjects();
-        const b = all.find(o => o.customData && o.customData.flexibleId === fid && o.customData.railType === 'flexible_bridge');
-        const s = all.find(o => o.customData && o.customData.flexibleId === fid && o.customData.railType === 'flexible_start');
-        const e = all.find(o => o.customData && o.customData.flexibleId === fid && o.customData.railType === 'flexible_end');
-        if (b && s && e) rebuildFlexibleRailBridge(b, s, e);
-    }
-
     rail.setCoords();
     canvas.requestRenderAll();
 }
@@ -805,27 +795,21 @@ function addRailToCanvas(partId, options = {}) {
         endRail.on('rotating', updateBridge);
     }
 
-
     // オートコネクト処理
     if (!options.skipAutoConnect) {
         const activeObj = canvas.getActiveObject();
         const parentRail = (activeObj && activeObj.customData && activeObj.customData.isRail) ? activeObj : null;
         const targetNodeId = parentRail ? findTargetNodeForAutoConnect(parentRail) : null;
 
-                let autoConnected = false;
+        // 移動・回転前の startRail (mainRail) の位置と角度を保持
+        const prevStartX = mainRail.left;
+        const prevStartY = mainRail.top;
+        const prevStartAngle = mainRail.angle;
+
+        let autoConnected = false;
         if (parentRail && targetNodeId !== null) {
             autoConnected = alignRailToParentNode(mainRail, parentRail, targetNodeId);
-            // フレキシブルレールの場合は起点移動に合わせてブリッジを再計算
-            if (isFlexible) {
-                // startRail/endRail 両方の位置を確定させてからブリッジを更新
-                if (autoConnected) {
-                   // 接続された mainRail (startRail) の位置を基準に endRail 等も配置し直す必要がある
-                   // (ここでは簡易的にメインの座標確定後にブリッジ再構築)
-                }
-                rebuildFlexibleRailBridge(railResult[1], railResult[0], railResult[2]);
-            }
         }
-
 
         // 配置フォールバック (接続されなかった場合)
         if (!autoConnected) {
@@ -837,19 +821,34 @@ function addRailToCanvas(partId, options = {}) {
                 mainRail.set({ left: 250 + (railCount % 5) * 25, top: 450 + (railCount % 5) * 25, angle: 0 });
             }
             mainRail.setCoords();
-            
-            if (isFlexible && parentRail) {
-                // 親レールの位置に合わせて全体を再配置する簡易的な調整
-                const dx = mainRail.left - railResult[0].left;
-                const dy = mainRail.top - railResult[0].top;
-                railResult.forEach(obj => {
-                   if (obj !== mainRail) {
-                       obj.set({ left: obj.left + dx, top: obj.top + dy });
-                       obj.setCoords();
-                   }
-                });
-                rebuildFlexibleRailBridge(railResult[1], railResult[0], railResult[2]);
-            }
+        }
+
+        // フレキシブルレールの場合は起点 (startRail) の移動および回転に合わせて終点 (endRail) の位置・向きを回転移動し、ブリッジを再構築する処理
+        if (isFlexible) {
+            const endRail = railResult[2];
+
+            // 起点 (mainRail) の角度変化量を算出 (角度は時計回りが正)
+            const dAngle = mainRail.angle - prevStartAngle;
+            const rad = dAngle * (Math.PI / 180);
+
+            // 起点から見た終点の移動前相対座標
+            const rx = endRail.left - prevStartX;
+            const ry = endRail.top - prevStartY;
+
+            // 回転行列により回転後の相対座標を計算 (右:+X, 下:+Y, 時計回り正)
+            const rotatedRx = rx * Math.cos(rad) - ry * Math.sin(rad);
+            const rotatedRy = rx * Math.sin(rad) + ry * Math.cos(rad);
+
+            // 起点（mainRail）の新しい位置と角度に合わせて終点（endRail）の座標と向きを更新
+            endRail.set({
+                left: mainRail.left + rotatedRx,
+                top: mainRail.top + rotatedRy,
+                angle: endRail.angle + dAngle
+            });
+            endRail.setCoords();
+
+            // startRail/endRail 両方の位置・角度を確定させてからブリッジを再構築
+            rebuildFlexibleRailBridge(railResult[1], railResult[0], railResult[2]);
         }
     }
 
@@ -1161,9 +1160,9 @@ function addFlexibleRailToCanvas(canvas, partId, options = {}) {
  * 仮想レールの位置・角度・引き出し量に基づき、中央の bridgePath のベジェ曲線パスを再構築する処理です。
  * パス更新後に originX/Y・pathOffset・寸法 (width/height)・中心座標 (left/top) を正確に再計算させ、バウンディングボックスのズレを解消します。
  * 
- * @param {fabric.Path} bridgePath - 再構築対象のブリッジPathオブジェクト
- * @param {fabric.Object} startRail - 左端の仮想レールオブジェクト
- * @param {fabric.Object} endRail - 右端の仮想レールオブジェクト
+ * @param {fabric.Path} bridgePath 再構築対象のブリッジPathオブジェクト
+ * @param {fabric.Object} startRail 左端の仮想レールオブジェクト
+ * @param {fabric.Object} endRail 右端の仮想レールオブジェクト
  */
 function rebuildFlexibleRailBridge(bridgePath, startRail, endRail) {
     if (!bridgePath) {
@@ -1179,18 +1178,22 @@ function rebuildFlexibleRailBridge(bridgePath, startRail, endRail) {
     const startLength = startRail.partOptions?.length || 10;
     const endLength = endRail.partOptions?.length || 10;
 
-    const startRad = (startRail.angle * Math.PI) / 180;
-    const endRad = (endRail.angle * Math.PI) / 180;
+    // グループ選択状態を考慮したキャンバス絶対座標・角度を取得する処理です
+    const startTransform = getRailAbsoluteTransform(startRail);
+    const endTransform = getRailAbsoluteTransform(endRail);
+
+    const startRad = (startTransform.angle * Math.PI) / 180;
+    const endRad = (endTransform.angle * Math.PI) / 180;
 
     // 1. 両端の接続点および引き出し制御点 (P0, P1, P2, P3) を計算する処理です
-    const p0x = startRail.left + Math.cos(startRad) * (startLength / 2);
-    const p0y = startRail.top + Math.sin(startRad) * (startLength / 2);
+    const p0x = startTransform.left + Math.cos(startRad) * (startLength / 2);
+    const p0y = startTransform.top + Math.sin(startRad) * (startLength / 2);
 
     const p1x = p0x + Math.cos(startRad) * startLength;
     const p1y = p0y + Math.sin(startRad) * startLength;
 
-    const p3x = endRail.left - Math.cos(endRad) * (endLength / 2);
-    const p3y = endRail.top - Math.sin(endRad) * (endLength / 2);
+    const p3x = endTransform.left - Math.cos(endRad) * (endLength / 2);
+    const p3y = endTransform.top - Math.sin(endRad) * (endLength / 2);
 
     const p2x = p3x - Math.cos(endRad) * endLength;
     const p2y = p3y - Math.sin(endRad) * endLength;
@@ -1207,7 +1210,18 @@ function rebuildFlexibleRailBridge(bridgePath, startRail, endRail) {
     const centerX = dim.left + dim.width / 2;
     const centerY = dim.top + dim.height / 2;
 
-    // 5. 原点基準を中心 ('center') に指定し、中心座標 (left/top) と内部オフセットを同期させる処理です
+    // 5. bridgePath がグループ（activeSelection等）に含まれている場合、キャンバス絶対座標をグループローカル相対座標に変換する処理です
+    let targetLeft = centerX;
+    let targetTop = centerY;
+
+    if (bridgePath.group) {
+        const invMatrix = fabric.util.invertTransform(bridgePath.group.calcTransformMatrix());
+        const localPoint = fabric.util.transformPoint({ x: centerX, y: centerY }, invMatrix);
+        targetLeft = localPoint.x;
+        targetTop = localPoint.y;
+    }
+
+    // 6. 原点基準を中心 ('center') に指定し、中心座標 (left/top) と内部オフセットを同期させる処理です
     bridgePath.set({
         originX: 'center',
         originY: 'center',
@@ -1217,16 +1231,54 @@ function rebuildFlexibleRailBridge(bridgePath, startRail, endRail) {
             x: centerX,
             y: centerY
         },
-        left: centerX,
-        top: centerY
+        left: targetLeft,
+        top: targetTop
     });
 
-    // 6. コントロールハンドルの描画座標を最新の状態に確定させる処理です
+    // 7. コントロールハンドルの描画座標を最新の状態に確定させる処理です
     bridgePath.setCoords();
 
     if (bridgePath.canvas) {
         bridgePath.canvas.requestRenderAll();
     }
+}
+
+/**
+ * レールオブジェクトのキャンバス上での絶対座標および絶対角度を取得する処理です。
+ * @param {fabric.Object} rail 対象のレールオブジェクト
+ * @returns {{ left: number, top: number, angle: number }} キャンバス上の絶対位置と角度
+ */
+function getRailAbsoluteTransform(rail) {
+    if (!rail) {
+        throw new TypeError("getRailAbsoluteTransform: rail が指定されていません。");
+    }
+
+    // オブジェクトがグループ（activeSelection等）に含まれている場合は変換行列から絶対座標・角度を算出
+    if (rail.group) {
+        const matrix = rail.calcTransformMatrix();
+        const absolutePoint = fabric.util.transformPoint({ x: 0, y: 0 }, matrix);
+
+        let absoluteAngle = rail.angle;
+        let parentGroup = rail.group;
+        while (parentGroup) {
+            absoluteAngle += parentGroup.angle;
+            parentGroup = parentGroup.group;
+        }
+        absoluteAngle = (absoluteAngle % 360 + 360) % 360;
+
+        return {
+            left: absolutePoint.x,
+            top: absolutePoint.y,
+            angle: absoluteAngle
+        };
+    }
+
+    // グループに含まれていない場合は自身のプロパティをそのまま返す
+    return {
+        left: rail.left,
+        top: rail.top,
+        angle: rail.angle
+    };
 }
 
 /**
@@ -1476,22 +1528,42 @@ function onGeneralTransform(target) {
     if (!target) return;
     detachMovedRailJoints(target);
 
-    // 操作対象がフレキシブルレールの構成パーツである場合、端部移動・回転に合わせてブリッジベジェ曲線を再計算する処理です
-    if (target.customData && target.customData.flexibleId) {
-        const targetId = target.customData.flexibleId;
-        const allObjects = canvas.getObjects();
-        const groupParts = allObjects.filter(obj => obj && obj.customData && obj.customData.flexibleId === targetId);
+    // 操作対象が範囲選択 (activeSelection) の場合、含まれるすべてのフレキシブルレールのブリッジを更新する処理です
+    if (target.type === 'activeSelection') {
+        const targetFlexibleIds = new Set();
+        target.getObjects().forEach(obj => {
+            if (obj && obj.customData && obj.customData.flexibleId) {
+                targetFlexibleIds.add(obj.customData.flexibleId);
+            }
+        });
 
-        const startRail = groupParts.find(obj => obj.customData.railType === 'flexible_start');
-        const endRail = groupParts.find(obj => obj.customData.railType === 'flexible_end');
-        const bridgePath = groupParts.find(obj => obj.customData.railType === 'flexible_bridge');
-
-        if (startRail && endRail && bridgePath) {
-            rebuildFlexibleRailBridge(bridgePath, startRail, endRail);
-        }
+        targetFlexibleIds.forEach(flexibleId => {
+            updateFlexibleBridgeById(flexibleId);
+        });
+    } 
+    // 操作対象が単体のフレキシブルレール構成パーツである場合、端部移動・回転に合わせてブリッジベジェ曲線を再計算する処理です
+    else if (target.customData && target.customData.flexibleId) {
+        updateFlexibleBridgeById(target.customData.flexibleId);
     }
 
     updateJointIndicators();
+}
+
+/**
+ * 指定された flexibleId に対応するブリッジ・起点・終点オブジェクトを取得し、再構築を実行するヘルパー処理です。
+ * @param {string} flexibleId 対象のフレキシブルレールID
+ */
+function updateFlexibleBridgeById(flexibleId) {
+    if (!flexibleId) return;
+
+    const allObjects = canvas.getObjects();
+    const bridge = allObjects.find(o => o.customData && o.customData.flexibleId === flexibleId && o.customData.railType === 'flexible_bridge');
+    const start = allObjects.find(o => o.customData && o.customData.flexibleId === flexibleId && o.customData.railType === 'flexible_start');
+    const end = allObjects.find(o => o.customData && o.customData.flexibleId === flexibleId && o.customData.railType === 'flexible_end');
+
+    if (bridge && start && end) {
+        rebuildFlexibleRailBridge(bridge, start, end);
+    }
 }
 
 function updateJointIndicators() {
