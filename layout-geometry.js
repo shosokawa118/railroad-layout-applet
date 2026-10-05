@@ -420,8 +420,8 @@ function getEffectiveNodeDef(rail, catalogNode) {
         if ((catalogItem && catalogItem.dynamicType === 'variable-straight') || isFlexibleStart || isFlexibleEnd) {
             let currentLength = (catalogItem && catalogItem.defaultLength) || 0;
             
-            if (rail.partOptions && typeof rail.partOptions.length === 'number') {
-                currentLength = rail.partOptions.length;
+            if (rail.customData.partOptions && typeof rail.customData.partOptions.length === 'number') {
+                currentLength = rail.customData.partOptions.length;
             }
 
             const halfL = currentLength / 2;
@@ -435,7 +435,7 @@ function getEffectiveNodeDef(rail, catalogNode) {
 
     
     // --- 2. nodeOffsets (手動微調整) の適用 ---
-    const nodeOffsets = rail && rail.partOptions ? rail.partOptions.nodeOffsets : null;
+    const nodeOffsets = rail && rail.customData.partOptions ? rail.customData.partOptions.nodeOffsets : null;
 
     if (jointType === 'rail-end' && nodeOffsets && catalogNode.id !== undefined) {
         const offset = nodeOffsets[catalogNode.id];

@@ -410,7 +410,7 @@
 
             const nodeCount = railEndNodes.length;
             // partOptions.nodeOffsets のみをオプショナルチェイニングで安全に取得
-            const offsets = currentEditingRail.partOptions?.nodeOffsets || {};
+            const offsets = currentEditingRail.customData.partOptions?.nodeOffsets || {};
 
             if (nodeCount === 0) {
                 const emptyMsg = document.createElement('div');
@@ -505,13 +505,13 @@
             });
 
             if (Object.keys(newOffsets).length > 0) {
-                if (!currentEditingRail.partOptions) {
-                    currentEditingRail.partOptions = {};
+                if (!currentEditingRail.customData.partOptions) {
+                    currentEditingRail.customData.partOptions = {};
                 }
-                currentEditingRail.partOptions.nodeOffsets = newOffsets;
+                currentEditingRail.customData.partOptions.nodeOffsets = newOffsets;
             } else {
                 // オプションが空になった場合は partOptions コンテナごと削除
-                delete currentEditingRail.partOptions;
+                delete currentEditingRail.customData.partOptions;
             }
 
             closeRailOptionsDialog();
