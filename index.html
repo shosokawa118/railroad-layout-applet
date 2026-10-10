@@ -166,6 +166,7 @@
         <button id="menuDuplicate" onclick="execMenuAction('duplicate')">複製 [Ctrl+D]</button>
         <div class="menu-divider"></div>
         <button id="menuDelete" onclick="execMenuAction('delete')" style="color: #c62828;">削除 [Delete]</button>
+        <button id="menuFlexibleLock" onclick="execMenuAction('toggleFlexibleLock')" style="display: none;">変形をロック</button>
         <div class="menu-divider"></div>
         <button id="menuOptions" onclick="execMenuAction('options')">オプション... [Ctrl+,]</button>
     </div>
@@ -561,6 +562,21 @@
                 hideContextMenu();
             });
 
+            // 右クリックされたオブジェクトを自動で選択状態にする
+            canvas.on('mouse:down', function(opt) {
+                // opt.e.button === 2 は右クリック
+                if (opt.e && opt.e.button === 2) {
+                    const target = opt.target;
+                    if (target) {
+                        // すでにアクティブでなければ選択状態にする
+                        if (canvas.getActiveObject() !== target) {
+                            canvas.setActiveObject(target);
+                            canvas.requestRenderAll();
+                        }
+                    }
+                }
+            });
+
             // 選択状態変更時にUIの状態（ボタン無効化など）を同期更新
             canvas.on('selection:created', () => { updateUIState(); });
             canvas.on('selection:updated', () => { updateUIState(); });
@@ -647,6 +663,7 @@
 
         function showContextMenu(x, y) {
             updateUIState();
+            updateContextMenuState();
             const menu = document.getElementById('contextMenu');
             if (!menu) return;
             menu.style.left = `${x}px`;
@@ -671,6 +688,127 @@
             if (action === 'duplicate') duplicateSelectedRails();
             if (action === 'delete') deleteSelectedRails();
             if (action === 'options') openRailOptionsDialog();
+            if (action === 'toggleFlexibleLock') executeFlexibleLockAction();
+        }
+
+        function executeFlexibleLockAction() {
+            const flexInfo = getSelectedFlexibleRailsInfo();
+            if (!flexInfo || flexInfo.flexibleIds.length === 0) return;
+
+            // 「すべてロックされている状態」なら解除へ、「それ以外（未ロックが混在含む）」ならロックへ統一する
+            const targetLockState = !flexInfo.allLocked;
+
+            const allObjects = canvas.getObjects();
+
+            // 対象となるすべてのフレキシブルレールグループを走査して一括適用
+            flexInfo.flexibleIds.forEach(fId => {
+                const groupParts = allObjects.filter(obj => obj && obj.customData && obj.customData.flexibleId === fId);
+                
+                if (groupParts.length === 3) {
+                    groupParts.forEach(part => {
+                        if (part.customData) {
+                            part.customData.isLocked = targetLockState;
+                        }
+
+                        // パーツ別の挙動（中央曲線部 vs 両端仮想レール）に合わせたロック設定
+                        const railType = part.customData ? part.customData.railType : '';
+                        const isBridge = (railType === 'flexible_bridge'); // 中央曲線部の判定名（仮）
+
+                        if (isBridge) {
+                            // 中央曲線部は移動・回転可能、ハンドルのみ非表示
+                            part.set({
+                                lockMovementX: targetLockState ? false : false, // 移動は常に許可？ 要件に合わせて調整
+                                lockMovementY: targetLockState ? false : false,
+                                hasControls: !targetLockState
+                            });
+                        } else {
+                            // 両端仮想レールはロック時に非表示＆選択不可
+                            part.set({
+                                visible: !targetLockState,
+                                selectable: !targetLockState,
+                                lockMovementX: targetLockState,
+                                lockMovementY: targetLockState,
+                                hasControls: !targetLockState
+                            });
+                        }
+                    });
+                }
+            });
+
+            canvas.requestRenderAll();
+        }
+
+        function updateContextMenuState() {
+            const lockButton = document.getElementById('menuFlexibleLock');
+
+            const flexInfo = getSelectedFlexibleRailsInfo();
+
+            if (!flexInfo) {
+                // フレキシブルレールが含まれていない場合は非表示
+                lockButton.style.display = 'none';
+                return;
+            }
+
+            // フレキシブルレールが含まれているので表示
+            lockButton.style.display = 'block';
+
+            // 要件：「ロックされてないものが一つでもあれば『変形ロック』、全てロックなら『変形ロックを解除』」
+            if (flexInfo.allLocked) {
+                lockButton.textContent = '変形ロックを解除';
+            } else {
+                lockButton.textContent = '変形ロック';
+            }
+        }
+
+        /**
+         * 現在の選択状態から、対象となるフレキシブルレールの情報とロック状態を収集する
+         * @returns {Object|null} { flexibleIds: string[], allLocked: boolean }
+         */
+        function getSelectedFlexibleRailsInfo() {
+            const activeObj = canvas.getActiveObject();
+            if (!activeObj) return null;
+
+            // 単体または複数選択（ActiveSelection）のオブジェクトリストを取得
+            const objects = (activeObj.type === 'activeSelection' && activeObj._objects)
+                ? activeObj._objects
+                : [activeObj];
+
+            const flexibleMap = new Map(); // flexibleId -> { parts: [], isLocked: boolean }
+
+            objects.forEach(obj => {
+                if (obj && obj.customData && obj.customData.flexibleId) {
+                    const fId = obj.customData.flexibleId;
+                    if (!flexibleMap.has(fId)) {
+                        flexibleMap.has(fId); // ダミー初期化用
+                        // 紐づく3点セットをキャンバス全体から確実に取得
+                        const allObjects = canvas.getObjects();
+                        const groupParts = allObjects.filter(o => o && o.customData && o.customData.flexibleId === fId);
+                        
+                        if (groupParts.length > 0) {
+                            // グループ内のいずれかがロックされていればロック状態とみなす、あるいは共通フラグ
+                            const isLocked = groupParts.some(p => p.customData && p.customData.isLocked);
+                            flexibleMap.set(fId, { parts: groupParts, isLocked: isLocked });
+                        }
+                    }
+                }
+            });
+
+            if (flexibleMap.size === 0) {
+                return null; // フレキシブルレールは含まれていない（通常レールのみ等）
+            }
+
+            const flexibleIds = Array.from(flexibleMap.keys());
+            
+            // 「すべてがロックされているか？」の判定
+            let allLocked = true;
+            flexibleMap.forEach(info => {
+                if (!info.isLocked) allLocked = false;
+            });
+
+            return {
+                flexibleIds,
+                allLocked
+            };
         }
 
         function startApplication() {
