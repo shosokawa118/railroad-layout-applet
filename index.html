@@ -515,9 +515,9 @@
                 delete currentEditingRail.customData.partOptions;
             }
 
+            currentEditingRail.canvas.requestRenderAll();
             closeRailOptionsDialog();
             updateJointIndicators();
-            draw(); // 描画更新
         }
 
         // =============================================================================
@@ -707,7 +707,7 @@
                 if (groupParts.length === 3) {
                     groupParts.forEach(part => {
                         if (part.customData) {
-                            part.customData.isLocked = targetLockState;
+                            part.customData.partOptions.isLocked = targetLockState;
                         }
 
                         // パーツ別の挙動（中央曲線部 vs 両端仮想レール）に合わせたロック設定
@@ -786,7 +786,7 @@
                         
                         if (groupParts.length > 0) {
                             // グループ内のいずれかがロックされていればロック状態とみなす、あるいは共通フラグ
-                            const isLocked = groupParts.some(p => p.customData && p.customData.isLocked);
+                            const isLocked = groupParts.some(p => p.customData && p.customData.partOptions.isLocked);
                             flexibleMap.set(fId, { parts: groupParts, isLocked: isLocked });
                         }
                     }

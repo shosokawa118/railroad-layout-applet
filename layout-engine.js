@@ -413,7 +413,7 @@ function registerGlobalCanvasEvents() {
             }
         } else if (customData && customData.flexibleId) {
             // ブリッジ本体（flexible_bridge）が単一選択された場合、または変形ロック(isLocked)されている場合のみ3点セット選択へ拡張
-            if (customData.railType === 'flexible_bridge' || customData.isLocked) {
+            if (customData.railType === 'flexible_bridge' || customData.partOptions.isLocked) {
                 expandFlexibleRailSelection(activeObject, canvas);
             }
             // flexible_start / flexible_end の単一選択時は拡張を行わず、単体での変形操作を可能とする
@@ -955,16 +955,15 @@ function addRailToCanvas(partId, options = {}) {
     return railResult;
 }
 
-
 /**
- * フレキシブルレールを構成する3点セット（startRail, bridgePath, endRail）を生成し、
+ * フレキシブルレールを構成する3点セット（startRail, bridgeGroup, endRail）を生成し、
  * キャンバスへ追加した上で一括管理用配列として返却する関数。
  * 仮想レール（startRail/endRail）の Fabric オブジェクト構築も関数内で直接行います。
  *
  * @param {fabric.Canvas} canvas - 追加対象のFabric.jsキャンバスインスタンス
- * @param {Object} partId - 
+ * @param {Object} partId - パーツID
  * @param {Object} [options={}] - 配置座標、回転角度、パーツオプション等の設定オブジェクト
- * @returns {Array<fabric.Object>} [startRail, bridgePath, endRail] のFabricオブジェクト配列
+ * @returns {Array<fabric.Object>} [startRail, bridgeGroup, endRail] のFabricオブジェクト配列
  */
 function addFlexibleRailToCanvas(canvas, partId, options = {}) {
     const catalogItem = railCatalog.items[partId];
@@ -1077,21 +1076,135 @@ function addFlexibleRailToCanvas(canvas, partId, options = {}) {
     const p3X = p2X + currentEndLength * dirX;
     const p3Y = p2Y + currentEndLength * dirY;
 
-    // --- 8. 中央ブリッジ (bridgePath) Fabric.Path オブジェクトの構築 ---
-    // 算出した制御点をもとに3次ベジェ曲線のPathオブジェクトを生成
-    const bridgeSvgPath = `M ${p0X} ${p0Y} C ${p1X} ${p1Y}, ${p2X} ${p2Y}, ${p3X} ${p3Y}`;
-    const bridgePath = new fabric.Path(bridgeSvgPath, {
-        fill: '',
-        stroke: '#cccccc',
-        strokeWidth: defaultBallastWidth,
-        strokeLineCap: 'butt',
-        selectable: true,
-        customData: {
-            railType: "flexible_bridge",
-            flexibleId: flexibleId,
+	// --- 8. 中央ブリッジ (bridgeGroup) のカタログ準拠サンプリング構築 ---
+    // モノレールや3線軌条などカタログ定義に沿った複数レール表現に対応するため、システム定義を取得
+    const sys = railCatalog.systems[catalogItem.systemId];
+
+    // まず、絶対座標系でブリッジ全体のバウンディングボックス（minX, maxX, minY, maxY）を算出する
+    // ※fabric.Groupの内包パスはグループ中心(0,0)からの相対座標（ローカル座標）である必要があるため、
+    //  一度絶対座標で全サンプル点を生成し、その中心を求めてからローカル座標に変換します。
+    const steps = 100;
+    const globalBridgeBasePaths = [];
+    const globalBridgeRailPaths = [];
+    let bMinX = Infinity, bMaxX = -Infinity, bMinY = Infinity, bMaxY = -Infinity;
+
+    function updateBridgeBounds(x, y) {
+        if (x < bMinX) bMinX = x;
+        if (x > bMaxX) bMaxX = x;
+        if (y < bMinY) bMinY = y;
+        if (y > bMaxY) bMaxY = y;
+    }
+
+    catalogItem.shapes.forEach(shape => {
+        const shapeBallastWidth = (typeof shape.ballastWidth === 'number') ? shape.ballastWidth : defaultBallastWidth;
+        const halfW = shapeBallastWidth / 2;
+
+        const effectiveGauge = (typeof shape.gauge === 'number') ? shape.gauge : (sys ? sys.gauge : null);
+        const shouldRenderRails = (typeof effectiveGauge === 'number' && effectiveGauge > 0);
+        const shouldRenderSingleCenterLine = (typeof effectiveGauge === 'number' && effectiveGauge === 0);
+        
+        const offsets = [];
+        if (shouldRenderRails) {
+            const halfGauge = effectiveGauge / 2;
+            offsets.push(-halfGauge, halfGauge);
+        } else if (shouldRenderSingleCenterLine) {
+            offsets.push(0);
+        }
+
+        const leftBallastPts = [];
+        const rightBallastPts = [];
+        const railPointsMaps = offsets.map(() => []);
+
+        for (let i = 0; i <= steps; i++) {
+            const t = i / steps;
+            const mt = 1 - t;
+
+            const bx = mt * mt * mt * p0X + 3 * mt * mt * t * p1X + 3 * mt * t * t * p2X + t * t * t * p3X;
+            const by = mt * mt * mt * p0Y + 3 * mt * mt * t * p1Y + 3 * mt * t * t * p2Y + t * t * t * p3Y;
+
+            const bdx = 3 * mt * mt * (p1X - p0X) + 6 * mt * t * (p2X - p1X) + 3 * t * t * (p3X - p2X);
+            const bdy = 3 * mt * mt * (p1Y - p0Y) + 6 * mt * t * (p2Y - p1Y) + 3 * t * t * (p3Y - p2Y);
+
+            const bLen = Math.sqrt(bdx * bdx + bdy * bdy);
+            let nx = 0, ny = 0;
+            if (bLen > 0.0001) {
+                nx = -bdy / bLen;
+                ny = bdx / bLen;
+            }
+
+            if (shapeBallastWidth > 0) {
+                const lx = bx + nx * halfW;
+                const ly = by + ny * halfW;
+                const rx = bx - nx * halfW;
+                const ry = by - ny * halfW;
+                leftBallastPts.push({ x: lx, y: ly });
+                rightBallastPts.push({ x: rx, y: ry });
+                updateBridgeBounds(lx, ly);
+                updateBridgeBounds(rx, ry);
+            }
+
+            offsets.forEach((offset, idx) => {
+                const ox = bx + nx * offset;
+                const oy = by + ny * offset;
+                railPointsMaps[idx].push({ x: ox, y: oy });
+                updateBridgeBounds(ox, oy);
+            });
+        }
+
+        if (shapeBallastWidth > 0 && leftBallastPts.length > 0) {
+            let ballastStr = `M ${leftBallastPts[0].x} ${leftBallastPts[0].y}`;
+            for (let i = 1; i <= steps; i++) ballastStr += ` L ${leftBallastPts[i].x} ${leftBallastPts[i].y}`;
+            for (let i = steps; i >= 0; i--) ballastStr += ` L ${rightBallastPts[i].x} ${rightBallastPts[i].y}`;
+            ballastStr += ` Z`;
+            globalBridgeBasePaths.push(ballastStr);
+        }
+
+        railPointsMaps.forEach(pts => {
+            if (pts.length > 0) {
+                let rStr = `M ${pts[0].x} ${pts[0].y}`;
+                for (let i = 1; i <= steps; i++) {
+                    rStr += ` L ${pts[i].x} ${pts[i].y}`;
+                }
+                globalBridgeRailPaths.push(rStr);
+            }
+        });
+    });
+
+    // ブリッジ全体の幾何学的中心座標を算出し、ローカル座標系（中心 = 0,0）へ変換する
+    const bridgeCenterX = (bMinX + bMaxX) / 2;
+    const bridgeCenterY = (bMinY + bMaxY) / 2;
+
+    // パス文字列内の絶対座標からグループ中心を引いてローカル座標化するヘルパー関数
+    function convertToLocalPath(pathStr, cx, cy) {
+        return pathStr.replace(/([MLZ])\s*([-\d.]+)\s+([-\d.]+)/g, (match, cmd, x, y) => {
+            if (cmd === 'Z') return 'Z';
+            return `${cmd} ${parseFloat(x) - cx} ${parseFloat(y) - cy}`;
+        });
+    }
+
+    const bridgeBaseObjects = globalBridgeBasePaths.map(pStr => 
+        new fabric.Path(convertToLocalPath(pStr, bridgeCenterX, bridgeCenterY), { fill: '#cccccc', stroke: null, originX: 'center', originY: 'center' })
+    );
+    const bridgeRailObjects = globalBridgeRailPaths.map(pStr => 
+        new fabric.Path(convertToLocalPath(pStr, bridgeCenterX, bridgeCenterY), { fill: null, stroke: '#222222', strokeWidth: 1.5, strokeLineCap: 'round', originX: 'center', originY: 'center' })
+    );
+
+    const bridgeGroup = new fabric.Group([...bridgeBaseObjects, ...bridgeRailObjects], {
+        left: bridgeCenterX,
+        top: bridgeCenterY,
+        originX: 'center',
+        originY: 'center',
+        selectable: true
+    });
+
+    bridgeGroup.customData = {
+        partId: partId, // 再構築時にカタログ定義を引くために保持
+        railType: "flexible_bridge",
+        flexibleId: flexibleId,
+        partOptions: {
             isLocked: false
         }
-    });
+    };
 
     // --- 9. 端部仮想レール1 (startRail) の Fabric グループ化構築 ---
     // startRailData からベース・レール線・テキストオブジェクトを組み立てる
@@ -1122,14 +1235,23 @@ function addFlexibleRailToCanvas(canvas, partId, options = {}) {
         });
     }
 
+    // 初期生成時は非ロック、再生成時はオプション参照
+    const startIsLocked = options.startPartOptions ? options.startPartOptions.isLocked : false;
+
     const startRail = new fabric.Group([...startBaseObjects, ...startRailObjects, ...startTextObjects], {
         left: startCenterX,
         top: startCenterY,
         angle: baseAngle,
         originX: 'center',
-        originY: 'center'
+        originY: 'center',
+        opacity: 0.5,
+        visible: !startIsLocked,
+        selectable: !startIsLocked,
+        lockMovementX: startIsLocked,
+        lockMovementY: startIsLocked
     });
 
+    // exportLayoutData でシリアライズ・保存対象となるよう partOptions に長さおよびフレキシブル識別情報を保持させる
     startRail.customData = {
         instanceId: `rail-${railCount++}`,
         partId: partId,
@@ -1137,19 +1259,20 @@ function addFlexibleRailToCanvas(canvas, partId, options = {}) {
         isRail: true,
         railType: "flexible_start",
         flexibleId: flexibleId,
-        isLocked: false,
         length: currentStartLength,
         geoCenterX: startRailData.centerX,
-        geoCenterY: startRailData.centerY
-    };
-
-    // exportLayoutData でシリアライズ・保存対象となるよう partOptions に長さおよびフレキシブル識別情報を保持させる
-    startRail.customData.partOptions = { 
-        length: currentStartLength,
-        flexibleId: flexibleId,
-        railType: "flexible_start"
+        geoCenterY: startRailData.centerY,
+        partOptions: { 
+            length: currentStartLength,
+            flexibleId: flexibleId,
+            railType: "flexible_start",
+            isLocked: startIsLocked
+        }
     };
     configureControls(startRail);
+    if (startIsLocked) {
+        startRail.hasControls = false;
+    }
 
     // --- 10. 端部仮想レール2 (endRail) の Fabric グループ化構築 ---
     // endRailData からベース・レール線・テキストオブジェクトを組み立てる
@@ -1180,14 +1303,23 @@ function addFlexibleRailToCanvas(canvas, partId, options = {}) {
         });
     }
 
+    // 初期生成時は非ロック、再生成時はオプション参照
+    const endIsLocked = options.startPartOptions ? options.endPartOptions.isLocked : false;
+
     const endRail = new fabric.Group([...endBaseObjects, ...endRailObjects, ...endTextObjects], {
         left: endCenterX,
         top: endCenterY,
         angle: baseAngle,
         originX: 'center',
-        originY: 'center'
+        originY: 'center',
+        opacity: 0.5,
+        visible: !endIsLocked,
+        selectable: !endIsLocked,
+        lockMovementX: endIsLocked,
+        lockMovementY: endIsLocked
     });
 
+    // exportLayoutData でシリアライズ・保存対象となるよう partOptions に長さおよびフレキシブル識別情報を保持させる
     endRail.customData = {
         instanceId: `rail-${railCount++}`,
         partId: partId,
@@ -1195,41 +1327,42 @@ function addFlexibleRailToCanvas(canvas, partId, options = {}) {
         isRail: true,
         railType: "flexible_end",
         flexibleId: flexibleId,
-        isLocked: false,
         length: currentEndLength,
         geoCenterX: endRailData.centerX,
-        geoCenterY: endRailData.centerY
-    };
-
-    // exportLayoutData でシリアライズ・保存対象となるよう partOptions に長さおよびフレキシブル識別情報を保持させる
-    endRail.customData.partOptions = { 
-        length: currentEndLength,
-        flexibleId: flexibleId,
-        railType: "flexible_end"
+        geoCenterY: endRailData.centerY,
+        partOptions: { 
+            length: currentEndLength,
+            flexibleId: flexibleId,
+            railType: "flexible_end",
+            isLocked: endIsLocked
+        }
     };
     configureControls(endRail);
+    if (endIsLocked) {
+        endRail.hasControls = false;
+    }
 
     // --- 11. キャンバスへの描画順序設定と追加 ---
-    // 重なり順を維持するためブリッジを最下層にして追加
-    canvas.add(bridgePath);
+    // 重なり順を維持するためブリッジグループを最下層にして追加
+    canvas.add(bridgeGroup);
     canvas.add(startRail);
     canvas.add(endRail);
 
     // --- 12. 3点セット要素を配列形式で返却 ---
-    return [startRail, bridgePath, endRail];
+    return [startRail, bridgeGroup, endRail];
 }
 
 /**
- * 仮想レールの位置・角度・引き出し量に基づき、中央の bridgePath のベジェ曲線パスを再構築
- * パス更新後に originX/Y・pathOffset・寸法 (width/height)・中心座標 (left/top) を正確に再計算させ、バウンディングボックスのズレを解消
+ * 仮想レールの位置・角度・引き出し量に基づき、中央の bridgeGroup のベジェ曲線パス群を再構築
+ * パス更新後に catalogItem の shapes 定義に沿ってサンプリング再計算を行い、グループ寸法や中心座標を正確に更新してズレを解消
  * 
- * @param {fabric.Path} bridgePath 再構築対象のブリッジPathオブジェクト
+ * @param {fabric.Group} bridgeGroup 再構築対象のブリッジグループオブジェクト
  * @param {fabric.Object} startRail 左端の仮想レールオブジェクト
  * @param {fabric.Object} endRail 右端の仮想レールオブジェクト
  */
-function rebuildFlexibleRailBridge(bridgePath, startRail, endRail) {
-    if (!bridgePath) {
-        throw new TypeError("rebuildFlexibleRailBridge: bridgePath が指定されていません。");
+function rebuildFlexibleRailBridge(bridgeGroup, startRail, endRail) {
+    if (!bridgeGroup) {
+        throw new TypeError("rebuildFlexibleRailBridge: bridgeGroup が指定されていません。");
     }
     if (!startRail) {
         throw new TypeError("rebuildFlexibleRailBridge: startRail が指定されていません。");
@@ -1263,51 +1396,156 @@ function rebuildFlexibleRailBridge(bridgePath, startRail, endRail) {
     const p2x = p3x - Math.cos(endRad) * endLength;
     const p2y = p3y - Math.sin(endRad) * endLength;
 
-    const newSvgPath = `M ${p0x} ${p0y} C ${p1x} ${p1y}, ${p2x} ${p2y}, ${p3x} ${p3y}`;
+    // 2. カタログ定義 shapes 準拠のサンプリングによるブリッジ内部オブジェクト群の生成
+    const partId = bridgeGroup.customData.partId || startRail.customData.partId;
+    const catalogItem = railCatalog.items[partId];
+    const sys = railCatalog.systems[catalogItem.systemId];
 
-    // 2. 新しい SVG パスデータを Fabric.Path オブジェクトへ反映
-    bridgePath.set('path', fabric.util.parsePath(newSvgPath));
-
-    // 3. パス全体の境界ボックス (minX, minY, width, height) を再計算
-    const dim = bridgePath._calcDimensions();
-
-    // 4. 算出された境界情報に基づき、パスの幾何学的中心座標を特定
-    const centerX = dim.left + dim.width / 2;
-    const centerY = dim.top + dim.height / 2;
-
-    // 5. bridgePath がグループ（activeSelection等）に含まれている場合、キャンバス絶対座標をグループローカル相対座標に変換
-    let targetLeft = centerX;
-    let targetTop = centerY;
-    let targetAngle = 0;
-
-    if (bridgePath.group) {
-        const invMatrix = fabric.util.invertTransform(bridgePath.group.calcTransformMatrix());
-        const localPoint = fabric.util.transformPoint({ x: centerX, y: centerY }, invMatrix);
-        targetLeft = localPoint.x;
-        targetTop = localPoint.y;
-        targetAngle = -bridgePath.group.angle;
+    let defaultBallastWidth;
+    if (typeof catalogItem.ballastWidth === 'number') {
+        defaultBallastWidth = catalogItem.ballastWidth;
+    } else {
+        defaultBallastWidth = sys.ballastWidth;
     }
 
-    // 6. 原点基準を中心 ('center') に指定し、中心座標 (left/top) と内部オフセットを同期
-    bridgePath.set({
+    const steps = 100;
+    const globalBridgeBasePaths = [];
+    const globalBridgeRailPaths = [];
+    let bMinX = Infinity, bMaxX = -Infinity, bMinY = Infinity, bMaxY = -Infinity;
+
+    function updateBridgeBounds(x, y) {
+        if (x < bMinX) bMinX = x;
+        if (x > bMaxX) bMaxX = x;
+        if (y < bMinY) bMinY = y;
+        if (y > bMaxY) bMaxY = y;
+    }
+
+    catalogItem.shapes.forEach(shape => {
+        const shapeBallastWidth = (typeof shape.ballastWidth === 'number') ? shape.ballastWidth : defaultBallastWidth;
+        const halfW = shapeBallastWidth / 2;
+
+        const effectiveGauge = (typeof shape.gauge === 'number') ? shape.gauge : (sys ? sys.gauge : null);
+        const shouldRenderRails = (typeof effectiveGauge === 'number' && effectiveGauge > 0);
+        const shouldRenderSingleCenterLine = (typeof effectiveGauge === 'number' && effectiveGauge === 0);
+        
+        const offsets = [];
+        if (shouldRenderRails) {
+            const halfGauge = effectiveGauge / 2;
+            offsets.push(-halfGauge, halfGauge);
+        } else if (shouldRenderSingleCenterLine) {
+            offsets.push(0);
+        }
+
+        const leftBallastPts = [];
+        const rightBallastPts = [];
+        const railPointsMaps = offsets.map(() => []);
+
+        for (let i = 0; i <= steps; i++) {
+            const t = i / steps;
+            const mt = 1 - t;
+
+            const bx = mt * mt * mt * p0x + 3 * mt * mt * t * p1x + 3 * mt * t * t * p2x + t * t * t * p3x;
+            const by = mt * mt * mt * p0y + 3 * mt * mt * t * p1y + 3 * mt * t * t * p2y + t * t * t * p3y;
+
+            const bdx = 3 * mt * mt * (p1x - p0x) + 6 * mt * t * (p2x - p1x) + 3 * t * t * (p3x - p2x);
+            const bdy = 3 * mt * mt * (p1y - p0y) + 6 * mt * t * (p2y - p1y) + 3 * t * t * (p3y - p2y);
+
+            const bLen = Math.sqrt(bdx * bdx + bdy * bdy);
+            let nx = 0, ny = 0;
+            if (bLen > 0.0001) {
+                nx = -bdy / bLen;
+                ny = bdx / bLen;
+            }
+
+            if (shapeBallastWidth > 0) {
+                const lx = bx + nx * halfW;
+                const ly = by + ny * halfW;
+                const rx = bx - nx * halfW;
+                const ry = by - ny * halfW;
+                leftBallastPts.push({ x: lx, y: ly });
+                rightBallastPts.push({ x: rx, y: ry });
+                updateBridgeBounds(lx, ly);
+                updateBridgeBounds(rx, ry);
+            }
+
+            offsets.forEach((offset, idx) => {
+                const ox = bx + nx * offset;
+                const oy = by + ny * offset;
+                railPointsMaps[idx].push({ x: ox, y: oy });
+                updateBridgeBounds(ox, oy);
+            });
+        }
+
+        if (shapeBallastWidth > 0 && leftBallastPts.length > 0) {
+            let ballastStr = `M ${leftBallastPts[0].x} ${leftBallastPts[0].y}`;
+            for (let i = 1; i <= steps; i++) ballastStr += ` L ${leftBallastPts[i].x} ${leftBallastPts[i].y}`;
+            for (let i = steps; i >= 0; i--) ballastStr += ` L ${rightBallastPts[i].x} ${rightBallastPts[i].y}`;
+            ballastStr += ` Z`;
+            globalBridgeBasePaths.push(ballastStr);
+        }
+
+        railPointsMaps.forEach(pts => {
+            if (pts.length > 0) {
+                let rStr = `M ${pts[0].x} ${pts[0].y}`;
+                for (let i = 1; i <= steps; i++) {
+                    rStr += ` L ${pts[i].x} ${pts[i].y}`;
+                }
+                globalBridgeRailPaths.push(rStr);
+            }
+        });
+    });
+
+    // 3. パス全体の境界ボックスを基に幾何学的中心座標を特定し、ローカル座標に変換
+    const bridgeCenterX = (bMinX + bMaxX) / 2;
+    const bridgeCenterY = (bMinY + bMaxY) / 2;
+
+    function convertToLocalPath(pathStr, cx, cy) {
+        return pathStr.replace(/([MLZ])\s*([-\d.]+)\s+([-\d.]+)/g, (match, cmd, x, y) => {
+            if (cmd === 'Z') return 'Z';
+            return `${cmd} ${parseFloat(x) - cx} ${parseFloat(y) - cy}`;
+        });
+    }
+
+    const bridgeBaseObjects = globalBridgeBasePaths.map(pStr => 
+        new fabric.Path(convertToLocalPath(pStr, bridgeCenterX, bridgeCenterY), { fill: '#888888', stroke: null, originX: 'center', originY: 'center' })
+    );
+    const bridgeRailObjects = globalBridgeRailPaths.map(pStr => 
+        new fabric.Path(convertToLocalPath(pStr, bridgeCenterX, bridgeCenterY), { fill: null, stroke: '#222222', strokeWidth: 1.5, strokeLineCap: 'round', originX: 'center', originY: 'center' })
+    );
+
+    // グループの内部オブジェクト群を更新
+    bridgeGroup._objects = [...bridgeBaseObjects, ...bridgeRailObjects];
+
+    // 4. グループの寸法・境界ボックスを再計算
+    bridgeGroup.addWithUpdate();
+
+    // 5. bridgeGroup がグループ（activeSelection等）に含まれている場合、キャンバス絶対座標をグループローカル相対座標に変換
+    let targetLeft = bridgeCenterX;
+    let targetTop = bridgeCenterY;
+    let targetAngle = 0;
+
+    if (bridgeGroup.group) {
+        const invMatrix = fabric.util.invertTransform(bridgeGroup.group.calcTransformMatrix());
+        const localPoint = fabric.util.transformPoint({ x: bridgeCenterX, y: bridgeCenterY }, invMatrix);
+        targetLeft = localPoint.x;
+        targetTop = localPoint.y;
+        targetAngle = -bridgeGroup.group.angle;
+    }
+
+    // 6. 原点基準を中心 ('center') に指定し、中心座標 (left/top) と角度を同期
+    bridgeGroup.set({
         originX: 'center',
         originY: 'center',
-        width: dim.width,
-        height: dim.height,
-        pathOffset: {
-            x: centerX,
-            y: centerY
-        },
         left: targetLeft,
         top: targetTop,
         angle: targetAngle
     });
 
     // 7. コントロールハンドルの描画座標を最新の状態に確定
-    bridgePath.setCoords();
+    bridgeGroup.setCoords();
 
-    if (bridgePath.canvas) {
-        bridgePath.canvas.requestRenderAll();
+    if (bridgeGroup.canvas) {
+        bridgeGroup.canvas.requestRenderAll();
     }
 }
 
