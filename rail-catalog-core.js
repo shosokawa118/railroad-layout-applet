@@ -25,7 +25,7 @@ const railCatalog = {
             defaultJointGroup: DEFAULT_UNIJOINER_SINGLE,
             libraryFile: "rail-catalog-kato.js"
         },
-        "KATO-DOUBLETRACK-N": { // 新設: KATO 複線専用システム
+        "KATO-DOUBLETRACK-N": {
             scale: "N", brand: "KATO", systemName: "複線ユニトラック (N)",
             gauge: 9, ballastWidth: 25,
             defaultJointGroup: "unijoiner-33mm",
@@ -49,7 +49,7 @@ const railCatalog = {
             defaultJointGroup: "tomix-clapper",
             libraryFile: "rail-catalog-tomix.js"
         },
-        "TOMIX-WIDE-N": { // 新設: TOMIX ワイドPCレールシステム
+        "TOMIX-WIDE-N": {
             scale: "N", brand: "TOMIX", systemName: "ワイドPCレール (N)",
             gauge: 9, ballastWidth: 37,
             defaultJointGroup: "tomix-clapper",
@@ -73,6 +73,12 @@ const railCatalog = {
             ballastWidth: 37,
             defaultJointGroup: "tomytec-road-joint",
             libraryFile: "rail-catalog-tomytec-bus.js"
+        },
+        "PECO-SETRACK-N": {
+            scale: "N", brand: "PECO", systemName: "Setrack (N)",
+            gauge: 9, ballastWidth: 16.5,
+            defaultJointGroup: "peco-joiner",
+            libraryFile: "rail-catalog-peco-setrack.js"
         }
     },
     items: {}
