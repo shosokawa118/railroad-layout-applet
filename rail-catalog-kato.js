@@ -506,5 +506,59 @@ registerRailParts({
             { "type": "line", "length": 124, "offsetX": 0, "offsetY": 0 },
             { "type": "arc", "radius": 150, "arcAngle": 45, "centerX": -62.0, "centerY": 150.0, "startAngle": 270 }
         ]
+    },
+
+    // フレキシブル線路
+    "KATO-FLEX-808": {
+        systemId: "KATO-UNITRACK-N",
+        category: "straight",
+        subCategory: "フレキシブル",
+        name: "FLEX-808",
+        description: "フレキシブル線路 808mm",
+        dynamicType: "flexible",
+        maxLength: 808,
+        defaultLength: 124,
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "relX": -62, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "relX":  62, "relY": 0, "facingAngle": 0 }
+        ],
+        shapes: [{ "type": "line", "length": 124, "offsetX": 0, "offsetY": 0 }]
+    },
+
+    "PECO-SL302F": {
+        systemId: "PECO-STREAMLINE-N",
+        category: "straight",
+        subCategory: "フレキシブル",
+        name: "SL302F",
+        description: "フレキシブル線路 914mm",
+        dynamicType: "flexible",
+        maxLength: 914,
+        defaultLength: 154,
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "relX": -77, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "relX":  77, "relY": 0, "facingAngle": 0 }
+        ],
+        shapes: [{ "type": "line", "length": 154, "offsetX": 0, "offsetY": 0 }]
     }
 });
+
+
+/*
+    "KATO-S78S": {
+        systemId: "KATO-UNITRACK-N",
+        category: "straight",
+        subCategory: "端数・調整",
+        name: "S78S",
+        description: "スライド線路 78～108mm",
+        dynamicType: "variable-straight",
+        minLength: 78,
+        maxLength: 108,
+        defaultLength: 78,
+        nodes: [
+            { "id": 0, "jointType": "rail-end", "relX": -39, "relY": 0, "facingAngle": 180 },
+            { "id": 1, "jointType": "rail-end", "relX": 39, "relY": 0, "facingAngle": 0 }
+        ],
+        shapes: [{ "type": "line", "length": 78, "offsetX": 0, "offsetY": 0 }]
+    },
+
+ */

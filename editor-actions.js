@@ -112,8 +112,10 @@ function redoLayout() {
  * アクションを実行（逆実行/順実行）する
  */
 function executeAction(action, isUndo) {
-    if (!canvas) return;
     canvas.discardActiveObject();
+
+    // 影響を受けたフレキシブルIDを収集するセット
+    const affectedFlexibleIds = new Set();
 
     switch (action.type) {
         case 'MOVE':
@@ -121,52 +123,103 @@ function executeAction(action, isUndo) {
             const items = isUndo ? action.items : (action.itemsTo || action.items);
             items.forEach(item => {
                 const railObj = findRailByInstanceId(item.instanceId);
-                if (railObj) {
-                    const targetState = isUndo ? item.from : item.to;
-                    railObj.set({
-                        left: targetState.x,
-                        top: targetState.y,
-                        angle: targetState.angle
-                    });
-                    railObj.setCoords();
+                if (!railObj) {
+                    throw new TypeError(`executeAction [${action.type}]: instanceId "${item.instanceId}" のレールが見つかりません。`);
+                }
+                const targetState = isUndo ? item.from : item.to;
+                railObj.set({
+                    left: targetState.x,
+                    top: targetState.y,
+                    angle: targetState.angle
+                });
+                railObj.setCoords();
+
+                if (railObj.customData && railObj.customData.flexibleId) {
+                    affectedFlexibleIds.add(railObj.customData.flexibleId);
                 }
             });
+
             if (typeof globalJoints !== 'undefined') {
-                globalJoints = isUndo ? [...action.jointsFrom] : [...action.jointsTo];
+                globalJoints = isUndo ? [...action.jointsBefore] : [...action.jointsAfter];
             }
+
+            // 影響を受けたフレキシブルブリッジのみ再描画
+            affectedFlexibleIds.forEach(flexId => {
+                refreshFlexibleBridgeById(flexId);
+            });
+
             restoreSelection(action.items.map(i => i.instanceId));
+            break;
+        }
+
+        case 'RESIZE': {
+            const item = isUndo ? action.items[0] : (action.itemsTo ? action.itemsTo[0] : action.items[0]);
+            if (!item) {
+                throw new TypeError("executeAction [RESIZE]: 処理対象のアイテムが存在しません。");
+            }
+            
+            const railObj = findRailByInstanceId(item.instanceId);
+            if (!railObj) {
+                throw new TypeError(`executeAction [RESIZE]: instanceId "${item.instanceId}" のレールが見つかりません。`);
+            }
+            
+            const targetState = isUndo ? item.from : item.to;
+            railObj.set({
+                left: targetState.x,
+                top: targetState.y,
+                angle: targetState.angle
+            });
+            
+            if (targetState.partOptions) {
+                railObj.customData.partOptions = JSON.parse(JSON.stringify(targetState.partOptions));
+            }
+            railObj.setCoords();
+
+            const catalogItem = railCatalog.items[railObj.customData.partId];
+            if (!catalogItem) {
+                throw new TypeError(`executeAction [RESIZE]: partId "${railObj.customData.partId}" がカタログに見つかりません。`);
+            }
+
+            const railType = railObj.customData.railType;
+            const isFlexibleComponent = railType === 'flexible_start' || railType === 'flexible_end';
+            
+            let renderCatalogItem = catalogItem;
+            if (isFlexibleComponent) {
+                renderCatalogItem = JSON.parse(JSON.stringify(catalogItem));
+                renderCatalogItem.dynamicType = "variable-straight";
+                renderCatalogItem.nodes = railObj.customData.nodes;
+            }
+            rebuildVariableRailPaths(railObj, renderCatalogItem);
+
+            if (typeof globalJoints !== 'undefined') {
+                globalJoints = isUndo ? [...action.jointsBefore] : [...action.jointsAfter];
+            }
+
+            if (railObj.customData && railObj.customData.flexibleId) {
+                refreshFlexibleBridgeById(railObj.customData.flexibleId);
+            }
+
+            restoreSelection([item.instanceId]);
             break;
         }
 
         case 'ADD': {
             if (isUndo) {
-                action.rails.forEach(r => {
-                    const obj = findRailByInstanceId(r.instanceId);
-                    if (obj) canvas.remove(obj);
-                });
+                // ADD の Undo: 追加されたレール群（関連フレキシブルパーツ含む）を削除
+                removeRailsFromCanvas(action.rails);
+
                 if (typeof globalJoints !== 'undefined' && action.jointsBefore) {
                     globalJoints = [...action.jointsBefore];
                 }
                 
-                // 追加前の選択状態（＝直前に繋げていた先端レール）を自動復元
+                // 追加前の選択状態の自動復元
                 if (action.selectionBefore && action.selectionBefore.length > 0) {
                     restoreSelection(action.selectionBefore);
                 }
             } else {
-                action.rails.forEach(r => {
-                    const newObj = addRailToCanvas(r.partId, { skipAutoConnect: true, skipSelect: true });
-                    if (newObj) {
-                        newObj.customData.instanceId = r.instanceId;
-                        newObj.set({ left: r.x, top: r.y, angle: r.angle });
-                        
-                        // ===== 修正: partOptions が存在する場合のみ復元 =====
-                        if (r.partOptions && typeof r.partOptions === 'object') {
-                            newObj.partOptions = JSON.parse(JSON.stringify(r.partOptions));
-                        }
-                        
-                        newObj.setCoords();
-                    }
-                });
+                // ADD の Redo: レール群をキャンバスへ復元生成
+                restoreRailsToCanvas(action.rails);
+
                 if (typeof globalJoints !== 'undefined' && action.jointsAfter) {
                     globalJoints = [...action.jointsAfter];
                 }
@@ -177,29 +230,17 @@ function executeAction(action, isUndo) {
 
         case 'DELETE': {
             if (isUndo) {
-                action.rails.forEach(r => {
-                    const newObj = addRailToCanvas(r.partId, { skipAutoConnect: true, skipSelect: true });
-                    if (newObj) {
-                        newObj.customData.instanceId = r.instanceId;
-                        newObj.set({ left: r.x, top: r.y, angle: r.angle });
-                        
-                        // ===== 修正: partOptions が存在する場合のみ復元 =====
-                        if (r.partOptions && typeof r.partOptions === 'object') {
-                            newObj.partOptions = JSON.parse(JSON.stringify(r.partOptions));
-                        }
-                        
-                        newObj.setCoords();
-                    }
-                });
+                // DELETE の Undo: 削除されたレール群をキャンバスへ復元生成
+                restoreRailsToCanvas(action.rails);
+
                 if (typeof globalJoints !== 'undefined' && action.jointsBefore) {
                     globalJoints = [...action.jointsBefore];
                 }
                 restoreSelection(action.rails.map(r => r.instanceId));
             } else {
-                action.rails.forEach(r => {
-                    const obj = findRailByInstanceId(r.instanceId);
-                    if (obj) canvas.remove(obj);
-                });
+                // DELETE の Redo: レール群（関連フレキシブルパーツ含む）を削除
+                removeRailsFromCanvas(action.rails);
+
                 if (typeof globalJoints !== 'undefined') {
                     const delIds = action.rails.map(r => r.instanceId);
                     globalJoints = globalJoints.filter(j => !delIds.includes(j.railA) && !delIds.includes(j.railB));
@@ -211,6 +252,185 @@ function executeAction(action, isUndo) {
 
     updateJointIndicators();
     canvas.requestRenderAll();
+}
+
+/**
+ * 指定された flexibleId に紐づくフレキシブルブリッジの再描画
+ */
+function refreshFlexibleBridgeById(flexibleId) {
+    if (!flexibleId) {
+        throw new TypeError("refreshFlexibleBridgeById: flexibleId が指定されていません。");
+    }
+    if (!canvas) {
+        throw new TypeError("refreshFlexibleBridgeById: canvas が存在しません。");
+    }
+
+    const allObjs = canvas.getObjects();
+    const startRail = allObjs.find(o => o.customData && o.customData.flexibleId === flexibleId && o.customData.railType === 'flexible_start');
+    const endRail = allObjs.find(o => o.customData && o.customData.flexibleId === flexibleId && o.customData.railType === 'flexible_end');
+    const bridgeObj = allObjs.find(o => o.customData && o.customData.flexibleId === flexibleId && o.customData.railType === 'flexible_bridge');
+
+    if (bridgeObj) {
+        if (!startRail) {
+            throw new TypeError(`refreshFlexibleBridgeById: flexibleId "${flexibleId}" の flexible_start が見つかりません。`);
+        }
+        if (!endRail) {
+            throw new TypeError(`refreshFlexibleBridgeById: flexibleId "${flexibleId}" の flexible_end が見つかりません。`);
+        }
+        rebuildFlexibleRailBridge(bridgeObj, startRail, endRail);
+    }
+}
+
+/**
+ * 履歴データに基づき通常レールおよびフレキシブルレールをキャンバスへ復元生成する共通関数
+ */
+function restoreRailsToCanvas(rails) {
+    const standardRails = [];
+    const flexibleMap = new Map();
+
+    // 通常のレールとフレキシブルレールの構成パーツの分離
+    rails.forEach(r => {
+        if (r.flexibleId) {
+            if (!flexibleMap.has(r.flexibleId)) {
+                flexibleMap.set(r.flexibleId, []);
+            }
+            flexibleMap.get(r.flexibleId).push(r);
+        } else {
+            standardRails.push(r);
+        }
+    });
+
+    // 1. 通常レールの復元
+    standardRails.forEach(r => {
+        const addResult = addRailToCanvas(r.partId, { skipAutoConnect: true, skipSelect: true });
+        if (addResult) {
+            const newObjects = Array.isArray(addResult) ? addResult : [addResult];
+
+            newObjects.forEach(newObj => {
+                newObj.customData.instanceId = r.instanceId;
+                newObj.set({ left: r.x, top: r.y, angle: r.angle });
+                
+                if (r.customData.partOptions && typeof r.customData.partOptions === 'object') {
+                    newObj.customData.partOptions = JSON.parse(JSON.stringify(r.customData.partOptions));
+                }
+                
+                newObj.setCoords();
+            });
+        }
+    });
+
+    // 2. フレキシブルレールの復元（flexibleId単位の一括生成と中央曲線部の再計算）
+    flexibleMap.forEach((parts, fid) => {
+        const startData = parts.find(p => p.railType === 'flexible_start') || parts[0];
+        const endData = parts.find(p => p.railType === 'flexible_end') || parts[1];
+
+        // 履歴データからの有効なパーツID（partId）の取得
+        const validPartObj = parts.find(p => p.partId && p.partId !== 'flexible_bridge');
+        const catalogPartId = validPartObj ? validPartObj.partId : (startData ? startData.partId : undefined);
+
+        if (!catalogPartId) {
+            throw new TypeError(`flexibleRail復元エラー: flexibleId "${fid}" に対応する有効な partId が存在しません。`);
+        }
+
+        // start および end の partOptions を付与して3点セットを生成
+        const addOptions = { 
+            skipAutoConnect: true, 
+            skipSelect: true,
+            startPartOptions: startData.partOptions,
+            endPartOptions: endData.partOptions
+        };
+
+        const addResult = addRailToCanvas(catalogPartId, addOptions);
+
+        if (addResult) {
+            const newObjects = Array.isArray(addResult) ? addResult : [addResult];
+
+            const startObj = newObjects.find(o => o.customData && o.customData.railType === 'flexible_start');
+            const endObj = newObjects.find(o => o.customData && o.customData.railType === 'flexible_end');
+            const bridgeObj = newObjects.find(o => o.customData && o.customData.railType === 'flexible_bridge');
+
+            newObjects.forEach(o => {
+                if (o.customData) {
+                    o.customData.flexibleId = fid;
+                }
+            });
+
+            // start端の位置・角度・プロパティの復元
+            if (startObj && startData) {
+                if (startData.instanceId) startObj.customData.instanceId = startData.instanceId;
+                startObj.set({ left: startData.x, top: startData.y, angle: startData.angle });
+                if (startData.partOptions && typeof startData.partOptions === 'object') {
+                    startObj.customData.partOptions = JSON.parse(JSON.stringify(startData.partOptions));
+                }
+                startObj.setCoords();
+            }
+
+            // end端の位置・角度・プロパティの復元および個別設定
+            if (endObj && endData) {
+                if (endData.instanceId) endObj.customData.instanceId = endData.instanceId;
+                endObj.set({ left: endData.x, top: endData.y, angle: endData.angle });
+                if (endData.partOptions && typeof endData.partOptions === 'object') {
+                    endObj.customData.partOptions = JSON.parse(JSON.stringify(endData.partOptions));
+                }
+                endObj.setCoords();
+            }
+
+            // 中央曲線部 (bridge) のベジェ曲線の再計算・反映（end側の長さ変更を反映するため最後に実行）
+            if (bridgeObj && startObj && endObj) {
+                rebuildFlexibleRailBridge(bridgeObj, startObj, endObj);
+            }
+        }
+    });
+}
+
+/**
+ * キャンバスからの対象レール群および関連フレキシブルレールパーツの削除共通関数
+ */
+function removeRailsFromCanvas(rails) {
+    if (!canvas) return;
+
+    const targetInstanceIds = new Set();
+    const flexibleIds = new Set();
+
+    // 1. 引数の rails 配列から instanceId および flexibleId を抽出
+    rails.forEach(r => {
+        if (r.instanceId) targetInstanceIds.add(r.instanceId);
+        if (r.flexibleId) flexibleIds.add(r.flexibleId);
+        if (r.partOptions && r.partOptions.flexibleId) flexibleIds.add(r.partOptions.flexibleId);
+    });
+
+    const allCanvasObjects = canvas.getObjects();
+
+    // 2. キャンバス上に存在する対象オブジェクトの customData から flexibleId を検索・補完抽出
+    allCanvasObjects.forEach(obj => {
+        if (!obj || !obj.customData) return;
+
+        if (obj.customData.instanceId && targetInstanceIds.has(obj.customData.instanceId)) {
+            if (obj.customData.flexibleId) {
+                flexibleIds.add(obj.customData.flexibleId);
+            }
+        }
+    });
+
+    // 3. targetInstanceIds または flexibleIds に一致するキャンバス上の全オブジェクトを抽出
+    const objectsToRemove = new Set();
+
+    allCanvasObjects.forEach(obj => {
+        if (!obj || !obj.customData) return;
+
+        // instanceId による判定
+        if (obj.customData.instanceId && targetInstanceIds.has(obj.customData.instanceId)) {
+            objectsToRemove.add(obj);
+        }
+
+        // flexibleId による判定（関連する start, end, bridge の一括抽出）
+        if (obj.customData.flexibleId && flexibleIds.has(obj.customData.flexibleId)) {
+            objectsToRemove.add(obj);
+        }
+    });
+
+    // 4. 抽出された全オブジェクトをキャンバスから一括削除
+    objectsToRemove.forEach(obj => canvas.remove(obj));
 }
 
 /**
@@ -427,6 +647,17 @@ function captureDragEnd(target) {
     const rails = (target.type === 'activeSelection') ? target.getObjects() : [target];
     const targetRails = rails.filter(r => r && r.customData && r.customData.isRail);
 
+    // 変形操作が行われていた場合はMOVEの記録を除外し、ここで _resizeBefore を片付ける
+    const isResizingAction = targetRails.some(r => r && r._resizeBefore);
+    if (isResizingAction) {
+        targetRails.forEach(r => {
+            if (r._resizeBefore) delete r._resizeBefore;
+        });
+        dragStartStates = [];
+        dragStartJoints = [];
+        return;
+    }
+
     // キャンバス上の絶対座標を取得
     const dragEndStates = targetRails.map(r => {
         const matrix = r.calcTransformMatrix();
@@ -469,8 +700,8 @@ function captureDragEnd(target) {
         recordAction({
             type: 'MOVE',
             items: moveItems,
-            jointsFrom: dragStartJoints,
-            jointsTo: currentJoints
+            jointsBefore: dragStartJoints,
+            jointsAfter: currentJoints
         });
     }
 
@@ -500,17 +731,26 @@ async function cutSelectedRails() {
 
 /**
  * 選択中レールおよび関係するジョイント群をJSON形式でクリップボードへコピー
+ * フレキシブルレールのパーツが含まれる場合は事前に3点セット全体へ選択を拡張してコピー
  */
 async function copySelectedRails() {
     if (!canvas) return;
 
-    const activeObject = canvas.getActiveObject();
+    let activeObject = canvas.getActiveObject();
+    if (!activeObject) return;
+
+    // 選択対象にフレキシブルレールが含まれている場合、コピー前に3点セット選択へ拡張
+    expandFlexibleRailSelection(activeObject, canvas);
+
+    // 拡張後に最新のアクティブオブジェクトを取得し直す
+    activeObject = canvas.getActiveObject();
     if (!activeObject) return;
 
     let targetRails = [];
     if (activeObject.type === 'activeSelection') {
-        targetRails = activeObject.getObjects().filter(o => o && o.customData && o.customData.isRail);
-    } else if (activeObject.customData && activeObject.customData.isRail) {
+        // フレキシブル構成パーツを含めて選択対象を抽出
+        targetRails = activeObject.getObjects().filter(o => o && o.customData && (o.customData.isRail || o.customData.flexibleId));
+    } else if (activeObject.customData && (activeObject.customData.isRail || activeObject.customData.flexibleId)) {
         targetRails = [activeObject];
     }
 
@@ -520,18 +760,65 @@ async function copySelectedRails() {
     const fullData = exportLayoutData();
     if (!fullData) return;
 
-    const selectedIds = targetRails.map(r => r.customData.instanceId);
-    const baseRail = targetRails[0];
-    const baseX = baseRail.left;
-    const baseY = baseRail.top;
+    // 選択オブジェクトからの instanceId および flexibleId の初期抽出
+    const initialSelectedIds = targetRails.map(r => r.customData ? r.customData.instanceId : null).filter(Boolean);
+    const selectedFlexibleIds = new Set();
 
+    targetRails.forEach(r => {
+        const flexId = r.customData.flexibleId;
+        if (flexId) {
+            selectedFlexibleIds.add(flexId);
+        }
+    });
+
+    // fullData 内の関連する全フレキシブルパーツへの selectedIds の拡張
+    const selectedIds = [...initialSelectedIds];
+    if (selectedFlexibleIds.size > 0 && fullData && Array.isArray(fullData.rails)) {
+        fullData.rails.forEach(r => {
+            const flexId = r.flexibleId;
+            if (flexId && selectedFlexibleIds.has(flexId) && !selectedIds.includes(r.instanceId)) {
+                selectedIds.push(r.instanceId);
+            }
+        });
+    }
+
+    // 基準レールの絶対座標取得
+    const baseRail = targetRails[0];
+    const baseTransform = getRailAbsoluteTransform(baseRail);
+    const baseX = baseTransform.left;
+    const baseY = baseTransform.top;
+
+    console.log('[DEBUG-COPY] 基準レールの絶対座標:', { instanceId: baseRail.customData?.instanceId, baseX, baseY });
+
+    // 中央曲線部 (flexible_bridge) を除外してコピー対象のレールを抽出
     const filteredRails = fullData.rails
-        .filter(r => selectedIds.includes(r.instanceId))
-        .map(r => ({
-            ...JSON.parse(JSON.stringify(r)), // 配下の拡張データを含むすべてのプロパティを丸ごと透過ディープコピー
-            offsetX: r.x - baseX,
-            offsetY: r.y - baseY
-        }));
+        .filter(r => {
+            if (!selectedIds.includes(r.instanceId)) return false;
+            const rType = r.railType || (r.partOptions ? r.partOptions.railType : null);
+            const pId = r.partId;
+            return rType !== 'flexible_bridge' && pId !== 'flexible_bridge';
+        })
+        .map(r => {
+            // キャンバス上の実オブジェクトから絶対座標を直接算出してオフセット計算
+            const targetObj = canvas.getObjects().find(o => o.customData?.instanceId === r.instanceId);
+            let absX = r.x;
+            let absY = r.y;
+            if (targetObj) {
+                const tf = getRailAbsoluteTransform(targetObj);
+                absX = tf.left;
+                absY = tf.top;
+            }
+
+            return {
+                ...JSON.parse(JSON.stringify(r)), // 配下の拡張データを含むすべてのプロパティを丸ごと透過ディープコピー
+                x: absX,
+                y: absY,
+                offsetX: absX - baseX,
+                offsetY: absY - baseY
+            };
+        });
+
+    console.log('[DEBUG-COPY] クリップボード用抽出レール一覧:', filteredRails);
 
     const filteredJoints = (fullData.joints || []).filter(j => 
         selectedIds.includes(j.railA) && selectedIds.includes(j.railB)
@@ -558,89 +845,129 @@ async function copySelectedRails() {
  * クリップボードのデータを importLayoutData(..., false) で復元
  */
 async function pasteRails() {
-    console.log('[DEBUG] --- pasteRails 開始 ---');
-    if (typeof importLayoutData !== 'function') {
-        console.error('[DEBUG] importLayoutData が存在しません');
-        return;
-    }
+    console.log('[DEBUG-PASTE] --- pasteRails 開始 ---');
 
     let clipboardData = null;
 
     try {
         const text = await navigator.clipboard.readText();
-        console.log('[DEBUG] クリップボードテキスト:', text);
+        console.log('[DEBUG-PASTE] クリップボードテキスト:', text);
         const parsed = JSON.parse(text);
-        // type プロパティの有無に関わらず、rails 配列が存在すれば有効なデータとして扱う
         if (parsed && Array.isArray(parsed.rails)) {
             clipboardData = parsed;
         }
     } catch (err) {
-        console.warn('[DEBUG] クリップボード読み込み失敗、メモリ参照を試みます:', err);
-        if (typeof clipboardDataMemory !== 'undefined' && clipboardDataMemory) {
-            clipboardData = clipboardDataMemory;
-        }
+        console.warn('[DEBUG-PASTE] クリップボード読み込み失敗、メモリ参照を試みます:', err);
+        clipboardData = clipboardDataMemory;
     }
 
-    console.log('[DEBUG] 解析済み clipboardData:', clipboardData);
+    console.log('[DEBUG-PASTE] 解析済み clipboardData:', clipboardData);
 
     if (!clipboardData || !clipboardData.rails || clipboardData.rails.length === 0) {
-        console.warn('[DEBUG] 貼り付け対象のデータが空です');
+        console.warn('[DEBUG-PASTE] 貼り付け対象のデータが空です');
         return;
     }
 
     let targetBaseX = 250;
     let targetBaseY = 250;
     const activeObj = canvas.getActiveObject();
-    if (activeObj && activeObj.left !== undefined) {
-        targetBaseX = activeObj.left + 20;
-        targetBaseY = activeObj.top + 20;
+    if (activeObj) {
+        const activeTransform = getRailAbsoluteTransform(activeObj);
+        targetBaseX = activeTransform.left + 20;
+        targetBaseY = activeTransform.top + 20;
     }
 
-    const jointsBefore = typeof globalJoints !== 'undefined' ? [...globalJoints] : [];
+    console.log('[DEBUG-PASTE] 貼り付け基準絶対座標:', { targetBaseX, targetBaseY });
+
+    const jointsBefore = [...globalJoints];
+    
+    // 貼り付け前のキャンバス上オブジェクト ID 一覧の取得
     const railsBeforeIds = canvas.getObjects()
-        .filter(o => o && o.customData && o.customData.isRail)
-        .map(o => o.customData.instanceId);
+        .filter(o => o && o.customData && (o.customData.isRail || o.customData.partOptions?.flexibleId))
+        .map(o => o.customData.instanceId)
+        .filter(Boolean);
+
+    // フレキシブルレールの ID 衝突防止用再採番マップ
+    const flexibleIdMap = new Map();
+    const preparedRails = [];
+
+    // クリップボードデータからのオフセット計算およびフレキシブルIDの再採番
+    clipboardData.rails.forEach(r => {
+        const { offsetX, offsetY, ...restData } = r;
+        const newX = targetBaseX + (offsetX !== undefined ? offsetX : 0);
+        const newY = targetBaseY + (offsetY !== undefined ? offsetY : 0);
+
+        const origFlexibleId = r.partOptions ? r.partOptions.flexibleId : null;
+
+        if (origFlexibleId) {
+            if (!flexibleIdMap.has(origFlexibleId)) {
+                flexibleIdMap.set(origFlexibleId, 'flex_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9));
+            }
+            const newFlexId = flexibleIdMap.get(origFlexibleId);
+
+            // flexible_start / flexible_end ともに除外せず import 用配列へ追加
+            preparedRails.push({
+                ...restData,
+                x: newX,
+                y: newY,
+                partOptions: {
+                    ...restData.partOptions,
+                    flexibleId: newFlexId
+                }
+            });
+        } else {
+            preparedRails.push({
+                ...restData,
+                x: newX,
+                y: newY
+            });
+        }
+    });
 
     const importPayload = {
         version: clipboardData.version,
         systems: clipboardData.systems,
-        rails: clipboardData.rails.map(r => {
-            const { offsetX, offsetY, ...restData } = r;
-            return {
-                ...restData,
-                x: targetBaseX + (offsetX !== undefined ? offsetX : 0),
-                y: targetBaseY + (offsetY !== undefined ? offsetY : 0)
-            };
-        }),
+        rails: preparedRails,
         joints: clipboardData.joints
     };
 
-    console.log('[DEBUG] importLayoutData に渡す Payload:', importPayload);
+    console.log('[DEBUG-PASTE] importLayoutData に渡す Payload:', importPayload);
 
+    // importLayoutData 内で位置、オプション、ブリッジ生成まですべて完了する
     await importLayoutData(importPayload, false);
 
+    // 貼り付け処理によって新規追加されたオブジェクトの抽出
     const newlyAddedRails = canvas.getObjects().filter(o => 
-        o && o.customData && o.customData.isRail && !railsBeforeIds.includes(o.customData.instanceId)
+        o && o.customData && (o.customData.isRail || o.customData.partOptions?.flexibleId) && !railsBeforeIds.includes(o.customData.instanceId)
     );
 
-    console.log('[DEBUG] 新規追加された Fabric オブジェクト一覧:', newlyAddedRails);
+    // 各レールの移動・更新完了に伴うジョイント表示の再描画
+    updateJointIndicators();
 
     if (newlyAddedRails.length > 0) {
-        restoreSelection(newlyAddedRails.map(o => o.customData.instanceId));
+        restoreSelection(newlyAddedRails.map(o => o.customData.instanceId).filter(Boolean));
+
+        // 履歴記録対象からの中央曲線部 (flexible_bridge) の除外処理
+        const recordRails = newlyAddedRails.filter(o => {
+            const rType = o.customData?.railType || o.customData?.partOptions?.railType;
+            const pId = o.customData?.partId || o.customData?.partOptions?.partId;
+            return rType !== 'flexible_bridge' && pId !== 'flexible_bridge';
+        });
 
         const actionRails = [];
-        newlyAddedRails.forEach((obj, idx) => {
+        recordRails.forEach((obj) => {
             const railData = {
                 instanceId: obj.customData.instanceId,
-                partId: obj.customData.partId,
+                partId: obj.customData.partId || obj.customData.partOptions?.partId,
+                railType: obj.customData.railType || obj.customData.partOptions?.railType,
+                flexibleId: obj.customData.flexibleId || obj.customData.partOptions?.flexibleId,
                 x: obj.left,
                 y: obj.top,
-                angle: obj.angle
+                angle: obj.angle || 0
             };
 
-            // ===== 修正: partOptions が存在する場合のみ含める =====
-            if (obj.partOptions && typeof obj.partOptions === 'object') {
-                railData.partOptions = JSON.parse(JSON.stringify(obj.partOptions));
+            if (obj.customData.partOptions && typeof obj.customData.partOptions === 'object') {
+                railData.partOptions = JSON.parse(JSON.stringify(obj.customData.partOptions));
             }
 
             actionRails.push(railData);
@@ -650,12 +977,12 @@ async function pasteRails() {
             type: 'ADD',
             rails: actionRails,
             jointsBefore: jointsBefore,
-            jointsAfter: typeof globalJoints !== 'undefined' ? [...globalJoints] : []
+            jointsAfter: [...globalJoints]
         });
     }
 
     canvas.requestRenderAll();
-    console.log('[DEBUG] --- pasteRails 終了 ---');
+    console.log('[DEBUG-PASTE] --- pasteRails 終了 ---');
 }
 
 /**
@@ -822,8 +1149,8 @@ function cycleSelectedRailNode(direction) {
         type: 'CYCLE_NODE',
         selectedInstanceIds: [selfId], // Undo時の選択復元用IDを追加
         items: [itemBefore],
-        jointsFrom: jointsBefore,
-        jointsTo: JSON.parse(JSON.stringify(globalJoints))
+        jointsBefore: jointsBefore,
+        jointsAfter: JSON.parse(JSON.stringify(globalJoints))
     });
 
     updateJointIndicators();
@@ -1052,4 +1379,56 @@ function importLayoutFromFile() {
     };
 
     fileInput.click();
+}
+
+
+/**
+ * フレキシブルレールのいずれかのパーツが選択された際、残りのパーツも含めた
+ * 3点セット（startRail - bridgePath - endRail）へと選択状態を自動的に拡張する
+ * 
+ * @param {fabric.Object} target - 現在操作・選択されたFabricオブジェクト
+ * @param {fabric.Canvas} canvas - 対象のFabricキャンバス
+ */
+let isSelectingExtension_dummy_flag = false; // 無限再帰防止用の処理中フラグ
+
+function expandFlexibleRailSelection(target, canvas) {
+    // 必須パラメータの欠落時はフォールバックせず TypeError を発生させる
+    if (!canvas || !target) {
+        throw new TypeError("expandFlexibleRailSelection: canvas または target が不正です。");
+    }
+
+    // 処理中フラグによる無限ループ（無限再帰）の防止ガードです
+    if (isSelectingExtension_dummy_flag) return;
+
+    const customData = target.customData;
+    if (!customData || !customData.flexibleId) return;
+
+    const targetFlexibleId = customData.flexibleId;
+
+    try {
+        isSelectingExtension_dummy_flag = true;
+
+        const activeObj = canvas.getActiveObject();
+        const allObjects = canvas.getObjects();
+        const groupParts = allObjects.filter(obj => 
+            obj && obj.customData && obj.customData.flexibleId === targetFlexibleId
+        );
+
+        if (groupParts.length === 3) {
+            const currentSelected = (activeObj && activeObj.type === 'activeSelection') 
+                ? activeObj.getObjects() 
+                : [activeObj];
+
+            const isAllSelected = groupParts.every(part => currentSelected.includes(part));
+
+            if (!isAllSelected) {
+                canvas.discardActiveObject();
+                const sel = new fabric.ActiveSelection(groupParts, { canvas: canvas });
+                canvas.setActiveObject(sel);
+                canvas.requestRenderAll();
+            }
+        }
+    } finally {
+        isSelectingExtension_dummy_flag = false;
+    }
 }
