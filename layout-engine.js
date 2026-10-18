@@ -1568,7 +1568,7 @@ function rebuildFlexibleRailBridge(bridgeGroup, startRail, endRail) {
     // 7. コントロールハンドルの描画座標を最新の状態に確定
     bridgeGroup.setCoords();
 
-// --- 8. 左右個別ごとの残り長さ（オーバーレイ）インジケータの描画・更新 ---
+    // --- 8. 左右個別ごとの残り長さ（オーバーレイ）インジケータの描画・更新 ---
     if (bridgeGroup.canvas) {
         const canvas = bridgeGroup.canvas;
 
@@ -1578,8 +1578,11 @@ function rebuildFlexibleRailBridge(bridgeGroup, startRail, endRail) {
         }
         bridgeGroup.overlayIndicatorObjects = [];
 
+        // 変形ロック中（isLocked === true）の場合はインジケータを描画しない
+        const isLocked = bridgeGroup.customData && bridgeGroup.customData.partOptions && bridgeGroup.customData.partOptions.isLocked;
         const maxLength = catalogItem.maxLength;
-        if (typeof maxLength === 'number' && railIndicatorInfos.length > 0) {
+
+        if (!isLocked && typeof maxLength === 'number' && railIndicatorInfos.length > 0) {
             railIndicatorInfos.forEach(info => {
                 const lRem = maxLength - info.length;
                 const indicatorColor = lRem >= 0 ? '#22cc22' : '#cc2222';
@@ -1945,6 +1948,21 @@ async function importLayoutData(layoutData, isOverwrite = true) {
             }
 
             if (bridgeObj) {
+                // コピー元から bridge の partOptions が取得できる場合はそれを反映（なければ start端等の状態をフォールバックとして採用）
+                const bridgeIsLocked = pair.bridge?.partOptions?.isLocked ?? (pair.start?.partOptions?.isLocked || false);
+                
+                if (bridgeObj.customData) {
+                    if (!bridgeObj.customData.partOptions) {
+                        bridgeObj.customData.partOptions = {};
+                    }
+                    bridgeObj.customData.partOptions.isLocked = bridgeIsLocked;
+                }
+
+                // ロック状態に応じたコントロール表示の反映
+                bridgeObj.set({
+                    hasControls: !bridgeIsLocked
+                });
+
                 createdObjects.push(bridgeObj);
                 if (bridgeObj.customData?.instanceId) {
                     instanceMap[bridgeObj.customData.instanceId] = bridgeObj;
