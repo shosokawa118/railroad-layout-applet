@@ -1,425 +1,733 @@
+FUNCTION API SPECIFICATION
+FILE: function_list.txt
+REPO: shosokawa118/railroad-layout-applet
+BRANCH: develop
+DESCRIPTION: この一覧は、レイアウト編集アプリの公開/内部関数を API 仕様書に近い形式で整理したもの。各関数は、シグネチャ、引数、戻り値、用途を含む。
+
+---
+
 FUNCTION: recordAction
 FILE: editor-actions.js
-PARAMS: action
-USAGE: 履歴アクションを記録（type: 'MOVE'|'ADD'|'DELETE'|'CYCLE_NODE'）し、Redoスタックをクリア
+SIGNATURE: recordAction(action)
+PARAMS:
+  - action: Object — 履歴に記録するアクション。例: { type: 'MOVE'|'ADD'|'DELETE'|'CYCLE_NODE', ... }
+RETURNS: void
+USAGE: 履歴アクションを記録し、Redo スタックを初期化する。操作前の選択状態を self.selectionBefore として自動記録する。
+
 ---
 
 FUNCTION: undoLayout
 FILE: editor-actions.js
+SIGNATURE: undoLayout()
 PARAMS: なし
-USAGE: 操作を取り消す（Undoスタックから取り出し、executeAction で逆実行）
+RETURNS: void
+USAGE: Undo スタックから直前のアクションを取り出し、executeAction(action, true) を呼び出して逆実行する。
+
 ---
 
 FUNCTION: redoLayout
 FILE: editor-actions.js
+SIGNATURE: redoLayout()
 PARAMS: なし
-USAGE: 操作をやり直す（Redoスタックから取り出し、executeAction で順実行）
+RETURNS: void
+USAGE: Redo スタックから次のアクションを取り出し、executeAction(action, false) を呼び出してやり直す。
+
 ---
 
 FUNCTION: executeAction
 FILE: editor-actions.js
-PARAMS: action, isUndo
-USAGE: アクションを実行/逆実行する（MOVE、ADD、DELETE、CYCLE_NODE対応）
+SIGNATURE: executeAction(action, isUndo)
+PARAMS:
+  - action: Object — 実行対象の履歴アクション
+  - isUndo: boolean — true なら逆方向、false なら順方向で実行
+RETURNS: void
+USAGE: MOVE / ADD / DELETE / CYCLE_NODE を含むアクションを実行または逆実行する。影響を受ける flexible rail を考慮して再描画や状態更新を行う。
+
 ---
 
 FUNCTION: restoreSelection
 FILE: editor-actions.js
-PARAMS: instanceIds
-USAGE: 指定されたinstanceId群のレールを選択状態に復元（単数/複数選択対応）
+SIGNATURE: restoreSelection(instanceIds)
+PARAMS:
+  - instanceIds: Array<string|number> — 復元したい rail の instanceId 配列
+RETURNS: void
+USAGE: 指定された instanceId 群のレールを選択状態として復元する。単数選択または複数選択に対応する。
+
 ---
 
 FUNCTION: findRailByInstanceId
 FILE: editor-actions.js
-PARAMS: instanceId
-USAGE: IDからFabricオブジェクト（レール）を検索
+SIGNATURE: findRailByInstanceId(instanceId)
+PARAMS:
+  - instanceId: string|number — 探索する rail の instanceId
+RETURNS: fabric.Object|null
+USAGE: instanceId から Fabric オブジェクトの rail を検索するヘルパー。
+
 ---
 
 FUNCTION: selectAllRails
 FILE: editor-actions.js
+SIGNATURE: selectAllRails()
 PARAMS: なし
-USAGE: キャンバス上のすべてのレールを一括選択
+RETURNS: void
+USAGE: キャンバス上に存在するすべての rail を一括選択する。
+
 ---
 
 FUNCTION: selectConnectedRails
 FILE: editor-actions.js
+SIGNATURE: selectConnectedRails()
 PARAMS: なし
-USAGE: 現在選択中のレールからジョイントで繋がっている全パーツ（連結ネットワーク全体）を一括選択（BFS探索）
+RETURNS: void
+USAGE: 現在選択中の rail からジョイント接続で繋がる全パーツを BFS と同等の探索で取得し、一括選択する。
+
 ---
 
 FUNCTION: updateUIState
 FILE: editor-actions.js
+SIGNATURE: updateUIState()
 PARAMS: なし
-USAGE: UIの各ボタンや操作の有効/無効（グレーアウト）状態を一元更新
+RETURNS: void
+USAGE: UI の有効/無効化（グレーアウト）状態やボタン状態を一元更新する。
+
 ---
 
 FUNCTION: captureDragStart
 FILE: editor-actions.js
-PARAMS: target
-USAGE: 移動開始時の状態を記録（mouse:down時）
+SIGNATURE: captureDragStart(target)
+PARAMS:
+  - target: fabric.Object — ドラッグ開始対象
+RETURNS: void
+USAGE: 移動開始時の状態を記録し、差分計算やアクション生成の基礎データを保持する。
+
 ---
 
 FUNCTION: captureDragEnd
 FILE: editor-actions.js
-PARAMS: target
-USAGE: 移動完了時の差分判定と記録（mouse:up時）、位置・角度・ジョイント変化を検出
+SIGNATURE: captureDragEnd(target)
+PARAMS:
+  - target: fabric.Object — ドラッグ終了対象
+RETURNS: void
+USAGE: 移動完了時に位置差分・角度差分・ジョイント変化を判定し、履歴記録用のアクションを生成する。
+
 ---
 
 FUNCTION: copySelectedRails
 FILE: editor-actions.js
+SIGNATURE: copySelectedRails()
 PARAMS: なし
-USAGE: 選択中レールおよび関係するジョイント群をJSON形式でクリップボードへコピー（相対オフセット計算）
+RETURNS: void
+USAGE: 選択中の rail と関連ジョイント群を JSON 形式でクリップボードへコピーする。相対オフセットを計算して保存する。
+
 ---
 
 FUNCTION: cutSelectedRails
 FILE: editor-actions.js
+SIGNATURE: cutSelectedRails()
 PARAMS: なし
-USAGE: 選択中レールをコピーした上で削除する（切り取り）
+RETURNS: void
+USAGE: 選択中レールをコピーした後、削除して切り取り状態にする。
+
 ---
 
 FUNCTION: pasteRails
 FILE: editor-actions.js
+SIGNATURE: pasteRails()
 PARAMS: なし
-USAGE: クリップボードのデータを importLayoutData(..., false) で復元（貼り付け）
+RETURNS: void
+USAGE: クリップボードのデータを importLayoutData(..., false) で復元して貼り付ける。
+
 ---
 
 FUNCTION: duplicateSelectedRails
 FILE: editor-actions.js
+SIGNATURE: duplicateSelectedRails()
 PARAMS: なし
-USAGE: 選択中レールの複製（copy→paste の組み合わせ）
+RETURNS: void
+USAGE: 選択中 rail を複製する。copy → paste の組み合わせで実装される。
+
 ---
 
 FUNCTION: cycleSelectedRailNode
 FILE: editor-actions.js
-PARAMS: direction
-USAGE: 選択中パーツの接続ノード番号を変更して回転・再配置する（[ / ] キーで操作）
+SIGNATURE: cycleSelectedRailNode(direction)
+PARAMS:
+  - direction: string|number — ノード切替方向。例: 'next' / 'prev' または ±1
+RETURNS: void
+USAGE: 選択中パーツの接続ノード番号を変更し、再配置・回転を行う。[ / ] キーの操作に対応する。
+
 ---
 
 FUNCTION: getAbsoluteNodePosition
 FILE: editor-actions.js
-PARAMS: railObj, nodeDef
-USAGE: ノードの絶対座標計算ヘルパー（回転・座標変換を適用）
+SIGNATURE: getAbsoluteNodePosition(railObj, nodeDef)
+PARAMS:
+  - railObj: fabric.Object — 対象レール
+  - nodeDef: Object — ノード定義
+RETURNS: { x: number, y: number, angle: number }
+USAGE: ノードの絶対座標と向きを計算する。回転・座標変換を適用する。
+
 ---
 
 FUNCTION: rotateVector
 FILE: editor-actions.js
-PARAMS: x, y, angleDeg
-USAGE: 2Dベクトルの回転計算ヘルパー（角度の正弦・余弦を使用）
+SIGNATURE: rotateVector(x, y, angleDeg)
+PARAMS:
+  - x: number — 元ベクトル X
+  - y: number — 元ベクトル Y
+  - angleDeg: number — 回転量（度数法）
+RETURNS: { x: number, y: number }
+USAGE: 2D ベクトルを指定角度だけ回転させる補助関数。
+
 ---
 
 FUNCTION: setupFileDropZone
 FILE: editor-actions.js
-PARAMS: targetElement
-USAGE: ドラッグ&ドロップでJSONファイルを読み込む機能を設定
+SIGNATURE: setupFileDropZone(targetElement)
+PARAMS:
+  - targetElement: HTMLElement — ドロップ対象の要素
+RETURNS: void
+USAGE: ドラッグ & ドロップで JSON ファイルを読み込むイベントを設定する。
+
 ---
 
 FUNCTION: expandFlexibleRailSelection
 FILE: editor-actions.js
-PARAMS: target, canvas
-USAGE: フレキシブルレールの構成要素が選択された際、処理中フラグで無限再帰をガードしながら3点セット全体へと選択状態を自動拡張する
+SIGNATURE: expandFlexibleRailSelection(target, canvas)
+PARAMS:
+  - target: fabric.Object — 選択された要素
+  - canvas: fabric.Canvas — 対象キャンバス
+RETURNS: void
+USAGE: フレキシブルレールの構成要素が選択された場合、再帰防止フラグを使いながら 3 点セット全体へ選択状態を自動拡張する。
+
 ---
 
 FUNCTION: toggleFlexibleRailLock
 FILE: editor-actions.js
-PARAMS: target, canvas
-USAGE: フレキシブルレールの変形ロック状態（isLocked）を切り替え、編集モード（個別変形可）とロックモード（固定一体化）を制御する
+SIGNATURE: toggleFlexibleRailLock(target, canvas)
+PARAMS:
+  - target: fabric.Object — 対象柔軟レール
+  - canvas: fabric.Canvas — 対象キャンバス
+RETURNS: void
+USAGE: フレキシブルレールの isLocked 状態を切り替え、さまざまな編集モードと固定モードを制御する。
+
 ---
 
 FUNCTION: getEffectiveNodeDef
 FILE: layout-geometry.js
-PARAMS: rail, catalogNode
-USAGE: ノード定義に nodeOffsets (補正値) が存在する場合、適用後の relX, relY, facingAngle を返すヘルパー関数
+SIGNATURE: getEffectiveNodeDef(rail, catalogNode)
+PARAMS:
+  - rail: fabric.Object — 対象レール
+  - catalogNode: Object — ノード定義（catalog にある node）
+RETURNS: Object
+USAGE: nodeOffsets が存在する場合、それを適用した relX / relY / facingAngle を含めてノード定義を返す。
+
 ---
 
 FUNCTION: setJointDisplayMode
 FILE: layout-engine.js
-PARAMS: mode
-USAGE: ジョイント表示モード（'all'|'rail-end'|'none'）を変更し、キャンバスを再描画する
+SIGNATURE: setJointDisplayMode(mode)
+PARAMS:
+  - mode: string — 'all' | 'rail-end' | 'none'
+RETURNS: void
+USAGE: ジョイント表示モードを切り替え、canvas を再描画して設定を保存する。
+
 ---
 
 FUNCTION: loadSystemLibrary
 FILE: layout-engine.js
-PARAMS: systemId
-USAGE: 指定されたシステムIDに対応するライブラリファイルを動的に読み込む（キャッシング機構付き）
+SIGNATURE: loadSystemLibrary(systemId)
+PARAMS:
+  - systemId: string — 読み込むシステム ID
+RETURNS: Promise<void>
+USAGE: 指定されたシステム ID のライブラリファイルを動的に読み込み、キャッシュがある場合は再利用する。
+
 ---
 
 FUNCTION: configureControls
 FILE: layout-engine.js
-PARAMS: fabricObj
-USAGE: Fabricオブジェクトのコントロール設定（スケール固定、回転コントロール表示）
+SIGNATURE: configureControls(fabricObj)
+PARAMS:
+  - fabricObj: fabric.Object — 設定対象
+RETURNS: void
+USAGE: Fabric オブジェクトのコントロールを調整し、スケール固定や回転コントロール表示を制御する。
+
 ---
 
 FUNCTION: findTargetNodeForAutoConnect
 FILE: layout-engine.js
-PARAMS: parentRail
-USAGE: 親レール上で新規レール接続に適切な開き端点ノードを優先度順（降順）で探索し、ノードIDを返却
+SIGNATURE: findTargetNodeForAutoConnect(parentRail)
+PARAMS:
+  - parentRail: fabric.Object — 親レール
+RETURNS: number|string|null
+USAGE: 新規レール接続先として最適なノードを優先度順で探索し、ノード ID を返す。
+
 ---
 
 FUNCTION: alignRailToParentNode
 FILE: layout-engine.js
-PARAMS: newRail, parentRail, parentNodeId
-USAGE: 新規レールを親レール上の指定ノードに接続する（位置合わせ・回転・複数ノード一括ロック、getEffectiveNodeDef使用）
+SIGNATURE: alignRailToParentNode(newRail, parentRail, parentNodeId)
+PARAMS:
+  - newRail: fabric.Object — 接続対象の新規レール
+  - parentRail: fabric.Object — 親レール
+  - parentNodeId: number|string — 親ノード ID
+RETURNS: void
+USAGE: 新規レールを親ノードに対して位置合わせ・回転・複数ノード一括ロックを行う。
+
 ---
 
 FUNCTION: registerGlobalCanvasEvents
 FILE: layout-engine.js
+SIGNATURE: registerGlobalCanvasEvents()
 PARAMS: なし
-USAGE: キャンバス上のレール移動・回転イベントを登録、ドラッグ開始/終了時のコールバック・スナップ処理を実行
+RETURNS: void
+USAGE: キャンバス上での移動・回転イベントを登録し、ドラッグ開始/終了時のコールバックやスナップ処理を有効化する。
+
 ---
 
 FUNCTION: handleVariableRailResizeEnd
 FILE: layout-engine.js
-PARAMS: rail, corner
-USAGE: 可変長レールの伸縮完了時の新長さ計算、移動量補正、切り離し、再描画およびスナップ接続処理を実行
+SIGNATURE: handleVariableRailResizeEnd(rail, corner)
+PARAMS:
+  - rail: fabric.Object — 対象の可変長レール
+  - corner: string — 変形時のハンドル識別子
+RETURNS: void
+USAGE: 可変長レールの伸縮完了時に、新しい長さや位置補正、切り離し、再描画を行う。
+
 ---
 
 FUNCTION: handleVariableRailScaling
 FILE: layout-engine.js
-PARAMS: e
-USAGE: 可変長レールのドラッグ変形中リアルタイム制御（スケール制限・固定端基準の中心座標補正）
+SIGNATURE: handleVariableRailScaling(e)
+PARAMS:
+  - e: Event — Fabric の scaling イベント
+RETURNS: void
+USAGE: 可変長レールのドラッグ変形中に、スケール制限や固定端の中心座標補正を行う。
+
 ---
 
 FUNCTION: rebuildVariableRailPaths
 FILE: layout-engine.js
-PARAMS: rail, catalogItem
-USAGE: 可変長レールのグループ内パスを現在の長さに合わせて生成し直し、描画オブジェクトを再構築
+SIGNATURE: rebuildVariableRailPaths(rail, catalogItem)
+PARAMS:
+  - rail: fabric.Object — 対象レール
+  - catalogItem: Object — カタログ定義
+RETURNS: void
+USAGE: 可変長レールのパス形状を再生成し、グループ内要素の描画を現状長さに合わせて更新する。
+
 ---
 
 FUNCTION: addRailToCanvas
 FILE: layout-engine.js
-PARAMS: partId, options
-USAGE: 指定されたパーツIDでレールオブジェクトを生成・キャンバスに追加、自動接続を試行、アクション記録を実行
+SIGNATURE: addRailToCanvas(partId, options)
+PARAMS:
+  - partId: string — 追加対象の rail part ID
+  - options: Object — 追加時オプション（位置・角度・partOptions 等）
+RETURNS: fabric.Object|null
+USAGE: 指定パーツで rail を生成してキャンバスへ追加し、自動接続や履歴記録を実行する。
+
 ---
 
 FUNCTION: deleteSelectedRails
 FILE: layout-engine.js
+SIGNATURE: deleteSelectedRails()
 PARAMS: なし
-USAGE: 選択状態のレール（単一またはアクティブセレクション）をキャンバスから削除、関連ジョイント情報を清掃、削除アクション記録
+RETURNS: void
+USAGE: 選択状態の rail を削除し、ジョイント情報と履歴も整える。
+
 ---
 
 FUNCTION: exportLayoutData
 FILE: layout-engine.js
+SIGNATURE: exportLayoutData()
 PARAMS: なし
-USAGE: キャンバス上の全レール配置とジョイント情報をJSON形式で出力
+RETURNS: Object
+USAGE: キャンバス上のレール配置・ジョイント情報を JSON 互換のオブジェクトとして出力する。
+
 ---
 
 FUNCTION: importLayoutData
 FILE: layout-engine.js
-PARAMS: layoutData, isOverwrite
-USAGE: JSON形式のレイアウトデータを読み込み、キャンバスに復元（必要ライブラリの事前読み込み付き）
+SIGNATURE: importLayoutData(layoutData, isOverwrite)
+PARAMS:
+  - layoutData: Object — 読み込み元のレイアウト JSON オブジェクト
+  - isOverwrite: boolean — 既存レイアウトを破棄して上書きするなら true
+RETURNS: void
+USAGE: JSON 形式のレイアウトデータを読み込み、必要なライブラリをロードしたうえで canvas に復元する。
+
 ---
 
 FUNCTION: onGeneralTransform
 FILE: layout-engine.js
-PARAMS: target
-USAGE: レール移動・回転時の一般変形イベントハンドラ（ジョイント情報の解除とインジケータ更新）
+SIGNATURE: onGeneralTransform(target)
+PARAMS:
+  - target: fabric.Object — 変形対象のオブジェクト
+RETURNS: void
+USAGE: レール移動・回転時にジョイント解除やインジケータ更新を行う汎用変形イベントハンドラ。
+
 ---
 
 FUNCTION: updateJointIndicators
 FILE: layout-engine.js
+SIGNATURE: updateJointIndicators()
 PARAMS: なし
-USAGE: キャンバス上の全レールノードを図示化し、接続状態に応じた視覚インジケータ（●と矢印）を描画
+RETURNS: void
+USAGE: 各 rail ノードを描画し、接続状態に応じた視覚インジケータ（丸点/矢印）を更新する。
+
 ---
 
 FUNCTION: loadDebugSampleLayout
 FILE: layout-engine.js
+SIGNATURE: loadDebugSampleLayout()
 PARAMS: なし
-USAGE: INITIAL_SAMPLE_LAYOUTデータを読み込み、初期ズーム・ビューポート設定を適用
+RETURNS: Promise<void>
+USAGE: INITIAL_SAMPLE_LAYOUT を読み込み、初期ズームや viewport を設定する。
+
 ---
 
 FUNCTION: addFlexibleRailToCanvas
 FILE: layout-engine.js
-PARAMS: canvas, catalogItem, options
-USAGE: カタログ定義に基づきフレキシブルレールの3点セット（startRail, bridgePath, endRail）を生成してキャンバスに追加し、flexibleIdで相互リンクさせる
+SIGNATURE: addFlexibleRailToCanvas(canvas, catalogItem, options)
+PARAMS:
+  - canvas: fabric.Canvas — 対象キャンバス
+  - catalogItem: Object — フレキシブルレール定義
+  - options: Object — 配置時オプション
+RETURNS: Object
+USAGE: startRail / bridgePath / endRail の 3 点セットを生成し、flexibleId で接続状態を保持する。
+
 ---
 
 FUNCTION: rebuildFlexibleRailBridge
 FILE: layout-engine.js
-PARAMS: bridgePath, startRail, endRail
-USAGE: 仮想レールの位置・角度・伸縮（引き出し量 L_A, L_B）の変化に追従し、中央の3次ベジェ曲線（bridgePath）のパスデータを再計算して描画を更新する
+SIGNATURE: rebuildFlexibleRailBridge(bridgePath, startRail, endRail)
+PARAMS:
+  - bridgePath: fabric.Object — 中央ベジェ曲線オブジェクト
+  - startRail: fabric.Object — 開始側レール
+  - endRail: fabric.Object — 終端側レール
+RETURNS: void
+USAGE: 伸縮した startRail / endRail に応じて、bridgePath の曲線パスと位置を再計算し描画を更新する。
+
 ---
 
 FUNCTION: checkArcCardinalBounds
 FILE: layout-geometry.js
-PARAMS: cX, cY, rOut, rIn, startDeg, arcAngle, updateBounds
-USAGE: 円弧の90度刻み極値（真右・真下・真左・真上）がバウンディングボックス内に含まれるか判定・計算
+SIGNATURE: checkArcCardinalBounds(cX, cY, rOut, rIn, startDeg, arcAngle, updateBounds)
+PARAMS:
+  - cX: number — 中心 X
+  - cY: number — 中心 Y
+  - rOut: number — 外半径
+  - rIn: number — 内半径
+  - startDeg: number — 開始角度(deg)
+  - arcAngle: number — 弧の角度（正負で方向付け）
+  - updateBounds: Function — バウンディング更新用コールバック
+RETURNS: void
+USAGE: 円弧の 90 度刻み極値がバウンディングボックス内に含まれるか判定し、bounds を更新する。
+
 ---
 
 FUNCTION: generateGenericRailData
 FILE: layout-geometry.js
-PARAMS: catalogItem
-USAGE: カタログアイテムのシェイプ定義（line, arc, polygon, path）からFabric描画用パスデータと幾何中心座標を生成
+SIGNATURE: generateGenericRailData(catalogItem, options)
+PARAMS:
+  - catalogItem: Object — カタログ定義（shapes を含む）
+  - options: Object (optional) — 長さ等の描画オプション
+RETURNS: Object
+USAGE: line / arc / polygon / path のシェイプ定義から、Fabric 描画用パスと幾何学的な bounds を生成する。
+
 ---
 
 FUNCTION: getAbsoluteNodePos
 FILE: layout-geometry.js
-PARAMS: rail
-USAGE: Fabricレールオブジェクトの現在位置・回転角から各接続ノードのキャンバス絶対座標と絶対対向角を計算（nodeOffsets補正適用）
+SIGNATURE: getAbsoluteNodePos(rail)
+PARAMS:
+  - rail: fabric.Object — 対象レール
+RETURNS: Array<Object>
+USAGE: rail の現在位置と回転から各ノードの絶対座標・角度を計算し、nodeOffsets を含めた値を返す。
+
 ---
 
 FUNCTION: canConnectNodes
 FILE: layout-geometry.js
-PARAMS: railA, nodeAId, railB, nodeBId
-USAGE: 2つのレールノード間の接続互換性を判定（ジョイント規格と極性の相補性をチェック）
+SIGNATURE: canConnectNodes(railA, nodeAId, railB, nodeBId)
+PARAMS:
+  - railA: fabric.Object
+  - nodeAId: number|string
+  - railB: fabric.Object
+  - nodeBId: number|string
+RETURNS: boolean
+USAGE: 2つのノード間が接続可能かどうかをジョイント規格と極性の相補性で判定する。
+
 ---
 
 FUNCTION: getMovedRailIds
 FILE: layout-geometry.js
-PARAMS: target
-USAGE: 単一レールまたはアクティブセレクション内の全レールのインスタンスID配列を取得
+SIGNATURE: getMovedRailIds(target)
+PARAMS:
+  - target: fabric.Object — 単一レールまたは activeSelection
+RETURNS: Array<string|number>
+USAGE: 移動対象となる全 rail の instanceId を取得する。
+
 ---
 
 FUNCTION: isNodePositionCompatible
 FILE: layout-geometry.js
-PARAMS: nodeA, nodeB, maxDist, maxAngleError
-USAGE: 2つの絶対座標ノードの距離と対向角度誤差が許容値以内か判定（スナップ吸着判定用）
+SIGNATURE: isNodePositionCompatible(nodeA, nodeB, maxDist, maxAngleError)
+PARAMS:
+  - nodeA: Object — { x, y, angle }
+  - nodeB: Object — { x, y, angle }
+  - maxDist: number — 許容距離(px)
+  - maxAngleError: number — 角度差の許容値(deg)
+RETURNS: boolean
+USAGE: 2ノードの距離と向きがスナップ吸着の閾値内であるか判定する。
+
 ---
 
 FUNCTION: addGlobalJointIfFree
 FILE: layout-state.js
-PARAMS: railAId, nodeAId, railBId, nodeBId
-USAGE: 指定ノード間が未接続なら、グローバル接続配列に新規ジョイント情報を登録し真を返却
+SIGNATURE: addGlobalJointIfFree(railAId, nodeAId, railBId, nodeBId)
+PARAMS:
+  - railAId: string|number
+  - nodeAId: number|string
+  - railBId: string|number
+  - nodeBId: number|string
+RETURNS: boolean
+USAGE: 指定ノード間が未接続なら、globalJoints 配列にジョイントを追加する。
+
 ---
 
 FUNCTION: isNodeOccupied
 FILE: layout-state.js
-PARAMS: railId, nodeId
-USAGE: 指定レール上のノードが既に他のレールと接続済みか判定
+SIGNATURE: isNodeOccupied(railId, nodeId)
+PARAMS:
+  - railId: string|number
+  - nodeId: number|string
+RETURNS: boolean
+USAGE: 指定レールのノードが既に他の rail と接続済みか判定する。
+
 ---
 
 FUNCTION: detachMovedRailJoints
 FILE: layout-state.js
-PARAMS: target
-USAGE: 移動操作対象となったレールに紐付くジョイント情報を削除（移動中のレール分離）
+SIGNATURE: detachMovedRailJoints(target)
+PARAMS:
+  - target: fabric.Object — 移動対象
+RETURNS: void
+USAGE: 移動対象に紐づくジョイント情報を削除し、分離中の状態を表す。
+
 ---
 
 FUNCTION: autoConnectNearbyNodes
 FILE: snap-manager.js
-PARAMS: targetRails, distTol, angleTol
-USAGE: 指定されたレール群の近接・接触ノードを自動検出して一括結合（共通化された接続関数）
+SIGNATURE: autoConnectNearbyNodes(targetRails, distTol, angleTol)
+PARAMS:
+  - targetRails: Object|Array<Object> — 対象 rail または配列
+  - distTol: number (optional) — 許容距離(px), default 8
+  - angleTol: number (optional) — 許容角度差(deg), default 10
+RETURNS: void
+USAGE: 指定したレール群の近接ノードを自動検索し、接続可能な組み合わせを一括で結合する。
+
 ---
 
 FUNCTION: applyClusterSnapLogic
 FILE: snap-manager.js
-PARAMS: movedRail
-USAGE: 移動終了時に最も近い接続可能ノードペアを探索、吸着・角度合わせ・複数ノード一括ロックを実行（autoConnectNearbyNodes使用）
+SIGNATURE: applyClusterSnapLogic(movedRail)
+PARAMS:
+  - movedRail: fabric.Object — 移動終了対象の rail
+RETURNS: void
+USAGE: 最も近い接続可能ノードを探索し、吸着・角度合わせ・複数ノードロックを実行する。
+
 ---
 
 FUNCTION: exportLayoutJSON
 FILE: snap-manager.js
+SIGNATURE: exportLayoutJSON()
 PARAMS: なし
-USAGE: exportLayoutData()の結果をJSON文字列化し、クリップボードへコピーまたはコンソール出力
+RETURNS: string
+USAGE: exportLayoutData() の結果を JSON 文字列に変換し、クリップボードやコンソールへ出力する。
+
 ---
 
 FUNCTION: registerRailParts
 FILE: rail-catalog-core.js
-PARAMS: partsMap
-USAGE: 各ライブラリファイルからパーツ定義を受け取り、railCatalog.itemsへ追加登録
+SIGNATURE: registerRailParts(partsMap)
+PARAMS:
+  - partsMap: Object — パーツ定義のマップ
+RETURNS: void
+USAGE: 各ライブラリから受け取ったパーツ定義を railCatalog.items に追加登録する。
+
 ---
 
 FUNCTION: getEffectiveJointGroup
 FILE: rail-catalog-core.js
-PARAMS: node, part
-USAGE: ノードのjointGroup設定を取得（ノード→システム→デフォルト値の優先度で決定）
+SIGNATURE: getEffectiveJointGroup(node, part)
+PARAMS:
+  - node: Object — ノード定義
+  - part: Object|null — パーツ定義
+RETURNS: Array<string>
+USAGE: ノードの jointGroup を取得する。ノード → システム → デフォルト値の優先順位で解決する。
+
 ---
 
 FUNCTION: getEffectivePolarity
 FILE: rail-catalog-core.js
-PARAMS: node
-USAGE: ノードの極性（polarity）を取得（未定義時はワイルドカード「*」を返却）
+SIGNATURE: getEffectivePolarity(node)
+PARAMS:
+  - node: Object — ノード定義
+RETURNS: string
+USAGE: ノードの polarity を取得する。未指定時は "*" を返す。
+
 ---
 
 FUNCTION: isJointCompatible
 FILE: rail-catalog-core.js
-PARAMS: nodeA, partA, nodeB, partB
-USAGE: 2つのノード間のジョイント規格一致・極性相補性をチェックし、接続互換性を判定
+SIGNATURE: isJointCompatible(nodeA, partA, nodeB, partB)
+PARAMS:
+  - nodeA: Object
+  - partA: Object
+  - nodeB: Object
+  - partB: Object
+RETURNS: boolean
+USAGE: 2つのノード間のジョイント規格と極性が相互に接続可能か判定する。
+
 ---
 
 FUNCTION: initCameraControls
 FILE: index.html
+SIGNATURE: initCameraControls()
 PARAMS: なし
-USAGE: マウスホイール・スペースキー長押しでカメラズーム・パン操作を有効化、UIイベントリスナー登録
+RETURNS: void
+USAGE: マウスホイール、スペースキー長押しでカメラのズームやパン操作を有効化する。
+
 ---
 
 FUNCTION: initTouchControls
 FILE: index.html
+SIGNATURE: initTouchControls()
 PARAMS: なし
-USAGE: Hammer.jsを使用してピンチズーム・2本指パン操作を有効化
+RETURNS: void
+USAGE: Hammer.js を使ってピンチズーム・2本指パンを有効化する。
+
 ---
 
 FUNCTION: initContextMenu
 FILE: index.html
+SIGNATURE: initContextMenu()
 PARAMS: なし
-USAGE: 右クリック・長押し（タップホールド）によるコンテキストメニュー表示機能を初期化
+RETURNS: void
+USAGE: 右クリックや長押しでコンテキストメニュー表示機能を初期化する。
+
 ---
 
 FUNCTION: showContextMenu
 FILE: index.html
-PARAMS: x, y
-USAGE: コンテキストメニューを指定座標に表示
+SIGNATURE: showContextMenu(x, y)
+PARAMS:
+  - x: number — 表示位置 X
+  - y: number — 表示位置 Y
+RETURNS: void
+USAGE: 指定座標にコンテキストメニューを表示する。
+
 ---
 
 FUNCTION: hideContextMenu
 FILE: index.html
+SIGNATURE: hideContextMenu()
 PARAMS: なし
-USAGE: コンテキストメニューを非表示化
+RETURNS: void
+USAGE: コンテキストメニューを非表示にする。
+
 ---
 
 FUNCTION: execMenuAction
 FILE: index.html
-PARAMS: action
-USAGE: コンテキストメニュー選択時に対応するアクション関数を実行（undo, redo, copy, paste, delete等）
+SIGNATURE: execMenuAction(action)
+PARAMS:
+  - action: string — 実行したいメニューアクション名（undo, redo, copy, paste, delete 等）
+RETURNS: void
+USAGE: コンテキストメニュー選択時に対応するアクションを実行する。
+
 ---
 
 FUNCTION: startApplication
 FILE: index.html
+SIGNATURE: startApplication()
 PARAMS: なし
-USAGE: Fabricライブラリ読み込み後、キャンバス初期化・UI初期化・ファイルドロップ設定・サンプルレイアウト読み込みを実行
+RETURNS: void
+USAGE: Fabric ライブラリの読み込み後に、キャンバス初期化・UI 初期化・ファイルドロップ設定・サンプルレイアウト読み込みを順に実行する。
+
 ---
 
 FUNCTION: initPaletteUI
 FILE: index.html
+SIGNATURE: initPaletteUI()
 PARAMS: なし
-USAGE: システム選択ドロップダウンを初期化、変更イベントでライブラリ再読み込み
+RETURNS: void
+USAGE: システム選択ドロップダウンを初期化し、変更イベントでライブラリ再読み込みを行う。
+
 ---
 
 FUNCTION: setCategory
 FILE: index.html
-PARAMS: cat
-USAGE: パーツカテゴリ（'straight'|'curve'|'turnout'）を切り替え、パレット再描画
+SIGNATURE: setCategory(cat)
+PARAMS:
+  - cat: string — 'straight' | 'curve' | 'turnout' 等のカテゴリ
+RETURNS: void
+USAGE: パーツカテゴリを切り替え、palette を再描画する。
+
 ---
 
 FUNCTION: renderPartsPalette
 FILE: index.html
+SIGNATURE: renderPartsPalette()
 PARAMS: なし
-USAGE: 現在のシステム・カテゴリに合致するパーツ一覧をUIボタンで描画
+RETURNS: void
+USAGE: 現在の system / category に一致するパーツ一覧を UI ボタンで描画する。
+
 ---
 
 FUNCTION: isInputFocused
 FILE: index.html
+SIGNATURE: isInputFocused()
 PARAMS: なし
-USAGE: 現在フォーカス中の要素がINPUT/TEXTAREAか判定（キーバインド判定用）
+RETURNS: boolean
+USAGE: 現在のフォーカス要素が INPUT / TEXTAREA かどうか判定し、キーバインドの対象外判定に用いる。
+
 ---
 
 FUNCTION: promptImportJSON
 FILE: index.html
+SIGNATURE: promptImportJSON()
 PARAMS: なし
-USAGE: ユーザー入力のJSONテキストをパースし、レイアウト上書き/追加選択ダイアログ表示
+RETURNS: void
+USAGE: ユーザー入力の JSON テキストをパースし、レイアウトの上書き/追加を選択するダイアログを表示する。
+
 ---
 
 FUNCTION: openRailOptionsDialog
 FILE: index.html
+SIGNATURE: openRailOptionsDialog()
 PARAMS: なし
-USAGE: 選択中のレールについてパーツオプションダイアログを開き、ノード位置・角度補正入力欄を動的生成
+RETURNS: void
+USAGE: 選択中の rail についてオプションダイアログを開き、ノード位置・角度補正の入力欄を動的生成する。
+
 ---
 
 FUNCTION: closeRailOptionsDialog
 FILE: index.html
+SIGNATURE: closeRailOptionsDialog()
 PARAMS: なし
-USAGE: パーツオプションダイアログを閉じ、編集中レール参照をクリア
+RETURNS: void
+USAGE: パーツオプションダイアログを閉じ、編集中の rail 参照をクリアする。
+
 ---
 
 FUNCTION: saveRailOptions
 FILE: index.html
+SIGNATURE: saveRailOptions()
 PARAMS: なし
-USAGE: パーツオプションダイアログから入力されたノード補正値を収集・保存（nodeOffsetsオブジェクト）
+RETURNS: void
+USAGE: ダイアログから入力されたノード補正値を収集し、nodeOffsets オブジェクトとして保存する。
+
 ---
+
+END OF FILE
