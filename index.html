@@ -705,6 +705,14 @@
                 const groupParts = allObjects.filter(obj => obj && obj.customData && obj.customData.flexibleId === fId);
                 
                 if (groupParts.length === 3) {
+                    // まずブリッジグループを特定してインジケータの表示/非表示を制御する
+                    const bridgePart = groupParts.find(part => part.customData && part.customData.railType === 'flexible_bridge');
+                    if (bridgePart && bridgePart.overlayIndicatorObjects && Array.isArray(bridgePart.overlayIndicatorObjects)) {
+                        bridgePart.overlayIndicatorObjects.forEach(indLine => {
+                            indLine.set('visible', !targetLockState);
+                        });
+                    }
+
                     groupParts.forEach(part => {
                         if (part.customData) {
                             part.customData.partOptions.isLocked = targetLockState;
@@ -712,13 +720,13 @@
 
                         // パーツ別の挙動（中央曲線部 vs 両端仮想レール）に合わせたロック設定
                         const railType = part.customData ? part.customData.railType : '';
-                        const isBridge = (railType === 'flexible_bridge'); // 中央曲線部の判定名（仮）
+                        const isBridge = (railType === 'flexible_bridge');
 
                         if (isBridge) {
                             // 中央曲線部は移動・回転可能、ハンドルのみ非表示
                             part.set({
-                                lockMovementX: targetLockState ? false : false, // 移動は常に許可？ 要件に合わせて調整
-                                lockMovementY: targetLockState ? false : false,
+                                lockMovementX: false,
+                                lockMovementY: false,
                                 hasControls: !targetLockState
                             });
                         } else {

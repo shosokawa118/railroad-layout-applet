@@ -1355,6 +1355,7 @@ function addFlexibleRailToCanvas(canvas, partId, options = {}) {
 /**
  * 仮想レールの位置・角度・引き出し量に基づき、中央の bridgeGroup のベジェ曲線パス群を再構築
  * パス更新後に catalogItem の shapes 定義に沿ってサンプリング再計算を行い、グループ寸法や中心座標を正確に更新してズレを解消
+ * 各レールオフセット（左右個別）ごとの実測長とカタログの maxLength との差分に基づき、独立したオーバーレイインジケータを描画・更新する
  * 
  * @param {fabric.Group} bridgeGroup 再構築対象のブリッジグループオブジェクト
  * @param {fabric.Object} startRail 左端の仮想レールオブジェクト
@@ -1382,14 +1383,12 @@ function rebuildFlexibleRailBridge(bridgeGroup, startRail, endRail) {
     const endRad = (endTransform.angle * Math.PI) / 180;
 
     // 1. 両端の接続点および引き出し制御点 (P0, P1, P2, P3) を計算
-    // startRail: 左端 (P0) から右方向 (P1) へ引き出す
     const p0x = startTransform.left - Math.cos(startRad) * (startLength / 2);
     const p0y = startTransform.top - Math.sin(startRad) * (startLength / 2);
 
     const p1x = p0x + Math.cos(startRad) * startLength;
     const p1y = p0y + Math.sin(startRad) * startLength;
 
-    // endRail: 右端 (P3) から左方向 (P2) へ引き出す
     const p3x = endTransform.left + Math.cos(endRad) * (endLength / 2);
     const p3y = endTransform.top + Math.sin(endRad) * (endLength / 2);
 
@@ -1420,6 +1419,9 @@ function rebuildFlexibleRailBridge(bridgeGroup, startRail, endRail) {
         if (y > bMaxY) bMaxY = y;
     }
 
+    // 各レールオフセットごとの両端位置および実測長を保持する配列
+    const railIndicatorInfos = [];
+
     catalogItem.shapes.forEach(shape => {
         const shapeBallastWidth = (typeof shape.ballastWidth === 'number') ? shape.ballastWidth : defaultBallastWidth;
         const halfW = shapeBallastWidth / 2;
@@ -1439,6 +1441,7 @@ function rebuildFlexibleRailBridge(bridgeGroup, startRail, endRail) {
         const leftBallastPts = [];
         const rightBallastPts = [];
         const railPointsMaps = offsets.map(() => []);
+        const railLengths = offsets.map(() => 0);
 
         for (let i = 0; i <= steps; i++) {
             const t = i / steps;
@@ -1473,8 +1476,29 @@ function rebuildFlexibleRailBridge(bridgeGroup, startRail, endRail) {
                 const oy = by + ny * offset;
                 railPointsMaps[idx].push({ x: ox, y: oy });
                 updateBridgeBounds(ox, oy);
+
+                if (i > 0) {
+                    const prevPt = railPointsMaps[idx][i - 1];
+                    const dx = ox - prevPt.x;
+                    const dy = oy - prevPt.y;
+                    railLengths[idx] += Math.sqrt(dx * dx + dy * dy);
+                }
             });
         }
+
+        // 各オフセットごとの終端位置（端点）と実測長を登録
+        offsets.forEach((offset, idx) => {
+            const pts = railPointsMaps[idx];
+            if (pts.length > 0) {
+                const startPt = pts[0];
+                const endPt = pts[pts.length - 1];
+                railIndicatorInfos.push({
+                    startPt: startPt,
+                    endPt: endPt,
+                    length: railLengths[idx]
+                });
+            }
+        });
 
         if (shapeBallastWidth > 0 && leftBallastPts.length > 0) {
             let ballastStr = `M ${leftBallastPts[0].x} ${leftBallastPts[0].y}`;
@@ -1544,8 +1568,55 @@ function rebuildFlexibleRailBridge(bridgeGroup, startRail, endRail) {
     // 7. コントロールハンドルの描画座標を最新の状態に確定
     bridgeGroup.setCoords();
 
+// --- 8. 左右個別ごとの残り長さ（オーバーレイ）インジケータの描画・更新 ---
     if (bridgeGroup.canvas) {
-        bridgeGroup.canvas.requestRenderAll();
+        const canvas = bridgeGroup.canvas;
+
+        // 既存のインジケータ群があればすべて削除
+        if (bridgeGroup.overlayIndicatorObjects && Array.isArray(bridgeGroup.overlayIndicatorObjects)) {
+            bridgeGroup.overlayIndicatorObjects.forEach(obj => canvas.remove(obj));
+        }
+        bridgeGroup.overlayIndicatorObjects = [];
+
+        const maxLength = catalogItem.maxLength;
+        if (typeof maxLength === 'number' && railIndicatorInfos.length > 0) {
+            railIndicatorInfos.forEach(info => {
+                const lRem = maxLength - info.length;
+                const indicatorColor = lRem >= 0 ? '#22cc22' : '#cc2222';
+                const drawLength = Math.abs(lRem);
+
+                if (drawLength > 0.1) {
+                    const indicatorSign = lRem >= 0 ? 1 : -1;
+                    
+                    // endRail の角度 (endRad) を基準に方向を決定
+                    // endRail は右端の接続端子であるため、endRad の方向（外側）へ伸ばす
+                    const dirX = Math.cos(endRad) * indicatorSign;
+                    const dirY = Math.sin(endRad) * indicatorSign;
+
+                    const endPt = info.endPt;
+                    const startX = endPt.x;
+                    const startY = endPt.y;
+                    const endX = endPt.x + dirX * drawLength;
+                    const endY = endPt.y + dirY * drawLength;
+
+                    const indicatorLine = new fabric.Line([startX, startY, endX, endY], {
+                        stroke: indicatorColor,
+                        strokeWidth: 1.5,
+                        strokeLineCap: 'round', 
+                        selectable: false,
+                        evented: false,
+                        opacity: 0.8,
+                        originX: 'center',
+                        originY: 'center'
+                    });
+
+                    bridgeGroup.overlayIndicatorObjects.push(indicatorLine);
+                    canvas.add(indicatorLine);
+                }
+            });
+        }
+
+        canvas.requestRenderAll();
     }
 }
 
@@ -2047,6 +2118,8 @@ function updateJointIndicators() {
             ], {
                 stroke: isOccupied ? '#7cd21d' : '#ff3b30',
                 strokeWidth: 1.5,
+                originX: 'center',
+                originY: 'center',
                 selectable: false,
                 evented: false,
                 customData: { isIndicator: true }
