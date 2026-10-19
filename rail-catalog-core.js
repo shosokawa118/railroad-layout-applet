@@ -79,6 +79,12 @@ const railCatalog = {
             gauge: 9, ballastWidth: 16.5,
             defaultJointGroup: "peco-joiner",
             libraryFile: "rail-catalog-peco-setrack.js"
+        },
+        "PECO-STREAMLINE-N-C80": {
+            scale: "N", brand: "PECO", systemName: "Streamline code80 (N)",
+            gauge: 9, ballastWidth: 16.5,
+            defaultJointGroup: "peco-joiner",
+            libraryFile: "rail-catalog-peco-streamline80.js"
         }
     },
     items: {}
