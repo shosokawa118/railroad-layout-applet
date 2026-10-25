@@ -130,15 +130,15 @@ function loadSystemLibrary(systemId) {
 function configureControls(fabricObj) {
     if (!fabricObj) return;
 
-    // フレキシブルレール本体 (flexible_bridge) の場合はコントロールを非表示にして手動変形を禁止する
-    if (fabricObj.customData && fabricObj.customData.railType === 'flexible_bridge') {
-        fabricObj.set({
-            hasControls: false,
-            lockScalingX: true,
-            lockScalingY: true
-        });
-        return;
-    }
+//    // フレキシブルレール本体 (flexible_bridge) の場合はコントロールを非表示にして手動変形を禁止する
+//    if (fabricObj.customData && fabricObj.customData.railType === 'flexible_bridge') {
+//        fabricObj.set({
+//            hasControls: false,
+//            lockScalingX: true,
+//            lockScalingY: true
+//        });
+//        return;
+//    }
 
     // 複数選択（activeSelection）の場合は一律で伸縮不可とする
     const isSelection = fabricObj.type === 'activeSelection';
@@ -312,6 +312,7 @@ function registerGlobalCanvasEvents() {
     canvas.on('mouse:down', (options) => {
         if (options && options.target) {
             captureDragStart(options.target);
+            captureLockedBridgeDragStart(options.target);
         }
     });
 
@@ -404,19 +405,24 @@ function registerGlobalCanvasEvents() {
 
         const customData = activeObject.customData;
 
-        if (activeObject.type === 'activeSelection') {
-            // 範囲選択内にフレキシブルレール要素が含まれる場合は3点セット選択へ拡張
-            const selectedObjects = activeObject.getObjects();
-            const hasFlexible = selectedObjects.some(obj => obj && obj.customData && obj.customData.flexibleId);
-            if (hasFlexible) {
-                expandFlexibleRailSelection(activeObject, canvas);
+        // 変形ロック状態（isLocked）の場合は、いかなる場合も3点セットへの選択拡張を行わない
+        const isLocked = customData && customData.partOptions && customData.partOptions.isLocked;
+
+        if (!isLocked) {
+            if (activeObject.type === 'activeSelection') {
+                // 範囲選択内にフレキシブルレール要素が含まれる場合は3点セット選択へ拡張
+                const selectedObjects = activeObject.getObjects();
+                const hasFlexible = selectedObjects.some(obj => obj && obj.customData && obj.customData.flexibleId);
+                if (hasFlexible) {
+                    expandFlexibleRailSelection(activeObject, canvas);
+                }
+            } else if (customData && customData.flexibleId) {
+                // ブリッジ本体（flexible_bridge）が単一選択された場合のみ3点セット選択へ拡張
+                if (customData.railType === 'flexible_bridge') {
+                    expandFlexibleRailSelection(activeObject, canvas);
+                }
+                // flexible_start / flexible_end の単一選択時は拡張を行わない
             }
-        } else if (customData && customData.flexibleId) {
-            // ブリッジ本体（flexible_bridge）が単一選択された場合、または変形ロック(isLocked)されている場合のみ3点セット選択へ拡張
-            if (customData.railType === 'flexible_bridge' || customData.partOptions.isLocked) {
-                expandFlexibleRailSelection(activeObject, canvas);
-            }
-            // flexible_start / flexible_end の単一選択時は拡張を行わず、単体での変形操作を可能とする
         }
 
         const currentActive = canvas.getActiveObject();
@@ -453,7 +459,7 @@ function handleVariableRailScaling(e) {
             ...rawCatalog,
             dynamicType: 'variable-straight',
             minLength: 10,
-            maxLength: rawCatalog.maxLength / 2
+            maxLength: rawCatalog.maxLength * (4/3/3.141592)
         };
     }
 
@@ -2061,18 +2067,35 @@ function onGeneralTransform(target) {
 }
 
 /**
- * 指定された flexibleId に対応するブリッジ・起点・終点オブジェクトを取得し、再構築を実行するヘルパー処理
+ * 指定された flexibleId に対応するブリッジ・起点・終点オブジェクトを取得し、再構築または同期を実行する
  * @param {string} flexibleId 対象のフレキシブルレールID
+ * @returns {void}
  */
 function updateFlexibleBridgeById(flexibleId) {
-    if (!flexibleId) return;
+    if (!flexibleId) {
+        throw new Error("[updateFlexibleBridgeById] flexibleId is missing.");
+    }
 
     const allObjects = canvas.getObjects();
     const bridge = allObjects.find(o => o.customData && o.customData.flexibleId === flexibleId && o.customData.railType === 'flexible_bridge');
     const start = allObjects.find(o => o.customData && o.customData.flexibleId === flexibleId && o.customData.railType === 'flexible_start');
     const end = allObjects.find(o => o.customData && o.customData.flexibleId === flexibleId && o.customData.railType === 'flexible_end');
 
-    if (bridge && start && end) {
+    if (!bridge || !start || !end) {
+        throw new Error(`[updateFlexibleBridgeById] Complete 3-piece set not found for flexibleId: ${flexibleId}`);
+    }
+
+    // 変形ロック中（isLocked === true）の判定
+    const isLocked = bridge.customData?.partOptions?.isLocked || 
+                     start.customData?.partOptions?.isLocked || 
+                     end.customData?.partOptions?.isLocked;
+
+    if (isLocked) {
+        // ロック中は形状再構築ではなく、bridge の動きに沿って両端の仮想レールをリアルタイム同期する
+        syncLockedFlexibleParts(bridge);
+    }
+    else {
+        // ロック解除中の通常時は従来通りベジェ曲線を再構築
         rebuildFlexibleRailBridge(bridge, start, end);
     }
 }

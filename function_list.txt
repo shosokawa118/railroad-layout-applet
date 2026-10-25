@@ -538,6 +538,26 @@ USAGE: 最も近い接続可能ノードを探索し、吸着・角度合わせ�
 
 ---
 
+FUNCTION: captureLockedBridgeDragStart
+FILE: layout-engine.js
+SIGNATURE: captureLockedBridgeDragStart(target)
+PARAMS:
+  - target: fabric.Object — 選択対象オブジェクト（activeSelection含む）
+RETURNS: void
+USAGE: 変形ロック中の flexible_bridge が操作された際、ドラッグ開始時の bridge および両端仮想レールの絶対座標・角度を保持する。
+
+---
+
+FUNCTION: syncLockedFlexibleParts
+FILE: layout-engine.js
+SIGNATURE: syncLockedFlexibleParts(bridgePath)
+PARAMS:
+  - bridgePath: fabric.Object — 中央ベジェ曲線オブジェクト
+RETURNS: void
+USAGE: 変形ロック中、ドラッグ開始時からの bridgePath の移動・回転差分を計算し、非表示の両端仮想レール（start, end）へ同一差分を適用して剛体として位置同期する。
+
+---
+
 FUNCTION: exportLayoutJSON
 FILE: snap-manager.js
 SIGNATURE: exportLayoutJSON()
