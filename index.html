@@ -199,15 +199,20 @@
     </dialog>
 
     <!-- パーツオプションダイアログ (標準 <dialog> を使用) -->
-    <dialog id="railOptionsDialog" style="border: 1px solid #ccc; border-radius: 8px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 320px; max-height: 80vh; overflow-y: auto;">
+    <dialog id="railOptionsDialog" style="border: 1px solid #ccc; border-radius: 8px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 340px; max-height: 80vh; overflow-y: auto;">
         <h3 style="margin-top: 0; font-size: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px;">パーツオプション</h3>
         <form id="railOptionsForm" method="dialog" style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
             
-            <fieldset style="border: 1px solid #ddd; border-radius: 4px; padding: 8px;">
+            <!-- 通常のノード位置・角度補正セクション -->
+            <fieldset style="border: 1px solid #ddd; border-radius: 4px; padding: 8px;" id="nodeOffsetsFieldset">
                 <legend style="font-weight: bold; padding: 0 4px;">ノード位置・角度補正</legend>
-                
-                <!-- 選択中のパーツのノード数に合わせて、入力項目が動的に挿入される領域 -->
                 <div id="nodeOffsetsContainer" style="display: flex; flex-direction: column; gap: 12px;"></div>
+            </fieldset>
+
+            <!-- 【追加】フレキシブルレール専用変形セクション -->
+            <fieldset style="border: 1px solid #ddd; border-radius: 4px; padding: 8px;" id="flexibleOptionsFieldset">
+                <legend style="font-weight: bold; padding: 0 4px;">フレキシブルレール変形</legend>
+                <div id="flexibleOptionsContainer" style="display: flex; flex-direction: column; gap: 8px;"></div>
             </fieldset>
 
             <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
@@ -379,6 +384,7 @@
         // レール詳細オプション（ダイアログ）制御
         // =============================================================================
         let currentEditingRail = null;
+        let currentEditingFlexibleId = null; // フレキシブルレール編集中のID
 
         // ダイアログを開く処理
         function openRailOptionsDialog() {
@@ -388,15 +394,16 @@
             // 何も選択されていない、または複数選択（範囲選択）の場合は処理しない
             if (!activeObj || activeObj.type === 'activeSelection') return;
 
-            // 選択されているオブジェクトがレール単体でない場合は処理しない
-            if (!activeObj.customData || !activeObj.customData.isRail) return;
+            // 選択されているオブジェクトがレール単体、またはフレキシブル構成要素でない場合は処理しない
+            if (!activeObj.customData || (!activeObj.customData.isRail && !activeObj.customData.flexibleId)) return;
 
             currentEditingRail = activeObj;
+            currentEditingFlexibleId = null;
 
             const container = document.getElementById('nodeOffsetsContainer');
             container.innerHTML = ''; // 前回生成した入力欄をクリア
 
-            // カタログデータからノード定義を取得
+            // --- 1. 通常ノードオフセット欄の構築（フレキシブルレールでも共通で表示） ---
             const partId = currentEditingRail.customData.partId;
             const catalogData = (typeof railCatalog !== 'undefined') ? railCatalog : (window.railCatalog || null);
             let rawNodes = [];
@@ -406,11 +413,8 @@
                 rawNodes = Array.isArray(nodesDef) ? nodesDef : Object.values(nodesDef);
             }
 
-            // "jointType": "rail-end" のノードのみを抽出
             const railEndNodes = rawNodes.filter(n => n && n.jointType === 'rail-end');
-
             const nodeCount = railEndNodes.length;
-            // partOptions.nodeOffsets のみをオプショナルチェイニングで安全に取得
             const offsets = currentEditingRail.customData.partOptions?.nodeOffsets || {};
 
             if (nodeCount === 0) {
@@ -419,9 +423,7 @@
                 emptyMsg.textContent = '調整可能なレール端ノードがありません。';
                 container.appendChild(emptyMsg);
             } else {
-                // "rail-end" ノードのみ入力欄を生成
                 railEndNodes.forEach((nodeDef, i) => {
-                    // ノード自身の元IDを取得（ID未設定時はインデックス）
                     const nodeIndex = (nodeDef.id !== undefined) ? nodeDef.id : i;
                     const nodeData = offsets[nodeIndex] || {};
 
@@ -452,6 +454,74 @@
                 });
             }
 
+            // --- 2. フレキシブルレール専用セクションの構築（フレキシブル構成要素の場合のみ表示） ---
+            const flexFieldset = document.getElementById('flexibleOptionsFieldset');
+            let flexContainer = document.getElementById('flexibleOptionsContainer');
+            if (flexContainer && flexFieldset) {
+                flexContainer.innerHTML = '';
+                const flexId = currentEditingRail.customData.flexibleId;
+
+                if (flexId) {
+                    currentEditingFlexibleId = flexId;
+                    flexFieldset.style.display = 'block';
+
+                    const allObjects = canvas.getObjects();
+                    const startRail = allObjects.find(o => o.customData && o.customData.flexibleId === flexId && o.customData.railType === 'flexible_start');
+                    const endRail = allObjects.find(o => o.customData && o.customData.flexibleId === flexId && o.customData.railType === 'flexible_end');
+
+                    if (!startRail || !endRail) {
+                        throw new Error(`[openRailOptionsDialog] Complete 3-piece set not found for flexibleId: ${flexId}`);
+                    }
+
+                    // start端のワールド座標・角度を基準(0,0,0)として、end端の相対位置・角度を計算
+                    const startOpt = fabric.util.qrDecompose(startRail.calcTransformMatrix());
+                    const endOpt = fabric.util.qrDecompose(endRail.calcTransformMatrix());
+
+                    const dx = endOpt.translateX - startOpt.translateX;
+                    const dy = endOpt.translateY - startOpt.translateY;
+                    const startRad = (-startOpt.angle * Math.PI) / 180;
+                    
+                    const relX = Math.round((dx * Math.cos(startRad) - dy * Math.sin(startRad)) * 10) / 10;
+                    const relY = Math.round((dx * Math.sin(startRad) + dy * Math.cos(startRad)) * 10) / 10;
+                    const relAngle = Math.round(((endOpt.angle - startOpt.angle + 360) % 360) * 10) / 10;
+
+                    // ハンドル長（length）の取得
+                    const startLen = startRail.customData.length !== undefined ? Math.round(startRail.customData.length * 10) / 10 : 0;
+                    const endLen = endRail.customData.length !== undefined ? Math.round(endRail.customData.length * 10) / 10 : 0;
+
+                    flexContainer.innerHTML = `
+                        <div style="font-size: 11px; color: #666; margin-bottom: 4px;">start端を原点(0,0,0)とした場合のend端の相対位置・角度</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-bottom: 8px;">
+                            <div>
+                                <label style="font-size: 11px; display: block;">相対 X (mm)</label>
+                                <input type="number" id="flex_rel_x" step="0.1" value="${relX}" style="width: 100%; box-sizing: border-box;">
+                            </div>
+                            <div>
+                                <label style="font-size: 11px; display: block;">相対 Y (mm)</label>
+                                <input type="number" id="flex_rel_y" step="0.1" value="${relY}" style="width: 100%; box-sizing: border-box;">
+                            </div>
+                            <div>
+                                <label style="font-size: 11px; display: block;">角度差 (deg)</label>
+                                <input type="number" id="flex_rel_angle" step="0.1" value="${relAngle}" style="width: 100%; box-sizing: border-box;">
+                            </div>
+                        </div>
+                        <div style="font-size: 11px; color: #666; margin-bottom: 4px;">ベジェハンドル長（接線ウェイト）</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                            <div>
+                                <label style="font-size: 11px; display: block;">Start ハンドル長</label>
+                                <input type="number" id="flex_start_len" step="0.1" min="0" value="${startLen}" style="width: 100%; box-sizing: border-box;">
+                            </div>
+                            <div>
+                                <label style="font-size: 11px; display: block;">End ハンドル長</label>
+                                <input type="number" id="flex_end_len" step="0.1" min="0" value="${endLen}" style="width: 100%; box-sizing: border-box;">
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    flexFieldset.style.display = 'none';
+                }
+            }
+
             const dialog = document.getElementById('railOptionsDialog');
             if (dialog) {
                 dialog.showModal();
@@ -463,13 +533,16 @@
             const dialog = document.getElementById('railOptionsDialog');
             if (dialog) dialog.close();
             currentEditingRail = null;
+            currentEditingFlexibleId = null;
         }
 
-        // 保存処理 (partOptions コンテナに保存し、値がすべて空の場合は delete で完全削除)
+        // レール詳細オプション（ダイアログ）保存処理
         function saveRailOptions() {
-            if (!currentEditingRail) return;
+            if (!currentEditingRail) {
+                throw new TypeError("[saveRailOptions] currentEditingRail reference is missing.");
+            }
 
-            // カタログデータから "jointType": "rail-end" のノードのみを抽出
+            // --- 1. 通常のノードオフセットの収集・保存処理 ---
             const partId = currentEditingRail.customData.partId;
             const catalogData = (typeof railCatalog !== 'undefined') ? railCatalog : (window.railCatalog || null);
             let rawNodes = [];
@@ -505,13 +578,83 @@
                 }
             });
 
+            if (!currentEditingRail.customData.partOptions) {
+                currentEditingRail.customData.partOptions = {};
+            }
+
             if (Object.keys(newOffsets).length > 0) {
-                if (!currentEditingRail.customData.partOptions) {
-                    currentEditingRail.customData.partOptions = {};
-                }
                 currentEditingRail.customData.partOptions.nodeOffsets = newOffsets;
             } else {
-                // オプションが空になった場合は partOptions コンテナごと削除
+                delete currentEditingRail.customData.partOptions.nodeOffsets;
+            }
+
+            // --- 2. フレキシブルレール変形の処理（該当する場合のみ実行・再構築） ---
+            if (currentEditingFlexibleId) {
+                const xEl = document.getElementById('flex_rel_x');
+                const yEl = document.getElementById('flex_rel_y');
+                const aEl = document.getElementById('flex_rel_angle');
+                const startLenEl = document.getElementById('flex_start_len');
+                const endLenEl = document.getElementById('flex_end_len');
+
+                if (!xEl || !yEl || !aEl || !startLenEl || !endLenEl) {
+                    throw new Error("[saveRailOptions] Flexible transformation input elements not found.");
+                }
+
+                const targetRelX = parseFloat(xEl.value);
+                const targetRelY = parseFloat(yEl.value);
+                const targetRelAngle = parseFloat(aEl.value);
+                const newStartLen = parseFloat(startLenEl.value);
+                const newEndLen = parseFloat(endLenEl.value);
+
+                if (isNaN(targetRelX) || isNaN(targetRelY) || isNaN(targetRelAngle) || isNaN(newStartLen) || isNaN(newEndLen)) {
+                    throw new Error("[saveRailOptions] Invalid numerical values provided for flexible rail transformation.");
+                }
+
+                const allObjects = canvas.getObjects();
+                const flexId = currentEditingFlexibleId;
+                const bridge = allObjects.find(o => o.customData && o.customData.flexibleId === flexId && o.customData.railType === 'flexible_bridge');
+                const start = allObjects.find(o => o.customData && o.customData.flexibleId === flexId && o.customData.railType === 'flexible_start');
+                const end = allObjects.find(o => o.customData && o.customData.flexibleId === flexId && o.customData.railType === 'flexible_end');
+
+                if (!bridge || !start || !end) {
+                    throw new Error(`[saveRailOptions] Complete 3-piece set not found for flexibleId: ${flexId}`);
+                }
+
+                // A. 仮想レールの制御点距離（length）および partOptions の更新
+                start.customData.length = newStartLen;
+                end.customData.length = newEndLen;
+
+                if (!start.customData.partOptions) start.customData.partOptions = {};
+                start.customData.partOptions.length = newStartLen;
+
+                if (!end.customData.partOptions) end.customData.partOptions = {};
+                end.customData.partOptions.length = newEndLen;
+
+                // B. start端を基準とした相対位置・角度から、end レールの絶対位置・角度を計算して更新
+                const startOpt = fabric.util.qrDecompose(start.calcTransformMatrix());
+                const startRad = (startOpt.angle * Math.PI) / 180;
+
+                const absX = startOpt.translateX + (targetRelX * Math.cos(startRad) - targetRelY * Math.sin(startRad));
+                const absY = startOpt.translateY + (targetRelX * Math.sin(startRad) + targetRelY * Math.cos(startRad));
+                const absAngle = (startOpt.angle + targetRelAngle) % 360;
+
+                end.set({
+                    left: absX,
+                    top: absY,
+                    angle: absAngle
+                });
+                end.setCoords();
+
+                // C. 更新された仮想レールの端位置と length をもとに、ベジェ曲線（bridge）を再構築
+                rebuildFlexibleRailBridge(bridge, start, end);
+
+                start.setCoords();
+                end.setCoords();
+                bridge.setCoords();
+            }
+
+            // オプションが完全に空になった場合は partOptions 自体を削除
+            if (Object.keys(currentEditingRail.customData.partOptions).length === 0) {
                 delete currentEditingRail.customData.partOptions;
             }
 
